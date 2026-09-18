@@ -13,6 +13,7 @@ from sqlalchemy.orm import Session
 
 __all__ = [
     "active_reservations_for_order",
+    "application_snapshot",
     "approved_application_for",
     "consume",
     "get_character_by_product",
@@ -95,6 +96,29 @@ def approved_application_for(session: Session, *, user_id: str, product_id: str)
     from app.modules.catalog import service as catalog_service
 
     return catalog_service.approved_application_for(session, user_id=user_id, product_id=product_id)
+
+
+def application_snapshot(session: Session, *, user_id: str, application_id: str) -> dict[str, Any] | None:
+    """本人某条申请的事实快照（C28「服务先申请再报价」的入站端口）。
+
+    只返回判定所需的字段，不把申请模块的 ORM 对象交给其他模块。
+    非本人返回 ``None``（调用方按 404 处理，不泄露是否存在）。
+    """
+    from app.modules.catalog import repository as catalog_repo
+
+    row = catalog_repo.get_application(session, application_id)
+    if row is None or row.user_id != user_id:
+        return None
+    return {
+        "id": row.id,
+        "user_id": row.user_id,
+        "kind": row.kind,
+        "status": row.status,
+        "product_id": row.product_id,
+        "priority_rank": row.priority_rank,
+        "purchase_expires_at": row.purchase_expires_at,
+        "converted_order_id": row.converted_order_id,
+    }
 
 
 # ------------------------------------------------------------------ 库存动作

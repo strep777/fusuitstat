@@ -570,10 +570,21 @@ def admin_release_character(
     dependencies=[Depends(require_permission("catalog.read"))],
 )
 def admin_list_applications(
-    ctx: ContextDep, status: str | None = None, product_id: str | None = None, limit: int = 50
+    ctx: ContextDep,
+    status: str | None = None,
+    product_id: str | None = None,
+    kind: str | None = None,
+    order_by_priority: bool = False,
+    limit: int = 50,
 ) -> CatalogPage:
+    """申请列表；``order_by_priority=true`` 时按 C28 的购买优先级排序（已审批在前、名次小者优先）。"""
     rows, total = repo.list_applications_admin(
-        ctx.session, status=status, product_id=product_id, limit=limit
+        ctx.session,
+        status=status,
+        product_id=product_id,
+        kind=kind,
+        order_by_priority=order_by_priority,
+        limit=limit,
     )
     items = [ApplicationResponse(**svc.application_payload(ctx.session, row)) for row in rows]
     return CatalogPage(items=items, total=total, page=1, limit=limit, has_more=False, next_cursor=None)

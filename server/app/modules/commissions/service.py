@@ -24,6 +24,7 @@ import sqlalchemy as sa
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from app.modules.catalog import ports as catalog_ports
 from app.modules.commissions import ports as commission_ports
 from app.modules.commissions import repository as repo
 from app.modules.commissions.models import (
@@ -282,6 +283,42 @@ def _append_revision(
 
 
 # ------------------------------------------------------------------ 询价用例
+def _check_service_application(
+    session: Session, *, user_id: str, application_id: str | None
+) -> str | None:
+    """C28「服务先申请再报价」：询价只能引用本人**已审批通过且未过期**的服务申请。
+
+    非本人或不存在一律 404（不透露申请是否存在）；已用于其他询价、非服务类、
+    未通过审批或已过购买窗口分别给出可读原因。
+    """
+    if not application_id:
+        return None
+    snapshot = catalog_ports.application_snapshot(
+        session, user_id=user_id, application_id=application_id
+    )
+    if snapshot is None:
+        raise AppError("RESOURCE_NOT_FOUND")
+    if snapshot["converted_order_id"]:
+        raise AppError("STATE_CONFLICT", "该申请已用于下单，请重新提交申请。")
+    if snapshot["kind"] != "service":
+        raise AppError(
+            "VALIDATION_ERROR",
+            "该申请不是服务类申请，不能用于发起询价。",
+            fields={"application_id": "申请类型不匹配"},
+        )
+    if snapshot["status"] != "APPROVED":
+        raise AppError("STATE_CONFLICT", "该服务申请尚未通过审批，暂时不能发起询价。")
+    expires_at = snapshot["purchase_expires_at"]
+    if expires_at and int(expires_at) <= now_ms():
+        raise AppError("STATE_CONFLICT", "该申请的购买窗口已过期，请重新提交申请。")
+    existing = session.scalars(
+        sa.select(Inquiry.id).where(Inquiry.application_id == application_id)
+    ).first()
+    if existing is not None:
+        raise AppError("STATE_CONFLICT", "该申请已用于另一份询价，请到「我的委托」继续处理。")
+    return application_id
+
+
 def create_inquiry(
     session: Session,
     *,
@@ -304,6 +341,9 @@ def create_inquiry(
     _check_rights(payload.rights_declaration)
     if payload.design_asset_ids:
         _check_design_assets(session, user_id=user_id, asset_ids=list(payload.design_asset_ids))
+    application_id = _check_service_application(
+        session, user_id=user_id, application_id=payload.application_id
+    )
 
     inquiry = Inquiry(
         id=new_id("inquiry"),
@@ -322,6 +362,7 @@ def create_inquiry(
         contact_preference=payload.contact_preference,
         rights_declaration=1 if payload.rights_declaration else 0,
         guardian_required=1 if payload.guardian_required else 0,
+        application_id=application_id,
     )
     session.add(inquiry)
     session.flush()
@@ -1060,6 +1101,12 @@ def accept_quote_for_user(
         reservation.order_id = order.order_id
         session.add(reservation)
         session.flush()
+
+    if inquiry.application_id:
+        # C28：服务申请 → 询价 → 报价 → 接受并建单，申请在此刻收口为已转订单。
+        catalog_ports.mark_application_converted(
+            session, application_id=inquiry.application_id, order_id=order.order_id
+        )
 
     project = CommissionProject(
         id=new_id("project"),
@@ -2541,6 +2588,7 @@ def inquiry_detail_dto(session: Session, inquiry: Inquiry) -> InquiryDetail:
         accepted_quote_id=inquiry.accepted_quote_id,
         accepted_at=iso(inquiry.accepted_at),
         withdrawn_at=iso(inquiry.withdrawn_at),
+        application_id=inquiry.application_id,
         revisions=revisions,
         current_quote_version=current_quote.quote_version if current_quote else None,
         project_id=project.id if project else None,

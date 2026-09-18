@@ -77,6 +77,17 @@ const inquiryVersion = ref(0);
 const serverSnapshot = ref<InquiryInput>(emptyInquiryDraft());
 const submitted = ref<Inquiry | null>(null);
 
+/**
+ * C28「服务先申请再报价」：从已通过审批的服务申请进入本页时带上申请编号，
+ * 保存在草稿与建单请求里。服务端会再校验归属、类型、审批状态与购买窗口，
+ * 前端只负责把它带过去，不做任何本地判定。
+ */
+const applicationId = ref<string>(
+  typeof route.query.application_id === "string" && /^[A-Za-z0-9_-]{1,64}$/.test(route.query.application_id)
+    ? route.query.application_id
+    : "",
+);
+
 type SaveState = "idle" | "dirty" | "saving" | "saved" | "error";
 const saveState = ref<SaveState>("idle");
 const saveError = ref<string | null>(null);
@@ -283,7 +294,11 @@ async function saveDraft(): Promise<boolean> {
   saveError.value = null;
   try {
     if (!inquiryId.value) {
-      const created = await createInquiry({ ...draft, design_asset_ids: [...draft.design_asset_ids] });
+      const created = await createInquiry({
+        ...draft,
+        design_asset_ids: [...draft.design_asset_ids],
+        application_id: applicationId.value || null,
+      });
       adoptSavedInquiry(created);
       saveState.value = "saved";
       return true;

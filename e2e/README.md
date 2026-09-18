@@ -15,6 +15,14 @@
 
 ## 运行前提
 
+Playwright 配置会**自己准备后端数据**：在 `e2e/.e2e-data/`（已忽略，不入库）里
+清空并重新执行 `init-db` + `seed-demo`，再启动 uvicorn 与 Vite。这样每轮 journey
+都从同一份干净数据开始，也不会消耗开发者自己 `server/var` 里的演示库存——
+浏览器 journeys 会真实下单与扣库存，跑在开发者库上多跑几轮就会把库存卖光，
+表现为「加购」之类的用例莫名失败（那是数据被消耗，不是产品坏了）。
+
+只想手动起服务时（`E2E_NO_WEBSERVER=1`），按下面前两步准备即可：
+
 1. 后端已建库并写入演示数据：
 
 ```bash
@@ -36,6 +44,9 @@ cd web && pnpm dev
 pnpm dlx playwright@latest install --with-deps chromium
 pnpm dlx playwright@latest test --config e2e/playwright.config.ts
 ```
+
+本机无法下载 Playwright 自带 Chromium 时，可用系统浏览器做**近似验证**：
+`$env:E2E_BROWSER_CHANNEL="msedge"`（CI 仍用自带 Chromium，最终以 CI 为准）。
 
 ## 用例对应关系
 

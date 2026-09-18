@@ -129,6 +129,9 @@ class Inquiry(PkMixin, TimestampMixin, VersionMixin, Base):
     needs_info_note: Mapped[str | None] = mapped_column(sa.String(500))
     reject_reason: Mapped[str | None] = mapped_column(sa.String(400))
     accepted_quote_id: Mapped[str | None] = mapped_column(sa.String(48))
+    # C28「服务先申请再报价」：服务类申请通过后，询价带上该申请；
+    # 一个申请只能用于一份询价（唯一索引），避免同一份审批被反复用来报价。
+    application_id: Mapped[str | None] = mapped_column(sa.String(48))
     submitted_at: Mapped[int | None] = mapped_column(sa.BigInteger)
     accepted_at: Mapped[int | None] = mapped_column(sa.BigInteger)
     rejected_at: Mapped[int | None] = mapped_column(sa.BigInteger)
@@ -152,6 +155,7 @@ class Inquiry(PkMixin, TimestampMixin, VersionMixin, Base):
         ),
         sa.CheckConstraint("current_revision >= 0", name="ck_inquiries_revision_nonneg"),
         sa.Index("ix_inquiries_user_status", "user_id", "status", "created_at"),
+        sa.Index("uq_inquiries_application", "application_id", unique=True),
     )
 
 

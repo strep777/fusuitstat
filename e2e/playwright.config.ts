@@ -6,8 +6,22 @@
  */
 
 import { defineConfig, devices } from "@playwright/test";
+import path from "node:path";
 
 const SITE_ORIGIN = process.env.E2E_SITE_ORIGIN ?? "http://127.0.0.1:5173";
+
+// 配置文件由 Playwright 以 CJS 方式加载（见 e2e/tsconfig.json），因此用 __dirname 而不是 import.meta。
+const E2E_ROOT = __dirname;
+
+/**
+ * e2e 专用数据目录。
+ *
+ * 浏览器 journeys 会真实下单、扣库存、发验证码；如果直接跑在开发者自己的
+ * `server/var` 上，多跑几轮就会把演示库存卖光，之后「加购」这类用例会莫名其妙
+ * 失败（那是数据被消耗，不是产品坏了）。这里给 e2e 一份**独立且每次重置**的数据：
+ * 与 CI 的 `init-db` + `seed-demo` 行为一致，同时不再改动开发者的本地库。
+ */
+const E2E_DATA_DIR = process.env.E2E_DATA_DIR ?? path.join(E2E_ROOT, ".e2e-data");
 
 /**
  * 浏览器通道。
@@ -54,13 +68,20 @@ export default defineConfig({
     ? undefined
     : [
         {
-          command: "uv run uvicorn app.main:app --port 8000",
+          // 先清空 e2e 数据目录再初始化并写入演示数据，最后启动后端：
+          // 这样每轮 journey 都从同一份干净数据开始，用例结果可复现。
+          command:
+            "uv run python -c \"import os,shutil;shutil.rmtree(os.environ['DATA_DIR'], ignore_errors=True)\""
+            + " && uv run python -m app.cli init-db"
+            + " && uv run python -m app.cli seed-demo"
+            + " && uv run uvicorn app.main:app --port 8000",
           cwd: "../server",
           url: "http://127.0.0.1:8000/readyz",
           reuseExistingServer: true,
-          timeout: 120_000,
+          timeout: 180_000,
           env: {
             APP_ENV: "development",
+            DATA_DIR: E2E_DATA_DIR,
             // e2e 每次用例都要真实登录，几十次发送会撞上「同 IP 20 次/小时」的防刷限额。
             // 这里只放宽**测试环境**的限额数值；限流逻辑本身由
             // server/tests/integration/test_sms_rate_limit.py 在服务端固定验证，

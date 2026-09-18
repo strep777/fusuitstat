@@ -319,6 +319,19 @@ def adjust_stock(
     sku = repo.get_sku(session, sku_id)
     if sku is None:
         raise AppError("RESOURCE_NOT_FOUND")
+    product = repo.get_product(session, sku.product_id)
+    if (
+        product is not None
+        and product.kind == "exclusive_character"
+        and sku.stock_on_hand + delta > 1
+    ):
+        # 08 文档：独占角色只能绑定一个销售 SKU，库存固定为 1。
+        # 允许降到 0（下架）或回到 1（复售），但不允许调成大于 1 的可售数量。
+        raise AppError(
+            "STATE_CONFLICT",
+            "独占角色的可售数量固定为 1，不能通过调整库存增加。",
+            fields={"delta": "独占角色库存不可超过 1"},
+        )
     if sku.stock_on_hand + delta < sku.reserved:
         raise AppError(
             "STATE_CONFLICT",

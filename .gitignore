@@ -63,3 +63,6 @@ test-results/
 # Playwright HTML 报告与失败证据（e2e/playwright.config.ts 的 outputFolder）
 e2e/report/
 e2e/test-results/
+
+# e2e 专用数据目录（每轮 reset + seed-demo，不入库）
+e2e/.e2e-data/

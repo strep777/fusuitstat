@@ -241,6 +241,13 @@ async function mountPage(): Promise<VueWrapper> {
   return wrapper;
 }
 
+/** 从「已通过审批的服务申请」进入询价页（C28：服务先申请再报价）。 */
+async function mountPageWithApplication(applicationId: string): Promise<VueWrapper> {
+  await router.push({ path: "/commission/new", query: { application_id: applicationId } });
+  await router.isReady();
+  return mountPage();
+}
+
 function vm(): InquiryVm {
   if (!wrapper) throw new Error("组件尚未挂载");
   return wrapper.vm as unknown as InquiryVm;
@@ -316,6 +323,42 @@ afterEach(() => {
 /* ------------------------------------------------------------------
    1. 必填校验
    ------------------------------------------------------------------ */
+
+describe("服务申请带来的询价（C28）", () => {
+  it("从已通过审批的服务申请进入时，建单请求带上申请编号", async () => {
+    await mountPageWithApplication("application_service_1");
+    const page = vm();
+    page.draft.character_name = "服务申请角色";
+    page.draft.species = "狼";
+    page.draft.series_id = "series_dragon";
+    page.draft.rights_declaration = true;
+    await flush();
+
+    await page.saveDraft();
+    await flush();
+
+    expect(apiMocks.createInquiry).toHaveBeenCalledTimes(1);
+    expect(apiMocks.createInquiry.mock.calls[0]?.[0]).toMatchObject({
+      character_name: "服务申请角色",
+      application_id: "application_service_1",
+    });
+  });
+
+  it("普通进入（无申请编号）时不携带 application_id，避免误用他人审批", async () => {
+    await mountPage();
+    const page = vm();
+    page.draft.character_name = "普通询价角色";
+    page.draft.species = "猫";
+    page.draft.series_id = "series_dragon";
+    page.draft.rights_declaration = true;
+    await flush();
+
+    await page.saveDraft();
+    await flush();
+
+    expect(apiMocks.createInquiry.mock.calls[0]?.[0]).toMatchObject({ application_id: null });
+  });
+});
 
 describe("询价必填校验", () => {
   it("未填写角色名称与系列时停留在第一步，并给出贴字段的错误", async () => {

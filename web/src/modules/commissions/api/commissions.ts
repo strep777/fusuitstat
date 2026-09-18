@@ -172,6 +172,8 @@ export interface InquiryInput {
   rights_declaration: boolean;
   /** C19：未成年人需监护人同意，未确认前不收集监护人身份材料。 */
   guardian_required: boolean;
+  /** C28：本人已通过审批的服务申请编号（服务先申请再报价）；普通询价不传。 */
+  application_id?: string | null;
 }
 
 export interface Inquiry extends Omit<
@@ -206,6 +208,8 @@ export interface Inquiry extends Omit<
   target_date?: string | null;
   delivery_region?: string | null;
   contact_preference?: string | null;
+  /** 同样只有详情接口返回（列表行不含）。 */
+  application_id?: string | null;
 }
 
 export interface InquiryListQuery {

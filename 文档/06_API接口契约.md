@@ -38,7 +38,7 @@ HTTP：400 格式错误，401 未认证，403 无权限/CSRF，404 无可访问�
 | POST `/uploads` | 本人/员工+限流 | 建临时上传，返回受限地址/表单 |
 | POST `/uploads/:id/complete`、GET `/uploads/:id` | 文件所有者 | 核验实际对象并排队扫描/查询结果 |
 | GET `/media/:id/access` | 授权主体 | 私密附件短期下载地址；no-store |
-| GET/POST `/inquiries`、GET/PATCH `/inquiries/:id` | 本人 | 询价列表/草稿/允许版本的编辑 |
+| GET/POST `/inquiries`、GET/PATCH `/inquiries/:id` | 本人 | 询价列表/草稿/允许版本的编辑；`POST` 可带 `application_id` 引用本人**已审批通过且未过期**的服务申请（C28：服务先申请再报价），非本人/未通过/已用过一律拒绝 |
 | POST `/inquiries/:id/submit`、`/withdraw`、`/supplements` | 本人 | 受状态约束动作 |
 | GET `/inquiries/:id/quotes` | 本人 | 报价版本列表 |
 | POST `/quotes/:id/accept` | 本人+幂等 | 确认版本/条款并建立唯一订单 |
@@ -64,6 +64,8 @@ HTTP：400 格式错误，401 未认证，403 无权限/CSRF，404 无可访问�
 `/admin` API 组依权限实施：`/auth/login、/auth/mfa、/content、/products、/characters、/quotes、/schedule-rounds、/commission-projects、/orders、/shipments、/refunds、/reconciliation-runs、/feedback、/point-adjustments、/users、/staff、/settings、/audit-logs、/jobs`。列表 GET、详情 GET、编辑 PATCH；发布/批准/发货/重试分别用 POST 动作，不让通用 PATCH 越过状态机。
 
 必须单独定义：`POST /admin/inquiries/:id/quotes` 发布报价；`POST /admin/refunds` 申请退款；`POST /admin/refunds/:id/approve` 批准；`POST /admin/feedback/:id/reviews` 审核；`POST /admin/point-adjustments/:id/approve` 调整批准。以上均需幂等、权限、原因和审计。
+
+商品与申请（C28）：`GET /admin/stock-applications` 支持 `status`、`product_id`、`kind` 过滤与 `order_by_priority=true`——后者按**购买优先级**排序（已审批在前、`priority_rank` 小者优先、同排名按审批时间先到先得），这就是「审批通过列表作为购买优先级」的运营视图；`POST /admin/stock-applications/:id/decide` 通过审批时可给出 `priority_rank` 与购买窗口天数。
 
 ## 关键请求与响应
 

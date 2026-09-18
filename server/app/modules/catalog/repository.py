@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 import sqlalchemy as sa
 from sqlalchemy.orm import Session
 
@@ -252,24 +254,49 @@ def list_applications_for_user(
 
 
 def list_applications_admin(
-    session: Session, *, status: str | None = None, product_id: str | None = None, limit: int = 20, offset: int = 0
+    session: Session,
+    *,
+    status: str | None = None,
+    product_id: str | None = None,
+    kind: str | None = None,
+    order_by_priority: bool = False,
+    limit: int = 20,
+    offset: int = 0,
 ) -> tuple[list[StockApplication], int]:
+    """后台申请列表。
+
+    ``order_by_priority=True`` 时按 **C28 的购买优先级**排序：已审批的排在前、
+    ``priority_rank`` 小的优先（未填排名的排在有名次之后），同排名按审批时间先到先得。
+    这是「审批通过列表作为购买优先级」的运营视图，不额外发明时间窗规则。
+    """
     conditions = []
     if status:
         conditions.append(StockApplication.status == status)
     if product_id:
         conditions.append(StockApplication.product_id == product_id)
+    if kind:
+        conditions.append(StockApplication.kind == kind)
     count = int(
         session.scalar(
             sa.select(sa.func.count()).select_from(StockApplication).where(*conditions)
         )
         or 0
     )
+    if order_by_priority:
+        ordering: tuple[Any, ...] = (
+            sa.case((StockApplication.status == "APPROVED", 0), else_=1),
+            sa.case((StockApplication.priority_rank.is_(None), 1), else_=0),
+            StockApplication.priority_rank.asc(),
+            StockApplication.decided_at.asc(),
+            StockApplication.created_at.asc(),
+        )
+    else:
+        ordering = (StockApplication.created_at.desc(),)
     rows = list(
         session.scalars(
             sa.select(StockApplication)
             .where(*conditions)
-            .order_by(StockApplication.created_at.desc())
+            .order_by(*ordering)
             .limit(min(limit, 100))
             .offset(offset)
         )

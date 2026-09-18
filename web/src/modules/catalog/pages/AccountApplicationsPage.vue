@@ -83,6 +83,15 @@ const hasOpenWindow = computed(() =>
   ),
 );
 
+/** C28：服务类申请通过后先报价——只有已审批且在购买窗口内的服务申请可以带进询价。 */
+function canStartInquiry(item: StockApplication): boolean {
+  return (
+    item.kind === "service" &&
+    item.status === "approved" &&
+    (!item.purchase_expires_at || !isExpired(item.purchase_expires_at, now.value))
+  );
+}
+
 let ticker: ReturnType<typeof setInterval> | null = null;
 
 function stopTicker(): void {
@@ -557,6 +566,14 @@ onBeforeUnmount(stopTicker);
               </p>
 
               <div class="mt-4 flex flex-wrap gap-3">
+                <!-- C28：服务类申请通过后先报价；这里把审批结果带进询价表单，避免用户重复填写。 -->
+                <AppButton
+                  v-if="canStartInquiry(item)"
+                  :to="withQuery('/commission/new', { application_id: item.id })"
+                  size="sm"
+                >
+                  据此发起询价
+                </AppButton>
                 <AppButton
                   v-if="item.product_slug"
                   :to="`/shop/${item.product_slug}`"

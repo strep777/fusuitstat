@@ -39,6 +39,8 @@ class InquiryCreate(StrictDto):
     contact_preference: str | None = Field(default=None, max_length=80)
     rights_declaration: bool = False
     guardian_required: bool = False
+    # C28「服务先申请再报价」：引用本人已通过审批的服务申请；其他类型或未通过的申请由服务端拒绝。
+    application_id: str | None = Field(default=None, max_length=48)
     # 草稿重放时前端可能带上已保存的草稿版本号；创建时忽略，编辑走 PATCH。
     version: int | None = Field(default=None, ge=1)
 
@@ -207,6 +209,8 @@ class InquiryDetail(InquirySummary):
     accepted_quote_id: str | None = None
     accepted_at: str | None = None
     withdrawn_at: str | None = None
+    # C28：本询价引用的服务申请编号（未引用申请时为 None）。
+    application_id: str | None = None
     revisions: list[InquiryRevisionItem] = Field(default_factory=list)
     current_quote_version: int | None = None
     project_id: str | None = None

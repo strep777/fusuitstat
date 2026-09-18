@@ -8056,6 +8056,7 @@
           "admin-catalog"
         ],
         "summary": "Admin List Applications",
+        "description": "申请列表；``order_by_priority=true`` 时按 C28 的购买优先级排序（已审批在前、名次小者优先）。",
         "operationId": "admin_list_applications_api_v1_admin_stock_applications_get",
         "parameters": [
           {
@@ -8088,6 +8089,32 @@
                 }
               ],
               "title": "Product Id"
+            }
+          },
+          {
+            "name": "kind",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Kind"
+            }
+          },
+          {
+            "name": "order_by_priority",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Order By Priority"
             }
           },
           {
@@ -16672,6 +16699,18 @@
             "title": "Guardian Required",
             "default": false
           },
+          "application_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 48
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Application Id"
+          },
           "version": {
             "anyOf": [
               {
@@ -16877,6 +16916,17 @@
               }
             ],
             "title": "Withdrawn At"
+          },
+          "application_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Application Id"
           },
           "revisions": {
             "items": {

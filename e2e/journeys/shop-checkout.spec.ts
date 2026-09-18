@@ -164,6 +164,12 @@ test.describe("TC-O01 加购、结算预览与创建订单（服务端裁定金�
 
     await page.goto(href as string);
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(title as string);
+    // 商品详情在数据未就绪时渲染加载态（此时按钮虽已存在但不会发起请求）。
+    // 先等加载态结束，避免整轮并行跑用例时点到「还没接管」的按钮，把竞态误判成产品缺陷。
+    await expect(page.getByText("正在读取商品信息")).toHaveCount(0);
+    // 会话是页面加载后异步恢复的：页头仍处于未登录态时点击加购会按未登录跳转（用例竞态）。
+    // 「手机号登录」与「我的账户」是 v-if/v-else 互斥渲染，用它判断与视口无关。
+    await expect(page.getByRole("link", { name: "手机号登录" })).toHaveCount(0);
 
     const addButton = page.getByRole("button", { name: "加入购物车" });
     test.skip((await addButton.count()) === 0, "该商品没有可售规格，无法验证加购路径");

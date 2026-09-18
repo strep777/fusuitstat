@@ -1,0 +1,52 @@
+[
+  {
+    "url": "https://halosea-fursuit.com/account",
+    "final_url": "https://halosea-fursuit.com/account",
+    "status": 200,
+    "content_type": "text/html; charset=utf-8",
+    "title": "我的账户｜光海印记",
+    "links": [
+      "/",
+      "/terms",
+      "/privacy"
+    ],
+    "controls": [],
+    "extracted_text_sha256": "558045411760721e67ab39aa80baf26c399dead13a0e01e6a5a94509a99a15a2",
+    "text_characters": 66
+  },
+  {
+    "url": "https://halosea-fursuit.com/me",
+    "status": "error",
+    "error": "HTTP Error 404: Not Found",
+    "title": "",
+    "links": [],
+    "controls": [],
+    "extracted_text_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "text_characters": 0
+  },
+  {
+    "url": "https://halosea-fursuit.com/me/guarantee",
+    "status": "error",
+    "error": "HTTP Error 404: Not Found",
+    "title": "",
+    "links": [],
+    "controls": [],
+    "extracted_text_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "text_characters": 0
+  },
+  {
+    "url": "https://halosea-fursuit.com/reset-password",
+    "final_url": "https://halosea-fursuit.com/reset-password",
+    "status": 200,
+    "content_type": "text/html; charset=utf-8",
+    "title": "重置密码｜光海印记",
+    "links": [
+      "/login",
+      "/terms",
+      "/privacy"
+    ],
+    "controls": [],
+    "extracted_text_sha256": "159862da13a057d17a9dc854df702881709c9097bccd06df98b818e609c34339",
+    "text_characters": 73
+  }
+]

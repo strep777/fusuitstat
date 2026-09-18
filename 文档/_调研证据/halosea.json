@@ -1,0 +1,377 @@
+{
+  "seed": "https://halosea-fursuit.com/",
+  "pages": [
+    {
+      "url": "https://halosea-fursuit.com/",
+      "final_url": "https://halosea-fursuit.com/",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "title": "光海印记｜角色制作在线估价",
+      "controls": [
+        {
+          "type": "button"
+        },
+        {
+          "type": "button"
+        },
+        {
+          "type": "button"
+        }
+      ],
+      "scripts": [
+        "https://halosea-fursuit.com/_next/static/chunks/4bd1b696-dd0569e18e94a1f3.js",
+        "https://halosea-fursuit.com/_next/static/chunks/3794-93dee6a5b90ed6c7.js",
+        "https://halosea-fursuit.com/_next/static/chunks/main-app-db64ff0eca0f788a.js",
+        "https://halosea-fursuit.com/_next/static/chunks/8500-e4315938f607d41b.js",
+        "https://halosea-fursuit.com/_next/static/chunks/app/layout-94cd2da792afea0a.js",
+        "https://halosea-fursuit.com/_next/static/chunks/3701-7efa5e1d7bff8965.js",
+        "https://halosea-fursuit.com/_next/static/chunks/app/error-f2112c344fb07747.js",
+        "https://halosea-fursuit.com/_next/static/chunks/app/not-found-8b518583a5778b0a.js",
+        "https://halosea-fursuit.com/_next/static/chunks/6436-b1a203b1aa2f9088.js",
+        "https://halosea-fursuit.com/_next/static/chunks/6330-50cbafe74001913c.js",
+        "https://halosea-fursuit.com/_next/static/chunks/2689-9179e1634d5c8d29.js",
+        "https://halosea-fursuit.com/_next/static/chunks/app/page-d720a04d86149bd3.js",
+        "https://halosea-fursuit.com/_next/static/chunks/app/global-error-0dc78d75dc37a13f.js",
+        "https://halosea-fursuit.com/_next/static/chunks/polyfills-42372ed130431b0a.js",
+        "https://halosea-fursuit.com/_next/static/chunks/webpack-6732a53bf4aa79a2.js"
+      ],
+      "links": [
+        "https://halosea-fursuit.com/commissions",
+        "https://halosea-fursuit.com/estimate",
+        "https://halosea-fursuit.com/login",
+        "https://halosea-fursuit.com/privacy",
+        "https://halosea-fursuit.com/rush",
+        "https://halosea-fursuit.com/terms",
+        "https://qun.qq.com/",
+        "https://www.bilibili.com/",
+        "https://www.douyin.com/",
+        "https://www.taobao.com/",
+        "https://www.xiaohongshu.com/"
+      ],
+      "sha256": "8684038f80ad2512991f85b16ce0923d4e04a2da0372b4e23ae3ef92778513a1",
+      "extracted_text_sha256": "f58cb341f1f216c85c18332bffb9f1554e201f66f8c70f7c24cc6876a05e91da",
+      "text_characters": 781
+    },
+    {
+      "url": "https://halosea-fursuit.com/commissions",
+      "final_url": "https://halosea-fursuit.com/commissions",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "title": "普通委托窗口｜光海印记",
+      "controls": [],
+      "scripts": [
+        "https://halosea-fursuit.com/_next/static/chunks/4bd1b696-dd0569e18e94a1f3.js",
+        "https://halosea-fursuit.com/_next/static/chunks/3794-93dee6a5b90ed6c7.js",
+        "https://halosea-fursuit.com/_next/static/chunks/main-app-db64ff0eca0f788a.js",
+        "https://halosea-fursuit.com/_next/static/chunks/8500-e4315938f607d41b.js",
+        "https://halosea-fursuit.com/_next/static/chunks/app/layout-94cd2da792afea0a.js",
+        "https://halosea-fursuit.com/_next/static/chunks/3701-7efa5e1d7bff8965.js",
+        "https://halosea-fursuit.com/_next/static/chunks/app/error-f2112c344fb07747.js",
+        "https://halosea-fursuit.com/_next/static/chunks/app/not-found-8b518583a5778b0a.js",
+        "https://halosea-fursuit.com/_next/static/chunks/7245-40ed898121a1cada.js",
+        "https://halosea-fursuit.com/_next/static/chunks/app/commissions/page-6c3817ca7085c879.js",
+        "https://halosea-fursuit.com/_next/static/chunks/app/global-error-0dc78d75dc37a13f.js",
+        "https://halosea-fursuit.com/_next/static/chunks/polyfills-42372ed130431b0a.js",
+        "https://halosea-fursuit.com/_next/static/chunks/webpack-6732a53bf4aa79a2.js"
+      ],
+      "links": [
+        "https://halosea-fursuit.com/",
+        "https://halosea-fursuit.com/privacy",
+        "https://halosea-fursuit.com/terms"
+      ],
+      "sha256": "bc8a407398c89f9adc8c54ab564f3d6942e9099292d80495864f766fd1700830",
+      "extracted_text_sha256": "48d5603d39d9fe14ef0f9c579726ea090900e41d82af1ba64331f4c1822a97aa",
+      "text_characters": 89
+    },
+    {
+      "url": "https://halosea-fursuit.com/estimate",
+      "final_url": "https://halosea-fursuit.com/estimate",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "title": "在线估价｜光海印记",
+      "controls": [],
+      "scripts": [
+        "https://halosea-fursuit.com/_next/static/chunks/4bd1b696-dd0569e18e94a1f3.js",
+        "https://halosea-fursuit.com/_next/static/chunks/3794-93dee6a5b90ed6c7.js",
+        "https://halosea-fursuit.com/_next/static/chunks/main-app-db64ff0eca0f788a.js",
+        "https://halosea-fursuit.com/_next/static/chunks/8500-e4315938f607d41b.js",
+        "https://halosea-fursuit.com/_next/static/chunks/app/layout-94cd2da792afea0a.js",
+        "https://halosea-fursuit.com/_next/static/chunks/3701-7efa5e1d7bff8965.js",
+        "https://halosea-fursuit.com/_next/static/chunks/app/error-f2112c344fb07747.js",
+        "https://halosea-fursuit.com/_next/static/chunks/app/not-found-8b518583a5778b0a.js",
+        "https://halosea-fursuit.com/_next/static/chunks/6436-b1a203b1aa2f9088.js",
+        "https://halosea-fursuit.com/_next/static/chunks/6330-50cbafe74001913c.js",
+        "https://halosea-fursuit.com/_next/static/chunks/2689-9179e1634d5c8d29.js",
+        "https://halosea-fursuit.com/_next/static/chunks/5875-9355dd9ac73a8313.js",
+        "https://halosea-fursuit.com/_next/static/chunks/app/estimate/page-f699c923b2d381fa.js",
+        "https://halosea-fursuit.com/_next/static/chunks/app/global-error-0dc78d75dc37a13f.js",
+        "https://halosea-fursuit.com/_next/static/chunks/polyfills-42372ed130431b0a.js",
+        "https://halosea-fursuit.com/_next/static/chunks/webpack-6732a53bf4aa79a2.js"
+      ],
+      "links": [
+        "https://halosea-fursuit.com/",
+        "https://halosea-fursuit.com/privacy",
+        "https://halosea-fursuit.com/terms"
+      ],
+      "sha256": "d31e1ee649f7655699cf7653011cb53d1913f5fb86e3e267f244713054b3e16c",
+      "extracted_text_sha256": "dd2d3124ad4b81bff2c59ac1423829ebb2b0f5e4bec2a5a6ebec1be0fef9e04b",
+      "text_characters": 99
+    },
+    {
+      "url": "https://halosea-fursuit.com/login",
+      "final_url": "https://halosea-fursuit.com/login",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "title": "登录｜光海印记",
+      "controls": [
+        {
+          "type": "email",
+          "required": "",
+          "name": "email"
+        },
+        {
+          "type": "password",
+          "required": "",
+          "name": "password"
+        },
+        {
+          "type": "submit"
+        }
+      ],
+      "scripts": [
+        "https://halosea-fursuit.com/_next/static/chunks/4bd1b696-dd0569e18e94a1f3.js",
+        "https://halosea-fursuit.com/_next/static/chunks/3794-93dee6a5b90ed6c7.js",
+        "https://halosea-fursuit.com/_next/static/chunks/main-app-db64ff0eca0f788a.js",
+        "https://halosea-fursuit.com/_next/static/chunks/8500-e4315938f607d41b.js",
+        "https://halosea-fursuit.com/_next/static/chunks/app/layout-94cd2da792afea0a.js",
+        "https://halosea-fursuit.com/_next/static/chunks/3701-7efa5e1d7bff8965.js",
+        "https://halosea-fursuit.com/_next/static/chunks/app/error-f2112c344fb07747.js",
+        "https://halosea-fursuit.com/_next/static/chunks/app/not-found-8b518583a5778b0a.js",
+        "https://halosea-fursuit.com/_next/static/chunks/6330-50cbafe74001913c.js",
+        "https://halosea-fursuit.com/_next/static/chunks/2689-9179e1634d5c8d29.js",
+        "https://halosea-fursuit.com/_next/static/chunks/app/login/page-9685d5d7cf87f7cb.js",
+        "https://halosea-fursuit.com/_next/static/chunks/app/global-error-0dc78d75dc37a13f.js",
+        "https://halosea-fursuit.com/_next/static/chunks/polyfills-42372ed130431b0a.js",
+        "https://halosea-fursuit.com/_next/static/chunks/webpack-6732a53bf4aa79a2.js"
+      ],
+      "links": [
+        "https://halosea-fursuit.com/",
+        "https://halosea-fursuit.com/forgot-password",
+        "https://halosea-fursuit.com/privacy",
+        "https://halosea-fursuit.com/register",
+        "https://halosea-fursuit.com/terms"
+      ],
+      "sha256": "82d1088690e4e2c9e348a12861f801d150efce11f09e2b44d91be8a36c22f76e",
+      "extracted_text_sha256": "de84955570a0ad35fa4ab91e92e44cdd857f66452718568c5e61d7ea5335914e",
+      "text_characters": 84
+    },
+    {
+      "url": "https://halosea-fursuit.com/privacy",
+      "final_url": "https://halosea-fursuit.com/privacy",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "title": "隐私政策｜光海印记",
+      "controls": [],
+      "scripts": [
+        "https://halosea-fursuit.com/_next/static/chunks/4bd1b696-dd0569e18e94a1f3.js",
+        "https://halosea-fursuit.com/_next/static/chunks/3794-93dee6a5b90ed6c7.js",
+        "https://halosea-fursuit.com/_next/static/chunks/main-app-db64ff0eca0f788a.js",
+        "https://halosea-fursuit.com/_next/static/chunks/8500-e4315938f607d41b.js",
+        "https://halosea-fursuit.com/_next/static/chunks/app/layout-94cd2da792afea0a.js",
+        "https://halosea-fursuit.com/_next/static/chunks/3701-7efa5e1d7bff8965.js",
+        "https://halosea-fursuit.com/_next/static/chunks/app/error-f2112c344fb07747.js",
+        "https://halosea-fursuit.com/_next/static/chunks/app/not-found-8b518583a5778b0a.js",
+        "https://halosea-fursuit.com/_next/static/chunks/app/privacy/page-dc10ea94c01ca034.js",
+        "https://halosea-fursuit.com/_next/static/chunks/app/global-error-0dc78d75dc37a13f.js",
+        "https://halosea-fursuit.com/_next/static/chunks/polyfills-42372ed130431b0a.js",
+        "https://halosea-fursuit.com/_next/static/chunks/webpack-6732a53bf4aa79a2.js"
+      ],
+      "links": [
+        "https://halosea-fursuit.com/",
+        "https://halosea-fursuit.com/privacy",
+        "https://halosea-fursuit.com/terms"
+      ],
+      "sha256": "611660a683c7f30294cf872f46f6cc1199f361fead7460d5e495e24b4f05a55d",
+      "extracted_text_sha256": "312580716cfd7ae26687b0e2ba5fc014e54364021ee6001c4c9511ede22f0464",
+      "text_characters": 1100
+    },
+    {
+      "url": "https://halosea-fursuit.com/rush",
+      "final_url": "https://halosea-fursuit.com/rush",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "title": "委托拼手速｜光海印记",
+      "controls": [],
+      "scripts": [
+        "https://halosea-fursuit.com/_next/static/chunks/4bd1b696-dd0569e18e94a1f3.js",
+        "https://halosea-fursuit.com/_next/static/chunks/3794-93dee6a5b90ed6c7.js",
+        "https://halosea-fursuit.com/_next/static/chunks/main-app-db64ff0eca0f788a.js",
+        "https://halosea-fursuit.com/_next/static/chunks/8500-e4315938f607d41b.js",
+        "https://halosea-fursuit.com/_next/static/chunks/app/layout-94cd2da792afea0a.js",
+        "https://halosea-fursuit.com/_next/static/chunks/3701-7efa5e1d7bff8965.js",
+        "https://halosea-fursuit.com/_next/static/chunks/app/error-f2112c344fb07747.js",
+        "https://halosea-fursuit.com/_next/static/chunks/app/not-found-8b518583a5778b0a.js",
+        "https://halosea-fursuit.com/_next/static/chunks/6436-b1a203b1aa2f9088.js",
+        "https://halosea-fursuit.com/_next/static/chunks/6330-50cbafe74001913c.js",
+        "https://halosea-fursuit.com/_next/static/chunks/7245-40ed898121a1cada.js",
+        "https://halosea-fursuit.com/_next/static/chunks/app/rush/page-4d367366deee8623.js",
+        "https://halosea-fursuit.com/_next/static/chunks/app/global-error-0dc78d75dc37a13f.js",
+        "https://halosea-fursuit.com/_next/static/chunks/polyfills-42372ed130431b0a.js",
+        "https://halosea-fursuit.com/_next/static/chunks/webpack-6732a53bf4aa79a2.js"
+      ],
+      "links": [
+        "https://halosea-fursuit.com/",
+        "https://halosea-fursuit.com/privacy",
+        "https://halosea-fursuit.com/terms"
+      ],
+      "sha256": "1e5f04d5f5bbd926dbcfc90f22172a89edbf84e10fbb616fb801daec132fea5d",
+      "extracted_text_sha256": "444348d046aecb77ab6eca18c0ad145731ec5c7d4a95cce29e2209dcbcd184d0",
+      "text_characters": 86
+    },
+    {
+      "url": "https://halosea-fursuit.com/terms",
+      "final_url": "https://halosea-fursuit.com/terms",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "title": "服务条款｜光海印记",
+      "controls": [],
+      "scripts": [
+        "https://halosea-fursuit.com/_next/static/chunks/4bd1b696-dd0569e18e94a1f3.js",
+        "https://halosea-fursuit.com/_next/static/chunks/3794-93dee6a5b90ed6c7.js",
+        "https://halosea-fursuit.com/_next/static/chunks/main-app-db64ff0eca0f788a.js",
+        "https://halosea-fursuit.com/_next/static/chunks/8500-e4315938f607d41b.js",
+        "https://halosea-fursuit.com/_next/static/chunks/app/layout-94cd2da792afea0a.js",
+        "https://halosea-fursuit.com/_next/static/chunks/3701-7efa5e1d7bff8965.js",
+        "https://halosea-fursuit.com/_next/static/chunks/app/error-f2112c344fb07747.js",
+        "https://halosea-fursuit.com/_next/static/chunks/app/not-found-8b518583a5778b0a.js",
+        "https://halosea-fursuit.com/_next/static/chunks/app/terms/page-dc10ea94c01ca034.js",
+        "https://halosea-fursuit.com/_next/static/chunks/app/global-error-0dc78d75dc37a13f.js",
+        "https://halosea-fursuit.com/_next/static/chunks/polyfills-42372ed130431b0a.js",
+        "https://halosea-fursuit.com/_next/static/chunks/webpack-6732a53bf4aa79a2.js"
+      ],
+      "links": [
+        "https://halosea-fursuit.com/",
+        "https://halosea-fursuit.com/privacy",
+        "https://halosea-fursuit.com/terms"
+      ],
+      "sha256": "6f913d1ae374fd06b16ca67e7c1c4295445672e44a43c524e653f2bfad210569",
+      "extracted_text_sha256": "380729f4ddd22b251cc6e21ec8abbee08d3a11136ca8bc992fe7251d28bf1a16",
+      "text_characters": 994
+    },
+    {
+      "url": "https://halosea-fursuit.com/forgot-password",
+      "final_url": "https://halosea-fursuit.com/forgot-password",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "title": "找回密码｜光海印记",
+      "controls": [
+        {
+          "type": "email",
+          "required": "",
+          "name": "email"
+        },
+        {
+          "type": "submit"
+        }
+      ],
+      "scripts": [
+        "https://halosea-fursuit.com/_next/static/chunks/4bd1b696-dd0569e18e94a1f3.js",
+        "https://halosea-fursuit.com/_next/static/chunks/3794-93dee6a5b90ed6c7.js",
+        "https://halosea-fursuit.com/_next/static/chunks/main-app-db64ff0eca0f788a.js",
+        "https://halosea-fursuit.com/_next/static/chunks/8500-e4315938f607d41b.js",
+        "https://halosea-fursuit.com/_next/static/chunks/app/layout-94cd2da792afea0a.js",
+        "https://halosea-fursuit.com/_next/static/chunks/3701-7efa5e1d7bff8965.js",
+        "https://halosea-fursuit.com/_next/static/chunks/app/error-f2112c344fb07747.js",
+        "https://halosea-fursuit.com/_next/static/chunks/app/not-found-8b518583a5778b0a.js",
+        "https://halosea-fursuit.com/_next/static/chunks/6330-50cbafe74001913c.js",
+        "https://halosea-fursuit.com/_next/static/chunks/app/forgot-password/page-46496985b90654b6.js",
+        "https://halosea-fursuit.com/_next/static/chunks/app/global-error-0dc78d75dc37a13f.js",
+        "https://halosea-fursuit.com/_next/static/chunks/polyfills-42372ed130431b0a.js",
+        "https://halosea-fursuit.com/_next/static/chunks/webpack-6732a53bf4aa79a2.js"
+      ],
+      "links": [
+        "https://halosea-fursuit.com/login",
+        "https://halosea-fursuit.com/privacy",
+        "https://halosea-fursuit.com/terms"
+      ],
+      "sha256": "2ba2d584cd1f2fb6fda3512b0a4de641049487eb0906a78ab257d38234f6e317",
+      "extracted_text_sha256": "852a1b1221c4e131b1a64ec19aa1a896e131645ea2a6beea8a4a16461a0b9aed",
+      "text_characters": 75
+    },
+    {
+      "url": "https://halosea-fursuit.com/register",
+      "final_url": "https://halosea-fursuit.com/register",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "title": "注册账户｜光海印记",
+      "controls": [
+        {
+          "type": "email",
+          "required": "",
+          "name": "email"
+        },
+        {
+          "required": "",
+          "name": "username"
+        },
+        {
+          "type": "password",
+          "required": "",
+          "name": "password"
+        },
+        {
+          "type": "password",
+          "required": "",
+          "name": "confirmPassword"
+        },
+        {
+          "type": "submit"
+        }
+      ],
+      "scripts": [
+        "https://halosea-fursuit.com/_next/static/chunks/4bd1b696-dd0569e18e94a1f3.js",
+        "https://halosea-fursuit.com/_next/static/chunks/3794-93dee6a5b90ed6c7.js",
+        "https://halosea-fursuit.com/_next/static/chunks/main-app-db64ff0eca0f788a.js",
+        "https://halosea-fursuit.com/_next/static/chunks/8500-e4315938f607d41b.js",
+        "https://halosea-fursuit.com/_next/static/chunks/app/layout-94cd2da792afea0a.js",
+        "https://halosea-fursuit.com/_next/static/chunks/3701-7efa5e1d7bff8965.js",
+        "https://halosea-fursuit.com/_next/static/chunks/app/error-f2112c344fb07747.js",
+        "https://halosea-fursuit.com/_next/static/chunks/app/not-found-8b518583a5778b0a.js",
+        "https://halosea-fursuit.com/_next/static/chunks/6330-50cbafe74001913c.js",
+        "https://halosea-fursuit.com/_next/static/chunks/2689-9179e1634d5c8d29.js",
+        "https://halosea-fursuit.com/_next/static/chunks/app/register/page-724f0f7ba4dafe58.js",
+        "https://halosea-fursuit.com/_next/static/chunks/app/global-error-0dc78d75dc37a13f.js",
+        "https://halosea-fursuit.com/_next/static/chunks/polyfills-42372ed130431b0a.js",
+        "https://halosea-fursuit.com/_next/static/chunks/webpack-6732a53bf4aa79a2.js"
+      ],
+      "links": [
+        "https://halosea-fursuit.com/",
+        "https://halosea-fursuit.com/login",
+        "https://halosea-fursuit.com/privacy",
+        "https://halosea-fursuit.com/terms"
+      ],
+      "sha256": "7e6dddbe2cd3d5318fc36d4c2e171d495f207beeeba3ebcedb63b2597298352f",
+      "extracted_text_sha256": "0f07303ae598e87cad47b5ea3fb395f1e006d1cbbc7a7c7e7994a742bbb28e26",
+      "text_characters": 164
+    }
+  ],
+  "discovery": [
+    {
+      "url": "https://halosea-fursuit.com/robots.txt",
+      "status": "error",
+      "error": "HTTP Error 404: Not Found",
+      "observation": "HTTP Error 404: Not Found",
+      "content_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "url": "https://halosea-fursuit.com/sitemap.xml",
+      "status": "error",
+      "error": "HTTP Error 404: Not Found",
+      "observation": "HTTP Error 404: Not Found",
+      "content_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "remaining": [],
+  "collected_at": "2026-09-18",
+  "method": "public HTTP GET and link discovery; no form submission"
+}

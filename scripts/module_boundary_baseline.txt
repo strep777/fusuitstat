@@ -1,0 +1,15 @@
+# 跨模块直接导入的欠账基线（R11）
+#
+# 每行是「文件 -> 被导入的跨模块目标」。scripts/check_module_boundaries.py 只对
+# 「基线之外的新增违例」失败，因此这里每删一行都是一次真实的边界收敛。
+#
+# 审计 AUDIT-20260918 记录时共 46 处。经第 2–5 轮改造已全部收敛，本文件当前为空：
+#   - 第 2–3 轮：媒体、目录、内容、商务、委托、身份、通知七个模块补齐 ports.py（45 处）。
+#   - 第 5 轮：订单读模型 DTO 图（OrderSummaryDto/OrderDetailDto/OrderItemDto/
+#     InstallmentDto/PaymentSummaryDto/ShipmentDto/OrderAddressDto/AddressChangeDto/
+#     InvoiceDto/AfterSaleDto/AfterSaleMessageDto/AfterSalePage/PendingActionsDto/OrderPage）
+#     整体移入 app/modules/contracts.py；commerce.schemas 与 orders.schemas 只做再导出，
+#     orders 不再依赖 app.modules.commerce.schemas（最后 1 处）。
+#
+# 约束：只有当 `python scripts/check_module_boundaries.py` 输出「违例 0 处」时，
+# 本文件才允许保持为空；出现新增违例必须改代码，不允许把新违例写进基线。

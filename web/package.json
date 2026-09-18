@@ -1,0 +1,45 @@
+{
+  "name": "starium-web",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "弈星纪元兽装工作室官网 — 前台与运营后台（Vite + Vue 3 + TypeScript + Tailwind CSS 4）",
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc --noEmit -p tsconfig.app.json && vite build",
+    "build:only": "vite build",
+    "preview": "vite preview",
+    "typecheck": "vue-tsc --noEmit -p tsconfig.app.json",
+    "lint": "eslint .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "assets:derive": "cd ../server && uv run python -m app.cli derive-assets"
+  },
+  "dependencies": {
+    "animejs": "^4.0.2",
+    "pinia": "^3.0.3",
+    "vue": "^3.5.13",
+    "vue-router": "^4.5.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.5",
+    "@playwright/test": "^1.63.0",
+    "@tailwindcss/vite": "^4.1.11",
+    "@types/node": "^22.15.3",
+    "@vitejs/plugin-vue": "^5.2.1",
+    "@vue/test-utils": "^2.4.6",
+    "eslint": "^9.24.0",
+    "eslint-plugin-vue": "^10.0.0",
+    "globals": "^17.12.0",
+    "happy-dom": "^17.4.4",
+    "tailwindcss": "^4.1.11",
+    "typescript": "~5.8.3",
+    "typescript-eslint": "^8.30.1",
+    "vite": "^6.3.5",
+    "vitest": "^3.1.2",
+    "vue-tsc": "^2.2.10"
+  }
+}

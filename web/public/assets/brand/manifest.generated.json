@@ -1,0 +1,24 @@
+{
+  "generatedBy": "server/app/assets/derive.py",
+  "originalsPreserved": true,
+  "files": [
+    "web\\public\\assets\\brand\\app-icon-192.png",
+    "web\\public\\assets\\brand\\favicon-192.png",
+    "web\\public\\assets\\brand\\favicon-32.png",
+    "web\\public\\assets\\brand\\favicon-512.png",
+    "web\\public\\assets\\brand\\favicon-64.png",
+    "web\\public\\assets\\brand\\loader-dual-star-128.webp",
+    "web\\public\\assets\\brand\\loader-dual-star-256.webp",
+    "web\\public\\assets\\brand\\loader-dual-star-512.webp",
+    "web\\public\\assets\\brand\\logo-star-dragon-128.webp",
+    "web\\public\\assets\\brand\\logo-star-dragon-256.webp",
+    "web\\public\\assets\\brand\\logo-star-dragon-64.webp",
+    "web\\public\\assets\\brand\\logo-star-dragon-light-128.webp",
+    "web\\public\\assets\\brand\\logo-star-dragon-light-256.webp",
+    "web\\public\\assets\\brand\\logo-star-dragon-light-64.webp",
+    "web\\public\\assets\\brand\\og-cover.png",
+    "web\\public\\assets\\brand\\points-twin-tail-24.webp",
+    "web\\public\\assets\\brand\\points-twin-tail-48.webp",
+    "web\\public\\assets\\brand\\points-twin-tail-96.webp"
+  ]
+}

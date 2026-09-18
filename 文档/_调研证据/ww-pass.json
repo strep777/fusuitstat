@@ -1,0 +1,42 @@
+{
+  "seed": "https://www.ww-pass.com/wp-fursuit/",
+  "pages": [
+    {
+      "url": "https://www.ww-pass.com/wp-fursuit/",
+      "final_url": "https://www.ww-pass.com/wp-fursuit/",
+      "status": 200,
+      "content_type": "text/html;charset=utf-8",
+      "title": "",
+      "controls": [],
+      "scripts": [
+        "https://web.oss.ww-pass.cn/website/next.ww-pass.com/20250917/_nuxt/Dgnu7fuI.js",
+        "https://static.cloudflareinsights.com/beacon.min.js/v31edd6df95cf4e85bb4c19e7a9bdbcba1788362987495"
+      ],
+      "links": [],
+      "sha256": "91ebd91f2986440bdc9a9c1c6bac49fcce0647018120605a81a5fcafa0adb836",
+      "extracted_text_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text_characters": 0
+    }
+  ],
+  "discovery": [
+    {
+      "url": "https://www.ww-pass.com/robots.txt",
+      "final_url": "https://www.ww-pass.com/robots.txt",
+      "status": 200,
+      "content_type": "text/plain; charset=utf-8",
+      "observation": "空正文",
+      "content_sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "url": "https://www.ww-pass.com/sitemap.xml",
+      "final_url": "https://www.ww-pass.com/sitemap.xml",
+      "status": 200,
+      "content_type": "text/html;charset=utf-8",
+      "observation": "返回 HTML 应用页，不是有效地图/robots",
+      "content_sha256": "42a03bf3be7cc5b671ee6f412154af1cabbceebd3508157f8ae10ebae8704435"
+    }
+  ],
+  "remaining": [],
+  "collected_at": "2026-09-18",
+  "method": "public HTTP GET and link discovery; no form submission"
+}

@@ -1,0 +1,48 @@
+# 弈星纪元兽装工作室官网 — API 服务单元
+#
+# 单 SQLite 主机基线：API 一个 worker 起步（04 文档）。
+# 数据库迁移只运行一次，且不得让两个不兼容版本同时写库。
+
+[Unit]
+Description=Starium API (FastAPI, single worker)
+Documentation=file:/opt/starium/文档/14_商业部署与运维手册.md
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=exec
+User=starium
+Group=starium
+WorkingDirectory=/opt/starium/server
+EnvironmentFile=/etc/starium/api.env
+ExecStartPre=/opt/starium/server/.venv/bin/python -m app.cli check-config
+ExecStart=/opt/starium/server/.venv/bin/uvicorn app.main:app \
+    --host 127.0.0.1 --port 8000 --workers 1 \
+    --proxy-headers --forwarded-allow-ips=127.0.0.1 \
+    --timeout-keep-alive 20 --no-server-header
+Restart=on-failure
+RestartSec=3
+KillSignal=SIGTERM
+TimeoutStopSec=30
+
+# 加固：只读系统、私有临时目录、禁止提权
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictNamespaces=true
+RestrictSUIDSGID=true
+LockPersonality=true
+MemoryDenyWriteExecute=false
+ReadWritePaths=/var/lib/starium /var/log/starium
+UMask=0077
+
+StandardOutput=append:/var/log/starium/api.log
+StandardError=append:/var/log/starium/api.log
+
+[Install]
+WantedBy=multi-user.target

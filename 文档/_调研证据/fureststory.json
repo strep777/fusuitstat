@@ -1,0 +1,1437 @@
+{
+  "seed": "https://fureststory.com/",
+  "pages": [
+    {
+      "url": "https://fureststory.com/",
+      "final_url": "https://fureststory.com/",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "title": "森绒物语 · Furest",
+      "controls": [
+        {
+          "type": "button"
+        },
+        {
+          "type": "button"
+        },
+        {
+          "type": "button",
+          "aria-label": "语言"
+        },
+        {
+          "type": "button",
+          "aria-label": "切换主题"
+        },
+        {
+          "type": "button",
+          "aria-label": "打开菜单"
+        },
+        {
+          "type": "button"
+        },
+        {
+          "type": "button"
+        },
+        {
+          "type": "button",
+          "aria-label": "联系客服 咨询与估价"
+        }
+      ],
+      "scripts": [
+        "https://fureststory.com/_next/static/chunks/10qd__0r7a~.l.js",
+        "https://fureststory.com/_next/static/chunks/0~_gy9umnp-u_.js",
+        "https://fureststory.com/_next/static/chunks/12.eg6ivi-u1j.js",
+        "https://fureststory.com/_next/static/chunks/0pqt~8bl3ukh4.js",
+        "https://fureststory.com/_next/static/chunks/turbopack-0fgg8u.8g5j...js",
+        "https://fureststory.com/_next/static/chunks/04rg01xbv3wqr.js",
+        "https://fureststory.com/_next/static/chunks/0t2xr05rlu96l.js",
+        "https://fureststory.com/_next/static/chunks/10w5ew5-.6os2.js",
+        "https://fureststory.com/_next/static/chunks/0ghm9~j88gj8y.js",
+        "https://fureststory.com/_next/static/chunks/02ipk2reg_~9-.js",
+        "https://fureststory.com/_next/static/chunks/0gogvxblyxa9..js",
+        "https://fureststory.com/_next/static/chunks/0iunf13ousprx.js",
+        "https://fureststory.com/_next/static/chunks/057ldzs9~zi2s.js",
+        "https://fureststory.com/_next/static/chunks/172olsmcuxauv.js",
+        "https://fureststory.com/_next/static/chunks/0woke02sx7xh0.js",
+        "https://fureststory.com/_next/static/chunks/04no9xmr5owxn.js",
+        "https://fureststory.com/_next/static/chunks/03~yq9q893hmn.js",
+        "https://fureststory.com/_next/static/chunks/15s7kvu-r013t.js"
+      ],
+      "links": [
+        "https://beian.miit.gov.cn/",
+        "https://beian.mps.gov.cn/#/query/webSearch?code=21011202001306",
+        "https://fureststory.com/",
+        "https://fureststory.com/about",
+        "https://fureststory.com/bulletin",
+        "https://fureststory.com/fursuit",
+        "https://fureststory.com/fursuit/art",
+        "https://fureststory.com/fursuit/detail",
+        "https://fureststory.com/fursuit/inn",
+        "https://fureststory.com/fursuit/quote",
+        "https://fureststory.com/more",
+        "https://fureststory.com/more/body-form",
+        "https://fureststory.com/more/cleaning",
+        "https://fureststory.com/more/foot-frame",
+        "https://fureststory.com/more/foot-pad"
+      ],
+      "sha256": "a2fbd1f9a864f2c2f0901560a0f532010cfd296ca927a75fa9e95be36645d673",
+      "extracted_text_sha256": "f19c0427027d6c2341f3e778b0526b9964bbe5aeb06eacaf816504e58f216102",
+      "text_characters": 543
+    },
+    {
+      "url": "https://fureststory.com/bulletin",
+      "final_url": "https://fureststory.com/bulletin",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "title": "公告栏 · 森绒物语",
+      "controls": [
+        {
+          "type": "button"
+        },
+        {
+          "type": "button"
+        },
+        {
+          "type": "button",
+          "aria-label": "语言"
+        },
+        {
+          "type": "button",
+          "aria-label": "切换主题"
+        },
+        {
+          "type": "button",
+          "aria-label": "打开菜单"
+        },
+        {
+          "type": "button"
+        },
+        {
+          "type": "button"
+        },
+        {
+          "type": "button",
+          "aria-label": "联系客服 咨询与估价"
+        }
+      ],
+      "scripts": [
+        "https://fureststory.com/_next/static/chunks/10qd__0r7a~.l.js",
+        "https://fureststory.com/_next/static/chunks/0~_gy9umnp-u_.js",
+        "https://fureststory.com/_next/static/chunks/12.eg6ivi-u1j.js",
+        "https://fureststory.com/_next/static/chunks/0pqt~8bl3ukh4.js",
+        "https://fureststory.com/_next/static/chunks/turbopack-0fgg8u.8g5j...js",
+        "https://fureststory.com/_next/static/chunks/04rg01xbv3wqr.js",
+        "https://fureststory.com/_next/static/chunks/0t2xr05rlu96l.js",
+        "https://fureststory.com/_next/static/chunks/10w5ew5-.6os2.js",
+        "https://fureststory.com/_next/static/chunks/0ghm9~j88gj8y.js",
+        "https://fureststory.com/_next/static/chunks/02ipk2reg_~9-.js",
+        "https://fureststory.com/_next/static/chunks/0gogvxblyxa9..js",
+        "https://fureststory.com/_next/static/chunks/0iunf13ousprx.js",
+        "https://fureststory.com/_next/static/chunks/057ldzs9~zi2s.js",
+        "https://fureststory.com/_next/static/chunks/172olsmcuxauv.js",
+        "https://fureststory.com/_next/static/chunks/0woke02sx7xh0.js",
+        "https://fureststory.com/_next/static/chunks/023jjm-.tich3.js",
+        "https://fureststory.com/_next/static/chunks/03~yq9q893hmn.js",
+        "https://fureststory.com/_next/static/chunks/15s7kvu-r013t.js"
+      ],
+      "links": [
+        "https://beian.miit.gov.cn/",
+        "https://beian.mps.gov.cn/#/query/webSearch?code=21011202001306",
+        "https://fureststory.com/",
+        "https://fureststory.com/about",
+        "https://fureststory.com/bulletin",
+        "https://fureststory.com/bulletin/1",
+        "https://fureststory.com/fursuit",
+        "https://fureststory.com/fursuit/art",
+        "https://fureststory.com/fursuit/detail",
+        "https://fureststory.com/fursuit/inn",
+        "https://fureststory.com/fursuit/quote",
+        "https://fureststory.com/more",
+        "https://fureststory.com/more/body-form",
+        "https://fureststory.com/more/cleaning",
+        "https://fureststory.com/more/foot-frame",
+        "https://fureststory.com/more/foot-pad"
+      ],
+      "sha256": "ca8257248c61344c3008f63603b8d775c341c24cb27c3da2e58f068e23543c71",
+      "extracted_text_sha256": "73ca150774e5a02cd382a4283e8325719fe91837b7d6910cfd920c43bf326698",
+      "text_characters": 364
+    },
+    {
+      "url": "https://fureststory.com/about",
+      "final_url": "https://fureststory.com/about",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "title": "针起绒、绒成森、森述童话 · 森绒物语",
+      "controls": [
+        {
+          "type": "button"
+        },
+        {
+          "type": "button"
+        },
+        {
+          "type": "button",
+          "aria-label": "语言"
+        },
+        {
+          "type": "button",
+          "aria-label": "切换主题"
+        },
+        {
+          "type": "button",
+          "aria-label": "打开菜单"
+        },
+        {
+          "type": "button"
+        },
+        {
+          "type": "button"
+        },
+        {
+          "type": "button",
+          "aria-label": "联系客服 咨询与估价"
+        }
+      ],
+      "scripts": [
+        "https://fureststory.com/_next/static/chunks/10qd__0r7a~.l.js",
+        "https://fureststory.com/_next/static/chunks/0~_gy9umnp-u_.js",
+        "https://fureststory.com/_next/static/chunks/12.eg6ivi-u1j.js",
+        "https://fureststory.com/_next/static/chunks/0pqt~8bl3ukh4.js",
+        "https://fureststory.com/_next/static/chunks/turbopack-0fgg8u.8g5j...js",
+        "https://fureststory.com/_next/static/chunks/04rg01xbv3wqr.js",
+        "https://fureststory.com/_next/static/chunks/0t2xr05rlu96l.js",
+        "https://fureststory.com/_next/static/chunks/10w5ew5-.6os2.js",
+        "https://fureststory.com/_next/static/chunks/0ghm9~j88gj8y.js",
+        "https://fureststory.com/_next/static/chunks/02ipk2reg_~9-.js",
+        "https://fureststory.com/_next/static/chunks/0gogvxblyxa9..js",
+        "https://fureststory.com/_next/static/chunks/0iunf13ousprx.js",
+        "https://fureststory.com/_next/static/chunks/057ldzs9~zi2s.js",
+        "https://fureststory.com/_next/static/chunks/172olsmcuxauv.js",
+        "https://fureststory.com/_next/static/chunks/0woke02sx7xh0.js",
+        "https://fureststory.com/_next/static/chunks/023jjm-.tich3.js",
+        "https://fureststory.com/_next/static/chunks/03~yq9q893hmn.js",
+        "https://fureststory.com/_next/static/chunks/15s7kvu-r013t.js"
+      ],
+      "links": [
+        "https://beian.miit.gov.cn/",
+        "https://beian.mps.gov.cn/#/query/webSearch?code=21011202001306",
+        "https://fureststory.com/",
+        "https://fureststory.com/about",
+        "https://fureststory.com/bulletin",
+        "https://fureststory.com/fursuit",
+        "https://fureststory.com/fursuit/art",
+        "https://fureststory.com/fursuit/detail",
+        "https://fureststory.com/fursuit/inn",
+        "https://fureststory.com/fursuit/quote",
+        "https://fureststory.com/more",
+        "https://fureststory.com/more/body-form",
+        "https://fureststory.com/more/cleaning",
+        "https://fureststory.com/more/foot-frame",
+        "https://fureststory.com/more/foot-pad",
+        "https://space.bilibili.com/3537108551600882",
+        "https://www.douyin.com/user/MS4wLjABAAAAkRlKFIwacw5L8JHMZhJHIn2K3-xTYtJOhWSQGhUeyoYD1OWnZsxWzoeJUanxgmwM",
+        "https://www.xiaohongshu.com/user/profile/5b9713aa4eacab68fa15a1c2",
+        "https://x.com/fureststudio",
+        "mailto:senrongwuyu@163.com"
+      ],
+      "sha256": "f7533f1ac07d155eaed043f1024d9f2db1044dfa45757421436d8c91ae672679",
+      "extracted_text_sha256": "ed64a8a1b06a3e96565b0d8d1a461d3e63300b6a053a037c1e9399bb21510e37",
+      "text_characters": 775
+    },
+    {
+      "url": "https://fureststory.com/fursuit",
+      "final_url": "https://fureststory.com/fursuit",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "title": "兽装 · 森绒物语",
+      "controls": [
+        {
+          "type": "button"
+        },
+        {
+          "type": "button"
+        },
+        {
+          "type": "button",
+          "aria-label": "语言"
+        },
+        {
+          "type": "button",
+          "aria-label": "切换主题"
+        },
+        {
+          "type": "button",
+          "aria-label": "打开菜单"
+        },
+        {
+          "type": "button"
+        },
+        {
+          "type": "button"
+        },
+        {
+          "type": "button",
+          "aria-label": "联系客服 咨询与估价"
+        }
+      ],
+      "scripts": [
+        "https://fureststory.com/_next/static/chunks/10qd__0r7a~.l.js",
+        "https://fureststory.com/_next/static/chunks/0~_gy9umnp-u_.js",
+        "https://fureststory.com/_next/static/chunks/12.eg6ivi-u1j.js",
+        "https://fureststory.com/_next/static/chunks/0pqt~8bl3ukh4.js",
+        "https://fureststory.com/_next/static/chunks/turbopack-0fgg8u.8g5j...js",
+        "https://fureststory.com/_next/static/chunks/04rg01xbv3wqr.js",
+        "https://fureststory.com/_next/static/chunks/0t2xr05rlu96l.js",
+        "https://fureststory.com/_next/static/chunks/10w5ew5-.6os2.js",
+        "https://fureststory.com/_next/static/chunks/0ghm9~j88gj8y.js",
+        "https://fureststory.com/_next/static/chunks/02ipk2reg_~9-.js",
+        "https://fureststory.com/_next/static/chunks/0gogvxblyxa9..js",
+        "https://fureststory.com/_next/static/chunks/0iunf13ousprx.js",
+        "https://fureststory.com/_next/static/chunks/057ldzs9~zi2s.js",
+        "https://fureststory.com/_next/static/chunks/172olsmcuxauv.js",
+        "https://fureststory.com/_next/static/chunks/0woke02sx7xh0.js",
+        "https://fureststory.com/_next/static/chunks/03~yq9q893hmn.js",
+        "https://fureststory.com/_next/static/chunks/15s7kvu-r013t.js"
+      ],
+      "links": [
+        "https://beian.miit.gov.cn/",
+        "https://beian.mps.gov.cn/#/query/webSearch?code=21011202001306",
+        "https://fureststory.com/",
+        "https://fureststory.com/about",
+        "https://fureststory.com/bulletin",
+        "https://fureststory.com/fursuit",
+        "https://fureststory.com/fursuit/art",
+        "https://fureststory.com/fursuit/detail",
+        "https://fureststory.com/fursuit/inn",
+        "https://fureststory.com/fursuit/quote",
+        "https://fureststory.com/more",
+        "https://fureststory.com/more/body-form",
+        "https://fureststory.com/more/cleaning",
+        "https://fureststory.com/more/foot-frame",
+        "https://fureststory.com/more/foot-pad"
+      ],
+      "sha256": "6939e60c3f0318dcd9c1c562d327d69ca4282b0acb38d1a36d7db61305e89831",
+      "extracted_text_sha256": "872544807761cf33e33fee95a8a11f2ff025bb10603971fb27909e6179c954b6",
+      "text_characters": 393
+    },
+    {
+      "url": "https://fureststory.com/fursuit/detail",
+      "final_url": "https://fureststory.com/fursuit/detail",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "title": "详情 · 森绒物语",
+      "controls": [
+        {
+          "type": "button"
+        },
+        {
+          "type": "button"
+        },
+        {
+          "type": "button",
+          "aria-label": "语言"
+        },
+        {
+          "type": "button",
+          "aria-label": "切换主题"
+        },
+        {
+          "type": "button",
+          "aria-label": "打开菜单"
+        },
+        {
+          "type": "button"
+        },
+        {
+          "type": "button"
+        },
+        {
+          "type": "button",
+          "aria-label": "联系客服 咨询与估价"
+        }
+      ],
+      "scripts": [
+        "https://fureststory.com/_next/static/chunks/10qd__0r7a~.l.js",
+        "https://fureststory.com/_next/static/chunks/0~_gy9umnp-u_.js",
+        "https://fureststory.com/_next/static/chunks/12.eg6ivi-u1j.js",
+        "https://fureststory.com/_next/static/chunks/0pqt~8bl3ukh4.js",
+        "https://fureststory.com/_next/static/chunks/turbopack-0fgg8u.8g5j...js",
+        "https://fureststory.com/_next/static/chunks/04rg01xbv3wqr.js",
+        "https://fureststory.com/_next/static/chunks/0t2xr05rlu96l.js",
+        "https://fureststory.com/_next/static/chunks/10w5ew5-.6os2.js",
+        "https://fureststory.com/_next/static/chunks/0ghm9~j88gj8y.js",
+        "https://fureststory.com/_next/static/chunks/02ipk2reg_~9-.js",
+        "https://fureststory.com/_next/static/chunks/0gogvxblyxa9..js",
+        "https://fureststory.com/_next/static/chunks/0iunf13ousprx.js",
+        "https://fureststory.com/_next/static/chunks/057ldzs9~zi2s.js",
+        "https://fureststory.com/_next/static/chunks/172olsmcuxauv.js",
+        "https://fureststory.com/_next/static/chunks/0woke02sx7xh0.js",
+        "https://fureststory.com/_next/static/chunks/0nb_p47b-tal3.js",
+        "https://fureststory.com/_next/static/chunks/03~yq9q893hmn.js",
+        "https://fureststory.com/_next/static/chunks/15s7kvu-r013t.js"
+      ],
+      "links": [
+        "https://beian.miit.gov.cn/",
+        "https://beian.mps.gov.cn/#/query/webSearch?code=21011202001306",
+        "https://fureststory.com/",
+        "https://fureststory.com/about",
+        "https://fureststory.com/bulletin",
+        "https://fureststory.com/fursuit",
+        "https://fureststory.com/fursuit/art",
+        "https://fureststory.com/fursuit/detail",
+        "https://fureststory.com/fursuit/inn",
+        "https://fureststory.com/fursuit/quote",
+        "https://fureststory.com/more",
+        "https://fureststory.com/more/body-form",
+        "https://fureststory.com/more/cleaning",
+        "https://fureststory.com/more/foot-frame",
+        "https://fureststory.com/more/foot-pad"
+      ],
+      "sha256": "67798b6166bf32ba7605387ca3dbe44f6de633216bd0e5d824663f5a602d2e5c",
+      "extracted_text_sha256": "abd9384b22158ac604db0ee83cbc400257843fe9b2e29aecf1a9a56544724ea2",
+      "text_characters": 2021
+    },
+    {
+      "url": "https://fureststory.com/fursuit/inn",
+      "final_url": "https://fureststory.com/fursuit/inn",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "title": "森绒旅社 · 森绒物语",
+      "controls": [
+        {
+          "type": "button"
+        },
+        {
+          "type": "button"
+        },
+        {
+          "type": "button",
+          "aria-label": "语言"
+        },
+        {
+          "type": "button",
+          "aria-label": "切换主题"
+        },
+        {
+          "type": "button",
+          "aria-label": "打开菜单"
+        },
+        {
+          "type": "button"
+        },
+        {
+          "type": "button"
+        },
+        {
+          "type": "button",
+          "aria-label": "联系客服 咨询与估价"
+        }
+      ],
+      "scripts": [
+        "https://fureststory.com/_next/static/chunks/10qd__0r7a~.l.js",
+        "https://fureststory.com/_next/static/chunks/0~_gy9umnp-u_.js",
+        "https://fureststory.com/_next/static/chunks/12.eg6ivi-u1j.js",
+        "https://fureststory.com/_next/static/chunks/0pqt~8bl3ukh4.js",
+        "https://fureststory.com/_next/static/chunks/turbopack-0fgg8u.8g5j...js",
+        "https://fureststory.com/_next/static/chunks/04rg01xbv3wqr.js",
+        "https://fureststory.com/_next/static/chunks/0t2xr05rlu96l.js",
+        "https://fureststory.com/_next/static/chunks/10w5ew5-.6os2.js",
+        "https://fureststory.com/_next/static/chunks/0ghm9~j88gj8y.js",
+        "https://fureststory.com/_next/static/chunks/02ipk2reg_~9-.js",
+        "https://fureststory.com/_next/static/chunks/0gogvxblyxa9..js",
+        "https://fureststory.com/_next/static/chunks/0iunf13ousprx.js",
+        "https://fureststory.com/_next/static/chunks/057ldzs9~zi2s.js",
+        "https://fureststory.com/_next/static/chunks/172olsmcuxauv.js",
+        "https://fureststory.com/_next/static/chunks/0woke02sx7xh0.js",
+        "https://fureststory.com/_next/static/chunks/03~yq9q893hmn.js",
+        "https://fureststory.com/_next/static/chunks/15s7kvu-r013t.js"
+      ],
+      "links": [
+        "https://beian.miit.gov.cn/",
+        "https://beian.mps.gov.cn/#/query/webSearch?code=21011202001306",
+        "https://fureststory.com/",
+        "https://fureststory.com/about",
+        "https://fureststory.com/bulletin",
+        "https://fureststory.com/fursuit",
+        "https://fureststory.com/fursuit/art",
+        "https://fureststory.com/fursuit/detail",
+        "https://fureststory.com/fursuit/inn",
+        "https://fureststory.com/fursuit/quote",
+        "https://fureststory.com/more",
+        "https://fureststory.com/more/body-form",
+        "https://fureststory.com/more/cleaning",
+        "https://fureststory.com/more/foot-frame",
+        "https://fureststory.com/more/foot-pad"
+      ],
+      "sha256": "105429de2f7d4121532c3dd561b83e497621128bd22153565702433abc43815e",
+      "extracted_text_sha256": "42811feb9ba894ad1a539fdc3f7db5bdf6f4ee88ea8aadc7ff827d84db66a56b",
+      "text_characters": 345
+    },
+    {
+      "url": "https://fureststory.com/more",
+      "final_url": "https://fureststory.com/more",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "title": "更多产品 · 森绒物语",
+      "controls": [
+        {
+          "type": "button"
+        },
+        {
+          "type": "button"
+        },
+        {
+          "type": "button",
+          "aria-label": "语言"
+        },
+        {
+          "type": "button",
+          "aria-label": "切换主题"
+        },
+        {
+          "type": "button",
+          "aria-label": "打开菜单"
+        },
+        {
+          "type": "button"
+        },
+        {
+          "type": "button"
+        },
+        {
+          "type": "button",
+          "aria-label": "联系客服 咨询与估价"
+        }
+      ],
+      "scripts": [
+        "https://fureststory.com/_next/static/chunks/10qd__0r7a~.l.js",
+        "https://fureststory.com/_next/static/chunks/0~_gy9umnp-u_.js",
+        "https://fureststory.com/_next/static/chunks/12.eg6ivi-u1j.js",
+        "https://fureststory.com/_next/static/chunks/0pqt~8bl3ukh4.js",
+        "https://fureststory.com/_next/static/chunks/turbopack-0fgg8u.8g5j...js",
+        "https://fureststory.com/_next/static/chunks/04rg01xbv3wqr.js",
+        "https://fureststory.com/_next/static/chunks/0t2xr05rlu96l.js",
+        "https://fureststory.com/_next/static/chunks/10w5ew5-.6os2.js",
+        "https://fureststory.com/_next/static/chunks/0ghm9~j88gj8y.js",
+        "https://fureststory.com/_next/static/chunks/02ipk2reg_~9-.js",
+        "https://fureststory.com/_next/static/chunks/0gogvxblyxa9..js",
+        "https://fureststory.com/_next/static/chunks/0iunf13ousprx.js",
+        "https://fureststory.com/_next/static/chunks/057ldzs9~zi2s.js",
+        "https://fureststory.com/_next/static/chunks/172olsmcuxauv.js",
+        "https://fureststory.com/_next/static/chunks/0woke02sx7xh0.js",
+        "https://fureststory.com/_next/static/chunks/03~yq9q893hmn.js",
+        "https://fureststory.com/_next/static/chunks/15s7kvu-r013t.js"
+      ],
+      "links": [
+        "https://beian.miit.gov.cn/",
+        "https://beian.mps.gov.cn/#/query/webSearch?code=21011202001306",
+        "https://fureststory.com/",
+        "https://fureststory.com/about",
+        "https://fureststory.com/bulletin",
+        "https://fureststory.com/fursuit",
+        "https://fureststory.com/fursuit/art",
+        "https://fureststory.com/fursuit/detail",
+        "https://fureststory.com/fursuit/inn",
+        "https://fureststory.com/fursuit/quote",
+        "https://fureststory.com/more",
+        "https://fureststory.com/more/body-form",
+        "https://fureststory.com/more/cleaning",
+        "https://fureststory.com/more/foot-frame",
+        "https://fureststory.com/more/foot-pad"
+      ],
+      "sha256": "a232e127516dda68429e7813f3b33e722654de9085bea747e297375f780037c4",
+      "extracted_text_sha256": "3c885ce3a96c0d717a2203d0162f6c0054f1cd5159949e9cbd60cb7b82ec8f9c",
+      "text_characters": 370
+    },
+    {
+      "url": "https://fureststory.com/bulletin/1",
+      "final_url": "https://fureststory.com/bulletin/1",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "title": "热烈庆祝网站demo上线 · 森绒物语",
+      "controls": [
+        {
+          "type": "button"
+        },
+        {
+          "type": "button"
+        },
+        {
+          "type": "button",
+          "aria-label": "语言"
+        },
+        {
+          "type": "button",
+          "aria-label": "切换主题"
+        },
+        {
+          "type": "button",
+          "aria-label": "打开菜单"
+        },
+        {
+          "type": "button"
+        },
+        {
+          "type": "button"
+        },
+        {
+          "type": "button",
+          "aria-label": "联系客服 咨询与估价"
+        }
+      ],
+      "scripts": [
+        "https://fureststory.com/_next/static/chunks/10qd__0r7a~.l.js",
+        "https://fureststory.com/_next/static/chunks/0~_gy9umnp-u_.js",
+        "https://fureststory.com/_next/static/chunks/12.eg6ivi-u1j.js",
+        "https://fureststory.com/_next/static/chunks/0pqt~8bl3ukh4.js",
+        "https://fureststory.com/_next/static/chunks/turbopack-0fgg8u.8g5j...js",
+        "https://fureststory.com/_next/static/chunks/04rg01xbv3wqr.js",
+        "https://fureststory.com/_next/static/chunks/0t2xr05rlu96l.js",
+        "https://fureststory.com/_next/static/chunks/10w5ew5-.6os2.js",
+        "https://fureststory.com/_next/static/chunks/0ghm9~j88gj8y.js",
+        "https://fureststory.com/_next/static/chunks/02ipk2reg_~9-.js",
+        "https://fureststory.com/_next/static/chunks/0gogvxblyxa9..js",
+        "https://fureststory.com/_next/static/chunks/0iunf13ousprx.js",
+        "https://fureststory.com/_next/static/chunks/057ldzs9~zi2s.js",
+        "https://fureststory.com/_next/static/chunks/172olsmcuxauv.js",
+        "https://fureststory.com/_next/static/chunks/0woke02sx7xh0.js",
+        "https://fureststory.com/_next/static/chunks/023jjm-.tich3.js",
+        "https://fureststory.com/_next/static/chunks/03~yq9q893hmn.js",
+        "https://fureststory.com/_next/static/chunks/15s7kvu-r013t.js"
+      ],
+      "links": [
+        "https://beian.miit.gov.cn/",
+        "https://beian.mps.gov.cn/#/query/webSearch?code=21011202001306",
+        "https://fureststory.com/",
+        "https://fureststory.com/about",
+        "https://fureststory.com/bulletin",
+        "https://fureststory.com/fursuit",
+        "https://fureststory.com/fursuit/art",
+        "https://fureststory.com/fursuit/detail",
+        "https://fureststory.com/fursuit/inn",
+        "https://fureststory.com/fursuit/quote",
+        "https://fureststory.com/more",
+        "https://fureststory.com/more/body-form",
+        "https://fureststory.com/more/cleaning",
+        "https://fureststory.com/more/foot-frame",
+        "https://fureststory.com/more/foot-pad"
+      ],
+      "sha256": "251fb16dc7aaf5ab84c40e42259f730f83cb885620cfd49dffdd917f44e6639d",
+      "extracted_text_sha256": "412fc25324c390aed80c46e485651e8616d1717a8d322e4c80fc6664aedd1d34",
+      "text_characters": 385
+    },
+    {
+      "url": "https://fureststory.com/fursuit/art",
+      "final_url": "https://fureststory.com/fursuit/art",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "title": "森绒画廊 · 森绒物语",
+      "controls": [
+        {
+          "type": "button"
+        },
+        {
+          "type": "button"
+        },
+        {
+          "type": "button",
+          "aria-label": "语言"
+        },
+        {
+          "type": "button",
+          "aria-label": "切换主题"
+        },
+        {
+          "type": "button",
+          "aria-label": "打开菜单"
+        },
+        {
+          "type": "button"
+        },
+        {
+          "type": "button"
+        },
+        {
+          "type": "button",
+          "aria-label": "联系客服 咨询与估价"
+        }
+      ],
+      "scripts": [
+        "https://fureststory.com/_next/static/chunks/10qd__0r7a~.l.js",
+        "https://fureststory.com/_next/static/chunks/0~_gy9umnp-u_.js",
+        "https://fureststory.com/_next/static/chunks/12.eg6ivi-u1j.js",
+        "https://fureststory.com/_next/static/chunks/0pqt~8bl3ukh4.js",
+        "https://fureststory.com/_next/static/chunks/turbopack-0fgg8u.8g5j...js",
+        "https://fureststory.com/_next/static/chunks/04rg01xbv3wqr.js",
+        "https://fureststory.com/_next/static/chunks/0t2xr05rlu96l.js",
+        "https://fureststory.com/_next/static/chunks/10w5ew5-.6os2.js",
+        "https://fureststory.com/_next/static/chunks/0ghm9~j88gj8y.js",
+        "https://fureststory.com/_next/static/chunks/02ipk2reg_~9-.js",
+        "https://fureststory.com/_next/static/chunks/0gogvxblyxa9..js",
+        "https://fureststory.com/_next/static/chunks/0iunf13ousprx.js",
+        "https://fureststory.com/_next/static/chunks/057ldzs9~zi2s.js",
+        "https://fureststory.com/_next/static/chunks/172olsmcuxauv.js",
+        "https://fureststory.com/_next/static/chunks/0woke02sx7xh0.js",
+        "https://fureststory.com/_next/static/chunks/023jjm-.tich3.js",
+        "https://fureststory.com/_next/static/chunks/03~yq9q893hmn.js",
+        "https://fureststory.com/_next/static/chunks/15s7kvu-r013t.js"
+      ],
+      "links": [
+        "https://beian.miit.gov.cn/",
+        "https://beian.mps.gov.cn/#/query/webSearch?code=21011202001306",
+        "https://fureststory.com/",
+        "https://fureststory.com/about",
+        "https://fureststory.com/bulletin",
+        "https://fureststory.com/fursuit",
+        "https://fureststory.com/fursuit/art",
+        "https://fureststory.com/fursuit/art/01",
+        "https://fureststory.com/fursuit/art/02",
+        "https://fureststory.com/fursuit/art/03",
+        "https://fureststory.com/fursuit/detail",
+        "https://fureststory.com/fursuit/inn",
+        "https://fureststory.com/fursuit/quote",
+        "https://fureststory.com/more",
+        "https://fureststory.com/more/body-form",
+        "https://fureststory.com/more/cleaning",
+        "https://fureststory.com/more/foot-frame",
+        "https://fureststory.com/more/foot-pad"
+      ],
+      "sha256": "de2675ec67fb970d9f6be99aadf6b605246368f98a4f3166e2e6f98ba8a2ecf8",
+      "extracted_text_sha256": "983ada7b685ff906b8cf21abfdacbdc4c75151800e217b2e486e4364b7158029",
+      "text_characters": 331
+    },
+    {
+      "url": "https://fureststory.com/fursuit/quote",
+      "final_url": "https://fureststory.com/fursuit/quote",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "title": "委托详情 · 森绒物语",
+      "controls": [
+        {
+          "type": "button"
+        },
+        {
+          "type": "button"
+        },
+        {
+          "type": "button",
+          "aria-label": "语言"
+        },
+        {
+          "type": "button",
+          "aria-label": "切换主题"
+        },
+        {
+          "type": "button",
+          "aria-label": "打开菜单"
+        },
+        {
+          "type": "button",
+          "aria-label": "复制客服 QQ 号"
+        },
+        {
+          "type": "button"
+        },
+        {
+          "type": "button"
+        },
+        {
+          "type": "button",
+          "aria-label": "联系客服 咨询与估价"
+        }
+      ],
+      "scripts": [
+        "https://fureststory.com/_next/static/chunks/10qd__0r7a~.l.js",
+        "https://fureststory.com/_next/static/chunks/0~_gy9umnp-u_.js",
+        "https://fureststory.com/_next/static/chunks/12.eg6ivi-u1j.js",
+        "https://fureststory.com/_next/static/chunks/0pqt~8bl3ukh4.js",
+        "https://fureststory.com/_next/static/chunks/turbopack-0fgg8u.8g5j...js",
+        "https://fureststory.com/_next/static/chunks/04rg01xbv3wqr.js",
+        "https://fureststory.com/_next/static/chunks/0t2xr05rlu96l.js",
+        "https://fureststory.com/_next/static/chunks/10w5ew5-.6os2.js",
+        "https://fureststory.com/_next/static/chunks/0ghm9~j88gj8y.js",
+        "https://fureststory.com/_next/static/chunks/02ipk2reg_~9-.js",
+        "https://fureststory.com/_next/static/chunks/0gogvxblyxa9..js",
+        "https://fureststory.com/_next/static/chunks/0iunf13ousprx.js",
+        "https://fureststory.com/_next/static/chunks/057ldzs9~zi2s.js",
+        "https://fureststory.com/_next/static/chunks/172olsmcuxauv.js",
+        "https://fureststory.com/_next/static/chunks/0woke02sx7xh0.js",
+        "https://fureststory.com/_next/static/chunks/17csuabztdci0.js",
+        "https://fureststory.com/_next/static/chunks/03~yq9q893hmn.js",
+        "https://fureststory.com/_next/static/chunks/15s7kvu-r013t.js"
+      ],
+      "links": [
+        "https://beian.miit.gov.cn/",
+        "https://beian.mps.gov.cn/#/query/webSearch?code=21011202001306",
+        "https://fureststory.com/",
+        "https://fureststory.com/about",
+        "https://fureststory.com/bulletin",
+        "https://fureststory.com/fursuit",
+        "https://fureststory.com/fursuit/art",
+        "https://fureststory.com/fursuit/detail",
+        "https://fureststory.com/fursuit/inn",
+        "https://fureststory.com/fursuit/quote",
+        "https://fureststory.com/fursuit/quote#quote-tab-content",
+        "https://fureststory.com/fursuit/quote?view=contract#quote-tab-content",
+        "https://fureststory.com/more",
+        "https://fureststory.com/more/body-form",
+        "https://fureststory.com/more/cleaning",
+        "https://fureststory.com/more/foot-frame",
+        "https://fureststory.com/more/foot-pad",
+        "mailto:senrongwuyu@163.com"
+      ],
+      "sha256": "05d1717d864ae4b5733c8e6faa5857d6d38511c0100393e11d613f3d82476587",
+      "extracted_text_sha256": "9d381f6fc6712f62b2e3ffe067f6d78083cb1b7b4de53c3b27e9ac7cda6b0402",
+      "text_characters": 1601
+    },
+    {
+      "url": "https://fureststory.com/more/body-form",
+      "final_url": "https://fureststory.com/more/body-form",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "title": "毛布架 · 森绒物语",
+      "controls": [
+        {
+          "type": "button"
+        },
+        {
+          "type": "button"
+        },
+        {
+          "type": "button",
+          "aria-label": "语言"
+        },
+        {
+          "type": "button",
+          "aria-label": "切换主题"
+        },
+        {
+          "type": "button",
+          "aria-label": "打开菜单"
+        },
+        {
+          "type": "button"
+        },
+        {
+          "type": "button"
+        },
+        {
+          "type": "button",
+          "aria-label": "联系客服 咨询与估价"
+        }
+      ],
+      "scripts": [
+        "https://fureststory.com/_next/static/chunks/10qd__0r7a~.l.js",
+        "https://fureststory.com/_next/static/chunks/0~_gy9umnp-u_.js",
+        "https://fureststory.com/_next/static/chunks/12.eg6ivi-u1j.js",
+        "https://fureststory.com/_next/static/chunks/0pqt~8bl3ukh4.js",
+        "https://fureststory.com/_next/static/chunks/turbopack-0fgg8u.8g5j...js",
+        "https://fureststory.com/_next/static/chunks/04rg01xbv3wqr.js",
+        "https://fureststory.com/_next/static/chunks/0t2xr05rlu96l.js",
+        "https://fureststory.com/_next/static/chunks/10w5ew5-.6os2.js",
+        "https://fureststory.com/_next/static/chunks/0ghm9~j88gj8y.js",
+        "https://fureststory.com/_next/static/chunks/02ipk2reg_~9-.js",
+        "https://fureststory.com/_next/static/chunks/0gogvxblyxa9..js",
+        "https://fureststory.com/_next/static/chunks/0iunf13ousprx.js",
+        "https://fureststory.com/_next/static/chunks/057ldzs9~zi2s.js",
+        "https://fureststory.com/_next/static/chunks/172olsmcuxauv.js",
+        "https://fureststory.com/_next/static/chunks/0woke02sx7xh0.js",
+        "https://fureststory.com/_next/static/chunks/03~yq9q893hmn.js",
+        "https://fureststory.com/_next/static/chunks/15s7kvu-r013t.js"
+      ],
+      "links": [
+        "https://beian.miit.gov.cn/",
+        "https://beian.mps.gov.cn/#/query/webSearch?code=21011202001306",
+        "https://fureststory.com/",
+        "https://fureststory.com/about",
+        "https://fureststory.com/bulletin",
+        "https://fureststory.com/fursuit",
+        "https://fureststory.com/fursuit/art",
+        "https://fureststory.com/fursuit/detail",
+        "https://fureststory.com/fursuit/inn",
+        "https://fureststory.com/fursuit/quote",
+        "https://fureststory.com/more",
+        "https://fureststory.com/more/body-form",
+        "https://fureststory.com/more/cleaning",
+        "https://fureststory.com/more/foot-frame",
+        "https://fureststory.com/more/foot-pad"
+      ],
+      "sha256": "4ba3cb3e1497097d0fbfdbd6b67797bf1a0448416ece17dba5b0b89c30323fa6",
+      "extracted_text_sha256": "8889b603fa46517f76aa1c6051621ef1886ad28c4be975e7cf802bd988cfb351",
+      "text_characters": 303
+    },
+    {
+      "url": "https://fureststory.com/more/cleaning",
+      "final_url": "https://fureststory.com/more/cleaning",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "title": "兽装清理 · 森绒物语",
+      "controls": [
+        {
+          "type": "button"
+        },
+        {
+          "type": "button"
+        },
+        {
+          "type": "button",
+          "aria-label": "语言"
+        },
+        {
+          "type": "button",
+          "aria-label": "切换主题"
+        },
+        {
+          "type": "button",
+          "aria-label": "打开菜单"
+        },
+        {
+          "type": "button"
+        },
+        {
+          "type": "button"
+        },
+        {
+          "type": "button",
+          "aria-label": "联系客服 咨询与估价"
+        }
+      ],
+      "scripts": [
+        "https://fureststory.com/_next/static/chunks/10qd__0r7a~.l.js",
+        "https://fureststory.com/_next/static/chunks/0~_gy9umnp-u_.js",
+        "https://fureststory.com/_next/static/chunks/12.eg6ivi-u1j.js",
+        "https://fureststory.com/_next/static/chunks/0pqt~8bl3ukh4.js",
+        "https://fureststory.com/_next/static/chunks/turbopack-0fgg8u.8g5j...js",
+        "https://fureststory.com/_next/static/chunks/04rg01xbv3wqr.js",
+        "https://fureststory.com/_next/static/chunks/0t2xr05rlu96l.js",
+        "https://fureststory.com/_next/static/chunks/10w5ew5-.6os2.js",
+        "https://fureststory.com/_next/static/chunks/0ghm9~j88gj8y.js",
+        "https://fureststory.com/_next/static/chunks/02ipk2reg_~9-.js",
+        "https://fureststory.com/_next/static/chunks/0gogvxblyxa9..js",
+        "https://fureststory.com/_next/static/chunks/0iunf13ousprx.js",
+        "https://fureststory.com/_next/static/chunks/057ldzs9~zi2s.js",
+        "https://fureststory.com/_next/static/chunks/172olsmcuxauv.js",
+        "https://fureststory.com/_next/static/chunks/0woke02sx7xh0.js",
+        "https://fureststory.com/_next/static/chunks/03~yq9q893hmn.js",
+        "https://fureststory.com/_next/static/chunks/15s7kvu-r013t.js"
+      ],
+      "links": [
+        "https://beian.miit.gov.cn/",
+        "https://beian.mps.gov.cn/#/query/webSearch?code=21011202001306",
+        "https://fureststory.com/",
+        "https://fureststory.com/about",
+        "https://fureststory.com/bulletin",
+        "https://fureststory.com/fursuit",
+        "https://fureststory.com/fursuit/art",
+        "https://fureststory.com/fursuit/detail",
+        "https://fureststory.com/fursuit/inn",
+        "https://fureststory.com/fursuit/quote",
+        "https://fureststory.com/more",
+        "https://fureststory.com/more/body-form",
+        "https://fureststory.com/more/cleaning",
+        "https://fureststory.com/more/foot-frame",
+        "https://fureststory.com/more/foot-pad"
+      ],
+      "sha256": "445221ecc4b1ce7cd29b3adf0f016e8133fdf2fea77e5b84a6784005f772a975",
+      "extracted_text_sha256": "e6177fd3caa28d989e6f9a832be37f214839c53bf8befa8e40c0b029cb3746e2",
+      "text_characters": 304
+    },
+    {
+      "url": "https://fureststory.com/more/foot-frame",
+      "final_url": "https://fureststory.com/more/foot-frame",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "title": "脚骨 · 森绒物语",
+      "controls": [
+        {
+          "type": "button"
+        },
+        {
+          "type": "button"
+        },
+        {
+          "type": "button",
+          "aria-label": "语言"
+        },
+        {
+          "type": "button",
+          "aria-label": "切换主题"
+        },
+        {
+          "type": "button",
+          "aria-label": "打开菜单"
+        },
+        {
+          "type": "button"
+        },
+        {
+          "type": "button"
+        },
+        {
+          "type": "button",
+          "aria-label": "联系客服 咨询与估价"
+        }
+      ],
+      "scripts": [
+        "https://fureststory.com/_next/static/chunks/10qd__0r7a~.l.js",
+        "https://fureststory.com/_next/static/chunks/0~_gy9umnp-u_.js",
+        "https://fureststory.com/_next/static/chunks/12.eg6ivi-u1j.js",
+        "https://fureststory.com/_next/static/chunks/0pqt~8bl3ukh4.js",
+        "https://fureststory.com/_next/static/chunks/turbopack-0fgg8u.8g5j...js",
+        "https://fureststory.com/_next/static/chunks/04rg01xbv3wqr.js",
+        "https://fureststory.com/_next/static/chunks/0t2xr05rlu96l.js",
+        "https://fureststory.com/_next/static/chunks/10w5ew5-.6os2.js",
+        "https://fureststory.com/_next/static/chunks/0ghm9~j88gj8y.js",
+        "https://fureststory.com/_next/static/chunks/02ipk2reg_~9-.js",
+        "https://fureststory.com/_next/static/chunks/0gogvxblyxa9..js",
+        "https://fureststory.com/_next/static/chunks/0iunf13ousprx.js",
+        "https://fureststory.com/_next/static/chunks/057ldzs9~zi2s.js",
+        "https://fureststory.com/_next/static/chunks/172olsmcuxauv.js",
+        "https://fureststory.com/_next/static/chunks/0woke02sx7xh0.js",
+        "https://fureststory.com/_next/static/chunks/03~yq9q893hmn.js",
+        "https://fureststory.com/_next/static/chunks/15s7kvu-r013t.js"
+      ],
+      "links": [
+        "https://beian.miit.gov.cn/",
+        "https://beian.mps.gov.cn/#/query/webSearch?code=21011202001306",
+        "https://fureststory.com/",
+        "https://fureststory.com/about",
+        "https://fureststory.com/bulletin",
+        "https://fureststory.com/fursuit",
+        "https://fureststory.com/fursuit/art",
+        "https://fureststory.com/fursuit/detail",
+        "https://fureststory.com/fursuit/inn",
+        "https://fureststory.com/fursuit/quote",
+        "https://fureststory.com/more",
+        "https://fureststory.com/more/body-form",
+        "https://fureststory.com/more/cleaning",
+        "https://fureststory.com/more/foot-frame",
+        "https://fureststory.com/more/foot-pad"
+      ],
+      "sha256": "6efc492fa5f6fc697509857169a4772eb36cbac55a68ae7d025b45636276f152",
+      "extracted_text_sha256": "c28d9e241b45aff25ecfcaeb4389fd21efde2dfcbff76b625263f5392a7db6a3",
+      "text_characters": 302
+    },
+    {
+      "url": "https://fureststory.com/more/foot-pad",
+      "final_url": "https://fureststory.com/more/foot-pad",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "title": "脚底板 · 森绒物语",
+      "controls": [
+        {
+          "type": "button"
+        },
+        {
+          "type": "button"
+        },
+        {
+          "type": "button",
+          "aria-label": "语言"
+        },
+        {
+          "type": "button",
+          "aria-label": "切换主题"
+        },
+        {
+          "type": "button",
+          "aria-label": "打开菜单"
+        },
+        {
+          "type": "button"
+        },
+        {
+          "type": "button"
+        },
+        {
+          "type": "button",
+          "aria-label": "联系客服 咨询与估价"
+        }
+      ],
+      "scripts": [
+        "https://fureststory.com/_next/static/chunks/10qd__0r7a~.l.js",
+        "https://fureststory.com/_next/static/chunks/0~_gy9umnp-u_.js",
+        "https://fureststory.com/_next/static/chunks/12.eg6ivi-u1j.js",
+        "https://fureststory.com/_next/static/chunks/0pqt~8bl3ukh4.js",
+        "https://fureststory.com/_next/static/chunks/turbopack-0fgg8u.8g5j...js",
+        "https://fureststory.com/_next/static/chunks/04rg01xbv3wqr.js",
+        "https://fureststory.com/_next/static/chunks/0t2xr05rlu96l.js",
+        "https://fureststory.com/_next/static/chunks/10w5ew5-.6os2.js",
+        "https://fureststory.com/_next/static/chunks/0ghm9~j88gj8y.js",
+        "https://fureststory.com/_next/static/chunks/02ipk2reg_~9-.js",
+        "https://fureststory.com/_next/static/chunks/0gogvxblyxa9..js",
+        "https://fureststory.com/_next/static/chunks/0iunf13ousprx.js",
+        "https://fureststory.com/_next/static/chunks/057ldzs9~zi2s.js",
+        "https://fureststory.com/_next/static/chunks/172olsmcuxauv.js",
+        "https://fureststory.com/_next/static/chunks/0woke02sx7xh0.js",
+        "https://fureststory.com/_next/static/chunks/03~yq9q893hmn.js",
+        "https://fureststory.com/_next/static/chunks/15s7kvu-r013t.js"
+      ],
+      "links": [
+        "https://beian.miit.gov.cn/",
+        "https://beian.mps.gov.cn/#/query/webSearch?code=21011202001306",
+        "https://fureststory.com/",
+        "https://fureststory.com/about",
+        "https://fureststory.com/bulletin",
+        "https://fureststory.com/fursuit",
+        "https://fureststory.com/fursuit/art",
+        "https://fureststory.com/fursuit/detail",
+        "https://fureststory.com/fursuit/inn",
+        "https://fureststory.com/fursuit/quote",
+        "https://fureststory.com/more",
+        "https://fureststory.com/more/body-form",
+        "https://fureststory.com/more/cleaning",
+        "https://fureststory.com/more/foot-frame",
+        "https://fureststory.com/more/foot-pad"
+      ],
+      "sha256": "49f46c9fac5a4f22f53001eadf62505690c8062db05487857688d3026b46bd26",
+      "extracted_text_sha256": "b7c22ae8be4de0092d80c03bb61cb2c5064bea744b3427b27cabce95e75862e1",
+      "text_characters": 302
+    },
+    {
+      "url": "https://fureststory.com/fursuit/art/01",
+      "final_url": "https://fureststory.com/fursuit/art/01",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "title": "森屿 · 森绒物语",
+      "controls": [
+        {
+          "type": "button"
+        },
+        {
+          "type": "button"
+        },
+        {
+          "type": "button",
+          "aria-label": "语言"
+        },
+        {
+          "type": "button",
+          "aria-label": "切换主题"
+        },
+        {
+          "type": "button",
+          "aria-label": "打开菜单"
+        },
+        {
+          "type": "button"
+        },
+        {
+          "type": "button"
+        },
+        {
+          "type": "button",
+          "aria-label": "联系客服 咨询与估价"
+        }
+      ],
+      "scripts": [
+        "https://fureststory.com/_next/static/chunks/10qd__0r7a~.l.js",
+        "https://fureststory.com/_next/static/chunks/0~_gy9umnp-u_.js",
+        "https://fureststory.com/_next/static/chunks/12.eg6ivi-u1j.js",
+        "https://fureststory.com/_next/static/chunks/0pqt~8bl3ukh4.js",
+        "https://fureststory.com/_next/static/chunks/turbopack-0fgg8u.8g5j...js",
+        "https://fureststory.com/_next/static/chunks/04rg01xbv3wqr.js",
+        "https://fureststory.com/_next/static/chunks/0t2xr05rlu96l.js",
+        "https://fureststory.com/_next/static/chunks/10w5ew5-.6os2.js",
+        "https://fureststory.com/_next/static/chunks/0ghm9~j88gj8y.js",
+        "https://fureststory.com/_next/static/chunks/02ipk2reg_~9-.js",
+        "https://fureststory.com/_next/static/chunks/0gogvxblyxa9..js",
+        "https://fureststory.com/_next/static/chunks/0iunf13ousprx.js",
+        "https://fureststory.com/_next/static/chunks/057ldzs9~zi2s.js",
+        "https://fureststory.com/_next/static/chunks/172olsmcuxauv.js",
+        "https://fureststory.com/_next/static/chunks/0woke02sx7xh0.js",
+        "https://fureststory.com/_next/static/chunks/023jjm-.tich3.js",
+        "https://fureststory.com/_next/static/chunks/03~yq9q893hmn.js",
+        "https://fureststory.com/_next/static/chunks/15s7kvu-r013t.js"
+      ],
+      "links": [
+        "https://beian.miit.gov.cn/",
+        "https://beian.mps.gov.cn/#/query/webSearch?code=21011202001306",
+        "https://cdn.fureststory.com/uploads/afde06dd-311a-4c57-a62d-afcb5289536b.jpg",
+        "https://cdn.fureststory.com/uploads/b8dd58f6-0657-42d3-8e9a-eb67734c4971.jpg",
+        "https://cdn.fureststory.com/uploads/e22dfe73-90a7-4603-a5af-24dbcf3c8338.jpg",
+        "https://fureststory.com/",
+        "https://fureststory.com/about",
+        "https://fureststory.com/bulletin",
+        "https://fureststory.com/fursuit",
+        "https://fureststory.com/fursuit/art",
+        "https://fureststory.com/fursuit/detail",
+        "https://fureststory.com/fursuit/inn",
+        "https://fureststory.com/fursuit/quote",
+        "https://fureststory.com/more",
+        "https://fureststory.com/more/body-form",
+        "https://fureststory.com/more/cleaning",
+        "https://fureststory.com/more/foot-frame",
+        "https://fureststory.com/more/foot-pad"
+      ],
+      "sha256": "aa2581c7583d6ac69817152207ded0ab5c4c4364780b7f81d225c1f863c22695",
+      "extracted_text_sha256": "2a3ee0629dcf06b611170331a45949b32b04312a5d2d1949f6f334b3e3d5cb62",
+      "text_characters": 290
+    },
+    {
+      "url": "https://fureststory.com/fursuit/art/02",
+      "final_url": "https://fureststory.com/fursuit/art/02",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "title": "归墟 · 森绒物语",
+      "controls": [
+        {
+          "type": "button"
+        },
+        {
+          "type": "button"
+        },
+        {
+          "type": "button",
+          "aria-label": "语言"
+        },
+        {
+          "type": "button",
+          "aria-label": "切换主题"
+        },
+        {
+          "type": "button",
+          "aria-label": "打开菜单"
+        },
+        {
+          "type": "button"
+        },
+        {
+          "type": "button"
+        },
+        {
+          "type": "button",
+          "aria-label": "联系客服 咨询与估价"
+        }
+      ],
+      "scripts": [
+        "https://fureststory.com/_next/static/chunks/10qd__0r7a~.l.js",
+        "https://fureststory.com/_next/static/chunks/0~_gy9umnp-u_.js",
+        "https://fureststory.com/_next/static/chunks/12.eg6ivi-u1j.js",
+        "https://fureststory.com/_next/static/chunks/0pqt~8bl3ukh4.js",
+        "https://fureststory.com/_next/static/chunks/turbopack-0fgg8u.8g5j...js",
+        "https://fureststory.com/_next/static/chunks/04rg01xbv3wqr.js",
+        "https://fureststory.com/_next/static/chunks/0t2xr05rlu96l.js",
+        "https://fureststory.com/_next/static/chunks/10w5ew5-.6os2.js",
+        "https://fureststory.com/_next/static/chunks/0ghm9~j88gj8y.js",
+        "https://fureststory.com/_next/static/chunks/02ipk2reg_~9-.js",
+        "https://fureststory.com/_next/static/chunks/0gogvxblyxa9..js",
+        "https://fureststory.com/_next/static/chunks/0iunf13ousprx.js",
+        "https://fureststory.com/_next/static/chunks/057ldzs9~zi2s.js",
+        "https://fureststory.com/_next/static/chunks/172olsmcuxauv.js",
+        "https://fureststory.com/_next/static/chunks/0woke02sx7xh0.js",
+        "https://fureststory.com/_next/static/chunks/023jjm-.tich3.js",
+        "https://fureststory.com/_next/static/chunks/03~yq9q893hmn.js",
+        "https://fureststory.com/_next/static/chunks/15s7kvu-r013t.js"
+      ],
+      "links": [
+        "https://beian.miit.gov.cn/",
+        "https://beian.mps.gov.cn/#/query/webSearch?code=21011202001306",
+        "https://cdn.fureststory.com/uploads/442ffb05-4fc8-4f2a-b7f0-f15d5405d424.jpg",
+        "https://cdn.fureststory.com/uploads/c8049d6a-42f9-45d5-a6c4-d59aa01f6925.jpg",
+        "https://cdn.fureststory.com/uploads/dc9a8b54-b423-4496-b586-d41737a74e14.jpg",
+        "https://fureststory.com/",
+        "https://fureststory.com/about",
+        "https://fureststory.com/bulletin",
+        "https://fureststory.com/fursuit",
+        "https://fureststory.com/fursuit/art",
+        "https://fureststory.com/fursuit/detail",
+        "https://fureststory.com/fursuit/inn",
+        "https://fureststory.com/fursuit/quote",
+        "https://fureststory.com/more",
+        "https://fureststory.com/more/body-form",
+        "https://fureststory.com/more/cleaning",
+        "https://fureststory.com/more/foot-frame",
+        "https://fureststory.com/more/foot-pad"
+      ],
+      "sha256": "6131d76b30e05379e035752436e0b23fc40cd9a13b19aed644528252e3b8533b",
+      "extracted_text_sha256": "96ad1ff77a40ed6f3c249eb6d7be6abf416284c14daebb67e5890881b827d5b9",
+      "text_characters": 337
+    },
+    {
+      "url": "https://fureststory.com/fursuit/art/03",
+      "final_url": "https://fureststory.com/fursuit/art/03",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "title": "枫月（暗） · 森绒物语",
+      "controls": [
+        {
+          "type": "button"
+        },
+        {
+          "type": "button"
+        },
+        {
+          "type": "button",
+          "aria-label": "语言"
+        },
+        {
+          "type": "button",
+          "aria-label": "切换主题"
+        },
+        {
+          "type": "button",
+          "aria-label": "打开菜单"
+        },
+        {
+          "type": "button"
+        },
+        {
+          "type": "button"
+        },
+        {
+          "type": "button",
+          "aria-label": "联系客服 咨询与估价"
+        }
+      ],
+      "scripts": [
+        "https://fureststory.com/_next/static/chunks/10qd__0r7a~.l.js",
+        "https://fureststory.com/_next/static/chunks/0~_gy9umnp-u_.js",
+        "https://fureststory.com/_next/static/chunks/12.eg6ivi-u1j.js",
+        "https://fureststory.com/_next/static/chunks/0pqt~8bl3ukh4.js",
+        "https://fureststory.com/_next/static/chunks/turbopack-0fgg8u.8g5j...js",
+        "https://fureststory.com/_next/static/chunks/04rg01xbv3wqr.js",
+        "https://fureststory.com/_next/static/chunks/0t2xr05rlu96l.js",
+        "https://fureststory.com/_next/static/chunks/10w5ew5-.6os2.js",
+        "https://fureststory.com/_next/static/chunks/0ghm9~j88gj8y.js",
+        "https://fureststory.com/_next/static/chunks/02ipk2reg_~9-.js",
+        "https://fureststory.com/_next/static/chunks/0gogvxblyxa9..js",
+        "https://fureststory.com/_next/static/chunks/0iunf13ousprx.js",
+        "https://fureststory.com/_next/static/chunks/057ldzs9~zi2s.js",
+        "https://fureststory.com/_next/static/chunks/172olsmcuxauv.js",
+        "https://fureststory.com/_next/static/chunks/0woke02sx7xh0.js",
+        "https://fureststory.com/_next/static/chunks/023jjm-.tich3.js",
+        "https://fureststory.com/_next/static/chunks/03~yq9q893hmn.js",
+        "https://fureststory.com/_next/static/chunks/15s7kvu-r013t.js"
+      ],
+      "links": [
+        "https://beian.miit.gov.cn/",
+        "https://beian.mps.gov.cn/#/query/webSearch?code=21011202001306",
+        "https://cdn.fureststory.com/uploads/07f03264-f73f-4667-9c1b-1ff0fbbe0f14.jpg",
+        "https://cdn.fureststory.com/uploads/4b031b28-3031-403b-b63b-29855303723e.jpg",
+        "https://cdn.fureststory.com/uploads/689fb4fa-ed31-4d47-a46d-b97002c396b5.jpg",
+        "https://fureststory.com/",
+        "https://fureststory.com/about",
+        "https://fureststory.com/bulletin",
+        "https://fureststory.com/fursuit",
+        "https://fureststory.com/fursuit/art",
+        "https://fureststory.com/fursuit/detail",
+        "https://fureststory.com/fursuit/inn",
+        "https://fureststory.com/fursuit/quote",
+        "https://fureststory.com/more",
+        "https://fureststory.com/more/body-form",
+        "https://fureststory.com/more/cleaning",
+        "https://fureststory.com/more/foot-frame",
+        "https://fureststory.com/more/foot-pad"
+      ],
+      "sha256": "65ddc000c65de52ce5f1c396e8d9420cb82f68b8fabfeb43dffa0d5963498ffa",
+      "extracted_text_sha256": "f83cbed69144ce85593c70da5a222445db22b976b24595b87b333fd3a990765c",
+      "text_characters": 296
+    },
+    {
+      "url": "https://fureststory.com/fursuit/quote?view=contract",
+      "final_url": "https://fureststory.com/fursuit/quote?view=contract",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "title": "委托详情 · 森绒物语",
+      "controls": [
+        {
+          "type": "button"
+        },
+        {
+          "type": "button"
+        },
+        {
+          "type": "button",
+          "aria-label": "语言"
+        },
+        {
+          "type": "button",
+          "aria-label": "切换主题"
+        },
+        {
+          "type": "button",
+          "aria-label": "打开菜单"
+        },
+        {
+          "type": "button",
+          "aria-label": "复制客服 QQ 号"
+        },
+        {
+          "type": "button"
+        },
+        {
+          "type": "button"
+        },
+        {
+          "type": "button",
+          "aria-label": "联系客服 咨询与估价"
+        }
+      ],
+      "scripts": [
+        "https://fureststory.com/_next/static/chunks/10qd__0r7a~.l.js",
+        "https://fureststory.com/_next/static/chunks/0~_gy9umnp-u_.js",
+        "https://fureststory.com/_next/static/chunks/12.eg6ivi-u1j.js",
+        "https://fureststory.com/_next/static/chunks/0pqt~8bl3ukh4.js",
+        "https://fureststory.com/_next/static/chunks/turbopack-0fgg8u.8g5j...js",
+        "https://fureststory.com/_next/static/chunks/04rg01xbv3wqr.js",
+        "https://fureststory.com/_next/static/chunks/0t2xr05rlu96l.js",
+        "https://fureststory.com/_next/static/chunks/10w5ew5-.6os2.js",
+        "https://fureststory.com/_next/static/chunks/0ghm9~j88gj8y.js",
+        "https://fureststory.com/_next/static/chunks/02ipk2reg_~9-.js",
+        "https://fureststory.com/_next/static/chunks/0gogvxblyxa9..js",
+        "https://fureststory.com/_next/static/chunks/0iunf13ousprx.js",
+        "https://fureststory.com/_next/static/chunks/057ldzs9~zi2s.js",
+        "https://fureststory.com/_next/static/chunks/172olsmcuxauv.js",
+        "https://fureststory.com/_next/static/chunks/0woke02sx7xh0.js",
+        "https://fureststory.com/_next/static/chunks/17csuabztdci0.js",
+        "https://fureststory.com/_next/static/chunks/03~yq9q893hmn.js",
+        "https://fureststory.com/_next/static/chunks/15s7kvu-r013t.js"
+      ],
+      "links": [
+        "https://beian.miit.gov.cn/",
+        "https://beian.mps.gov.cn/#/query/webSearch?code=21011202001306",
+        "https://fureststory.com/",
+        "https://fureststory.com/about",
+        "https://fureststory.com/bulletin",
+        "https://fureststory.com/fursuit",
+        "https://fureststory.com/fursuit/art",
+        "https://fureststory.com/fursuit/detail",
+        "https://fureststory.com/fursuit/inn",
+        "https://fureststory.com/fursuit/quote",
+        "https://fureststory.com/fursuit/quote#quote-tab-content",
+        "https://fureststory.com/fursuit/quote?view=contract#quote-tab-content",
+        "https://fureststory.com/more",
+        "https://fureststory.com/more/body-form",
+        "https://fureststory.com/more/cleaning",
+        "https://fureststory.com/more/foot-frame",
+        "https://fureststory.com/more/foot-pad",
+        "mailto:senrongwuyu@163.com"
+      ],
+      "sha256": "00eacab0f0e7886c7cde903093fe49baddb78c146484cbc8d8fbd05ce5948e22",
+      "extracted_text_sha256": "de30b3e8dd81ed4535777a4e36c3f5867cb033338050305659e4ddf919d3b425",
+      "text_characters": 3849
+    }
+  ],
+  "discovery": [
+    {
+      "url": "https://fureststory.com/robots.txt",
+      "final_url": "https://fureststory.com/robots.txt",
+      "status": 200,
+      "content_type": "text/plain",
+      "observation": "已读取文本",
+      "content_sha256": "2c2e597b9d835af523fb2d54389a5419f9e3f65ed82b54bb9a07253dd40c771f"
+    },
+    {
+      "url": "https://fureststory.com/sitemap.xml",
+      "final_url": "https://fureststory.com/sitemap.xml",
+      "status": 200,
+      "content_type": "application/xml",
+      "observation": "XML 地图，已提取 loc 与 alternate",
+      "content_sha256": "77d94c668b96cf2f8d8c3bad46c6a9e3aa03d2f06084725c8a7a0aa8a951195a"
+    }
+  ],
+  "remaining": [],
+  "collected_at": "2026-09-18",
+  "method": "public HTTP GET and link discovery; no form submission"
+}

@@ -1,0 +1,42 @@
+# 弈星纪元兽装工作室官网 — 任务 worker 单元
+#
+# 独立服务：outbox 消费、通知投递、积分入账、到期订单关闭、定期清理与对账。
+# 多个 worker 意外启动时以数据库 claim 条件保证一条任务只有一个有效租约，
+# 消费者仍必须幂等（04/14 文档）。
+
+[Unit]
+Description=Starium background worker (outbox consumer)
+After=network-online.target starium-api.service
+Wants=network-online.target
+
+[Service]
+Type=exec
+User=starium
+Group=starium
+WorkingDirectory=/opt/starium/server
+EnvironmentFile=/etc/starium/api.env
+ExecStart=/opt/starium/server/.venv/bin/python -m app.cli worker
+Restart=always
+RestartSec=5
+KillSignal=SIGTERM
+TimeoutStopSec=45
+
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictNamespaces=true
+RestrictSUIDSGID=true
+LockPersonality=true
+ReadWritePaths=/var/lib/starium /var/log/starium
+UMask=0077
+
+StandardOutput=append:/var/log/starium/worker.log
+StandardError=append:/var/log/starium/worker.log
+
+[Install]
+WantedBy=multi-user.target

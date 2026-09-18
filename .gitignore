@@ -1,0 +1,65 @@
+# 依赖与构建产物
+node_modules/
+dist/
+web/dist/
+web/admin-dist/
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+coverage/
+htmlcov/
+
+# 工具缓存（沙盒内 uv / pnpm 需要把缓存放在仓库内）
+.uv-cache/
+.pnpm-store/
+.tmp/
+var-testtmp/
+server/.pytest-tmp/
+server/.pytmp/
+server/pytest-cache-files-*/
+# 受限沙箱下测试进程可能留下 ACL 拒绝访问的空目录；需在普通 shell 手动清理。
+server/tests/.dsh-probe2/
+server/tests/mk-*/
+server/tests/probe-*/
+server/tests/tmp*/
+server/tests/pytest-cache-files-*/
+
+# 运行时数据（SQLite 与对象存储）
+storage/
+*.db
+*.db-wal
+*.db-shm
+server/var/
+
+# 环境与密钥（绝不入库）
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# 编辑器与系统
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# 日志与临时
+*.log
+tmp/
+.cache/
+
+# 测试备份与恢复产物（保留本地，不纳入发布）
+server/.pytest-commissions/
+*.sqlite3
+*.sqlite3-journal
+*.db-journal
+.dsh-tmp/
+playwright-report/
+test-results/
+# Playwright HTML 报告与失败证据（e2e/playwright.config.ts 的 outputFolder）
+e2e/report/
+e2e/test-results/

@@ -1,0 +1,24 @@
+{
+  // e2e 用例的类型检查配置（`cd web && pnpm exec tsc --noEmit -p ../e2e/tsconfig.json`）。
+  //
+  // `@playwright/test` 装在 `web/node_modules`（不写进前端生产依赖），
+  // 而 e2e/ 是它的同级目录，Node 的向上查找找不到它，
+  // 因此这里显式把 baseUrl/paths 与 typeRoots 指向 ../web。
+  "compilerOptions": {
+    "noEmit": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "target": "es2022",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "lib": ["es2022", "dom", "dom.iterable"],
+    "esModuleInterop": true,
+    "types": ["node"],
+    "typeRoots": ["../web/node_modules/@types"],
+    "baseUrl": "../web",
+    "paths": {
+      "@playwright/test": ["node_modules/@playwright/test"]
+    }
+  },
+  "include": ["./**/*.ts"]
+}

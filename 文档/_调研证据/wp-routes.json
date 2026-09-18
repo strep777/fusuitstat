@@ -1,0 +1,72 @@
+[
+  {
+    "route": "/wp-fursuit/",
+    "component": "./ByeuTdm0.js",
+    "evidence": "public component static inspection, not runtime verification"
+  },
+  {
+    "route": "/form/fursuit/",
+    "component": "./DZXOQ1Hi.js",
+    "evidence": "public component static inspection, not runtime verification"
+  },
+  {
+    "route": "/gallery/char/",
+    "component": "./CD3SQhEg.js",
+    "evidence": "public component static inspection, not runtime verification"
+  },
+  {
+    "route": "/product/fursuit/qa",
+    "component": "./UBmDPWLF.js",
+    "evidence": "public component static inspection, not runtime verification"
+  },
+  {
+    "route": "/gallery/works/",
+    "component": "./Dw6kpoCs.js",
+    "evidence": "public component static inspection, not runtime verification"
+  },
+  {
+    "route": "/product/fursuit/",
+    "component": "./Dzkqe277.js",
+    "evidence": "public component static inspection, not runtime verification"
+  },
+  {
+    "route": "/wp-fursuit/flow/",
+    "component": "./pLa5PjAH.js",
+    "evidence": "public component static inspection, not runtime verification"
+  },
+  {
+    "route": "/wp-fursuit/specs/",
+    "component": "./DsIjTEXv.js",
+    "evidence": "public component static inspection, not runtime verification"
+  },
+  {
+    "route": "/gallery/char/:_id()/",
+    "component": "./DHGBDgR9.js",
+    "evidence": "public component static inspection, not runtime verification"
+  },
+  {
+    "route": "/wp-fursuit/contract/",
+    "component": "./C7w6CEA_.js",
+    "evidence": "public component static inspection, not runtime verification"
+  },
+  {
+    "route": "/wp-fursuit/schedules/",
+    "component": "./Cu8X_tLk.js",
+    "evidence": "public component static inspection, not runtime verification"
+  },
+  {
+    "route": "/wp-fursuit/create-request/",
+    "component": "./BSN_TJe7.js",
+    "evidence": "public component static inspection, not runtime verification"
+  },
+  {
+    "route": "/form/fursuit/:product()/report/:case_no()/:v_code()/",
+    "component": "./DnjUV9no.js",
+    "evidence": "public component static inspection, not runtime verification"
+  },
+  {
+    "route": "/wp-fursuit/request_result/:case_no()/:vaild_code()/",
+    "component": "./Bg0jIG_N.js",
+    "evidence": "public component static inspection, not runtime verification"
+  }
+]

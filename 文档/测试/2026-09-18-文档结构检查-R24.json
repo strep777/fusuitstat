@@ -1,0 +1,27 @@
+{
+  "date": "2026-09-18",
+  "task": "R24 旧规格与已确认决定对齐（仅文档修订）",
+  "note": "以修正后的规则源文件名重跑；原脚本因 KeyError: '功能确认清单.md' 无法执行引用检查",
+  "markdown_files": 20,
+  "reference_sources": {
+    "C": {
+      "defined": 30,
+      "referenced": 30,
+      "missing": []
+    },
+    "FR": {
+      "defined": 24,
+      "referenced": 24,
+      "missing": []
+    },
+    "TC": {
+      "defined": 40,
+      "referenced": 40,
+      "missing": []
+    }
+  },
+  "assets_unchanged": true,
+  "issues": [],
+  "status": "PASS",
+  "scope": "document structure and references only; no website implementation tests executed"
+}

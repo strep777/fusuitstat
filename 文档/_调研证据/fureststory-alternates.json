@@ -1,0 +1,3395 @@
+[
+  {
+    "url": "https://fureststory.com/en",
+    "final_url": "https://fureststory.com/en",
+    "status": 200,
+    "content_type": "text/html; charset=utf-8",
+    "title": "Furest · 森绒物语",
+    "links": [
+      "/en",
+      "/en",
+      "/en/bulletin",
+      "/en/about",
+      "/en/fursuit/detail",
+      "/en/fursuit/quote",
+      "/en/fursuit/inn",
+      "/en/fursuit/art",
+      "/en/bulletin",
+      "/en/about",
+      "/en",
+      "/en/bulletin",
+      "/en/fursuit",
+      "/en/fursuit/detail",
+      "/en/fursuit/quote",
+      "/en/fursuit/inn",
+      "/en/fursuit/art",
+      "/en/more",
+      "/en/more/foot-frame",
+      "/en/more/foot-pad",
+      "/en/more/body-form",
+      "/en/more/cleaning",
+      "/en/about",
+      "https://beian.miit.gov.cn/",
+      "https://beian.mps.gov.cn/#/query/webSearch?code=21011202001306"
+    ],
+    "controls": [
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "Language"
+      },
+      {
+        "type": "button",
+        "aria-label": "切换主题"
+      },
+      {
+        "type": "button",
+        "aria-label": "Open menu"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "Contact us for inquiry and quote"
+      }
+    ],
+    "extracted_text_sha256": "8eb0c95a23c06a931e51196f6d463f0837699914b9c62f8d425efbb0a1cdc34f",
+    "text_characters": 1481
+  },
+  {
+    "url": "https://fureststory.com/en/about",
+    "final_url": "https://fureststory.com/en/about",
+    "status": 200,
+    "content_type": "text/html; charset=utf-8",
+    "title": "Make the “furest” fursuit · Furest",
+    "links": [
+      "/en",
+      "/en",
+      "/en/bulletin",
+      "/en/about",
+      "mailto:senrongwuyu@163.com",
+      "https://space.bilibili.com/3537108551600882",
+      "https://www.xiaohongshu.com/user/profile/5b9713aa4eacab68fa15a1c2",
+      "https://www.douyin.com/user/MS4wLjABAAAAkRlKFIwacw5L8JHMZhJHIn2K3-xTYtJOhWSQGhUeyoYD1OWnZsxWzoeJUanxgmwM",
+      "https://x.com/fureststudio",
+      "/en",
+      "/en/bulletin",
+      "/en/fursuit",
+      "/en/fursuit/detail",
+      "/en/fursuit/quote",
+      "/en/fursuit/inn",
+      "/en/fursuit/art",
+      "/en/more",
+      "/en/more/foot-frame",
+      "/en/more/foot-pad",
+      "/en/more/body-form",
+      "/en/more/cleaning",
+      "/en/about",
+      "https://beian.miit.gov.cn/",
+      "https://beian.mps.gov.cn/#/query/webSearch?code=21011202001306"
+    ],
+    "controls": [
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "Language"
+      },
+      {
+        "type": "button",
+        "aria-label": "切换主题"
+      },
+      {
+        "type": "button",
+        "aria-label": "Open menu"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "Contact us for inquiry and quote"
+      }
+    ],
+    "extracted_text_sha256": "2057832d4999a211ca2b1e8b20433dfc141cae83859f8d410990bb045df3f51a",
+    "text_characters": 1996
+  },
+  {
+    "url": "https://fureststory.com/en/bulletin",
+    "final_url": "https://fureststory.com/en/bulletin",
+    "status": 200,
+    "content_type": "text/html; charset=utf-8",
+    "title": "Bulletin · Furest",
+    "links": [
+      "/en",
+      "/en",
+      "/en/bulletin",
+      "/en/about",
+      "/en/bulletin/1",
+      "/en",
+      "/en/bulletin",
+      "/en/fursuit",
+      "/en/fursuit/detail",
+      "/en/fursuit/quote",
+      "/en/fursuit/inn",
+      "/en/fursuit/art",
+      "/en/more",
+      "/en/more/foot-frame",
+      "/en/more/foot-pad",
+      "/en/more/body-form",
+      "/en/more/cleaning",
+      "/en/about",
+      "https://beian.miit.gov.cn/",
+      "https://beian.mps.gov.cn/#/query/webSearch?code=21011202001306"
+    ],
+    "controls": [
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "Language"
+      },
+      {
+        "type": "button",
+        "aria-label": "切换主题"
+      },
+      {
+        "type": "button",
+        "aria-label": "Open menu"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "Contact us for inquiry and quote"
+      }
+    ],
+    "extracted_text_sha256": "dcad300e457731b3e249f2d90ac888bfac37e01fd5dc1c52768f3358a9395219",
+    "text_characters": 879
+  },
+  {
+    "url": "https://fureststory.com/en/bulletin/1",
+    "final_url": "https://fureststory.com/en/bulletin/1",
+    "status": 200,
+    "content_type": "text/html; charset=utf-8",
+    "title": "The website has onlined · Furest",
+    "links": [
+      "/en",
+      "/en",
+      "/en/bulletin",
+      "/en/about",
+      "/en/bulletin",
+      "/en",
+      "/en/bulletin",
+      "/en/fursuit",
+      "/en/fursuit/detail",
+      "/en/fursuit/quote",
+      "/en/fursuit/inn",
+      "/en/fursuit/art",
+      "/en/more",
+      "/en/more/foot-frame",
+      "/en/more/foot-pad",
+      "/en/more/body-form",
+      "/en/more/cleaning",
+      "/en/about",
+      "https://beian.miit.gov.cn/",
+      "https://beian.mps.gov.cn/#/query/webSearch?code=21011202001306"
+    ],
+    "controls": [
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "Language"
+      },
+      {
+        "type": "button",
+        "aria-label": "切换主题"
+      },
+      {
+        "type": "button",
+        "aria-label": "Open menu"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "Contact us for inquiry and quote"
+      }
+    ],
+    "extracted_text_sha256": "01c3f45db195cb5983b28fd12a9a4fcbb6ca7899a4f1cd6018fc363e3b017b7f",
+    "text_characters": 1021
+  },
+  {
+    "url": "https://fureststory.com/en/fursuit",
+    "final_url": "https://fureststory.com/en/fursuit",
+    "status": 200,
+    "content_type": "text/html; charset=utf-8",
+    "title": "Fursuits · Furest",
+    "links": [
+      "/en",
+      "/en",
+      "/en/bulletin",
+      "/en/about",
+      "/en/fursuit/detail",
+      "/en/fursuit/quote",
+      "/en/fursuit/inn",
+      "/en/fursuit/art",
+      "/en",
+      "/en/bulletin",
+      "/en/fursuit",
+      "/en/fursuit/detail",
+      "/en/fursuit/quote",
+      "/en/fursuit/inn",
+      "/en/fursuit/art",
+      "/en/more",
+      "/en/more/foot-frame",
+      "/en/more/foot-pad",
+      "/en/more/body-form",
+      "/en/more/cleaning",
+      "/en/about",
+      "https://beian.miit.gov.cn/",
+      "https://beian.mps.gov.cn/#/query/webSearch?code=21011202001306"
+    ],
+    "controls": [
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "Language"
+      },
+      {
+        "type": "button",
+        "aria-label": "切换主题"
+      },
+      {
+        "type": "button",
+        "aria-label": "Open menu"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "Contact us for inquiry and quote"
+      }
+    ],
+    "extracted_text_sha256": "a813c894f167323d934cc90dd9e0d1ea75aaad6caeb52fa9c01f4d0330e55efb",
+    "text_characters": 1066
+  },
+  {
+    "url": "https://fureststory.com/en/fursuit/detail",
+    "final_url": "https://fureststory.com/en/fursuit/detail",
+    "status": 200,
+    "content_type": "text/html; charset=utf-8",
+    "title": "Details · Furest",
+    "links": [
+      "/en",
+      "/en",
+      "/en/bulletin",
+      "/en/about",
+      "/en/fursuit/quote",
+      "/en",
+      "/en/bulletin",
+      "/en/fursuit",
+      "/en/fursuit/detail",
+      "/en/fursuit/quote",
+      "/en/fursuit/inn",
+      "/en/fursuit/art",
+      "/en/more",
+      "/en/more/foot-frame",
+      "/en/more/foot-pad",
+      "/en/more/body-form",
+      "/en/more/cleaning",
+      "/en/about",
+      "https://beian.miit.gov.cn/",
+      "https://beian.mps.gov.cn/#/query/webSearch?code=21011202001306"
+    ],
+    "controls": [
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "Language"
+      },
+      {
+        "type": "button",
+        "aria-label": "切换主题"
+      },
+      {
+        "type": "button",
+        "aria-label": "Open menu"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "Contact us for inquiry and quote"
+      }
+    ],
+    "extracted_text_sha256": "8658cf88ab4b5fcecbeeb8347be78eca70271a28faf42540bcfabdf464d129eb",
+    "text_characters": 5896
+  },
+  {
+    "url": "https://fureststory.com/en/fursuit/inn",
+    "final_url": "https://fureststory.com/en/fursuit/inn",
+    "status": 200,
+    "content_type": "text/html; charset=utf-8",
+    "title": "Furest Inn · Furest",
+    "links": [
+      "/en",
+      "/en",
+      "/en/bulletin",
+      "/en/about",
+      "/en",
+      "/en/bulletin",
+      "/en/fursuit",
+      "/en/fursuit/detail",
+      "/en/fursuit/quote",
+      "/en/fursuit/inn",
+      "/en/fursuit/art",
+      "/en/more",
+      "/en/more/foot-frame",
+      "/en/more/foot-pad",
+      "/en/more/body-form",
+      "/en/more/cleaning",
+      "/en/about",
+      "https://beian.miit.gov.cn/",
+      "https://beian.mps.gov.cn/#/query/webSearch?code=21011202001306"
+    ],
+    "controls": [
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "Language"
+      },
+      {
+        "type": "button",
+        "aria-label": "切换主题"
+      },
+      {
+        "type": "button",
+        "aria-label": "Open menu"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "Contact us for inquiry and quote"
+      }
+    ],
+    "extracted_text_sha256": "285eb19e77f530dc24481e156a0de167e9cffafd473f2057f775beb8469740c8",
+    "text_characters": 885
+  },
+  {
+    "url": "https://fureststory.com/en/more",
+    "final_url": "https://fureststory.com/en/more",
+    "status": 200,
+    "content_type": "text/html; charset=utf-8",
+    "title": "More products · Furest",
+    "links": [
+      "/en",
+      "/en",
+      "/en/bulletin",
+      "/en/about",
+      "/en/more/foot-frame",
+      "/en/more/foot-pad",
+      "/en/more/body-form",
+      "/en/more/cleaning",
+      "/en",
+      "/en/bulletin",
+      "/en/fursuit",
+      "/en/fursuit/detail",
+      "/en/fursuit/quote",
+      "/en/fursuit/inn",
+      "/en/fursuit/art",
+      "/en/more",
+      "/en/more/foot-frame",
+      "/en/more/foot-pad",
+      "/en/more/body-form",
+      "/en/more/cleaning",
+      "/en/about",
+      "https://beian.miit.gov.cn/",
+      "https://beian.mps.gov.cn/#/query/webSearch?code=21011202001306"
+    ],
+    "controls": [
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "Language"
+      },
+      {
+        "type": "button",
+        "aria-label": "切换主题"
+      },
+      {
+        "type": "button",
+        "aria-label": "Open menu"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "Contact us for inquiry and quote"
+      }
+    ],
+    "extracted_text_sha256": "017ea5aa0fbfda21aaebcf54613b8eb97743026aff274823bedb13e8ecd514f2",
+    "text_characters": 1016
+  },
+  {
+    "url": "https://fureststory.com/ja",
+    "final_url": "https://fureststory.com/ja",
+    "status": 200,
+    "content_type": "text/html; charset=utf-8",
+    "title": "森絨物語 · Furest",
+    "links": [
+      "/ja",
+      "/ja",
+      "/ja/bulletin",
+      "/ja/about",
+      "/ja/fursuit/detail",
+      "/ja/fursuit/quote",
+      "/ja/fursuit/inn",
+      "/ja/fursuit/art",
+      "/ja/bulletin",
+      "/ja/about",
+      "/ja",
+      "/ja/bulletin",
+      "/ja/fursuit",
+      "/ja/fursuit/detail",
+      "/ja/fursuit/quote",
+      "/ja/fursuit/inn",
+      "/ja/fursuit/art",
+      "/ja/more",
+      "/ja/more/foot-frame",
+      "/ja/more/foot-pad",
+      "/ja/more/body-form",
+      "/ja/more/cleaning",
+      "/ja/about",
+      "https://beian.miit.gov.cn/",
+      "https://beian.mps.gov.cn/#/query/webSearch?code=21011202001306"
+    ],
+    "controls": [
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "言語"
+      },
+      {
+        "type": "button",
+        "aria-label": "切换主题"
+      },
+      {
+        "type": "button",
+        "aria-label": "メニューを開く"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "お問い合わせ 相談と見積もり"
+      }
+    ],
+    "extracted_text_sha256": "c881bcf788b6335b9cc4cc2d40cff7d1e791de878ce0024d83108a00c49d25a2",
+    "text_characters": 791
+  },
+  {
+    "url": "https://fureststory.com/ja/about",
+    "final_url": "https://fureststory.com/ja/about",
+    "status": 200,
+    "content_type": "text/html; charset=utf-8",
+    "title": "一針が毛となり、毛が森となり、森が物語となる · 森絨物語",
+    "links": [
+      "/ja",
+      "/ja",
+      "/ja/bulletin",
+      "/ja/about",
+      "mailto:senrongwuyu@163.com",
+      "https://space.bilibili.com/3537108551600882",
+      "https://www.xiaohongshu.com/user/profile/5b9713aa4eacab68fa15a1c2",
+      "https://www.douyin.com/user/MS4wLjABAAAAkRlKFIwacw5L8JHMZhJHIn2K3-xTYtJOhWSQGhUeyoYD1OWnZsxWzoeJUanxgmwM",
+      "https://x.com/fureststudio",
+      "/ja",
+      "/ja/bulletin",
+      "/ja/fursuit",
+      "/ja/fursuit/detail",
+      "/ja/fursuit/quote",
+      "/ja/fursuit/inn",
+      "/ja/fursuit/art",
+      "/ja/more",
+      "/ja/more/foot-frame",
+      "/ja/more/foot-pad",
+      "/ja/more/body-form",
+      "/ja/more/cleaning",
+      "/ja/about",
+      "https://beian.miit.gov.cn/",
+      "https://beian.mps.gov.cn/#/query/webSearch?code=21011202001306"
+    ],
+    "controls": [
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "言語"
+      },
+      {
+        "type": "button",
+        "aria-label": "切换主题"
+      },
+      {
+        "type": "button",
+        "aria-label": "メニューを開く"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "お問い合わせ 相談と見積もり"
+      }
+    ],
+    "extracted_text_sha256": "beea501fff16d52a12b93e0e9529ac404bcf413cd183994278163b33484039c0",
+    "text_characters": 1196
+  },
+  {
+    "url": "https://fureststory.com/ja/bulletin",
+    "final_url": "https://fureststory.com/ja/bulletin",
+    "status": 200,
+    "content_type": "text/html; charset=utf-8",
+    "title": "お知らせ · 森絨物語",
+    "links": [
+      "/ja",
+      "/ja",
+      "/ja/bulletin",
+      "/ja/about",
+      "/ja/bulletin/1",
+      "/ja",
+      "/ja/bulletin",
+      "/ja/fursuit",
+      "/ja/fursuit/detail",
+      "/ja/fursuit/quote",
+      "/ja/fursuit/inn",
+      "/ja/fursuit/art",
+      "/ja/more",
+      "/ja/more/foot-frame",
+      "/ja/more/foot-pad",
+      "/ja/more/body-form",
+      "/ja/more/cleaning",
+      "/ja/about",
+      "https://beian.miit.gov.cn/",
+      "https://beian.mps.gov.cn/#/query/webSearch?code=21011202001306"
+    ],
+    "controls": [
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "言語"
+      },
+      {
+        "type": "button",
+        "aria-label": "切换主题"
+      },
+      {
+        "type": "button",
+        "aria-label": "メニューを開く"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "お問い合わせ 相談と見積もり"
+      }
+    ],
+    "extracted_text_sha256": "6e7f41881d5e00955045c8a81be712fb0a8ccdc0385c6af7666ba7e4e0452b2f",
+    "text_characters": 527
+  },
+  {
+    "url": "https://fureststory.com/ja/bulletin/1",
+    "final_url": "https://fureststory.com/ja/bulletin/1",
+    "status": 200,
+    "content_type": "text/html; charset=utf-8",
+    "title": "热烈庆祝网站demo上线 · 森絨物語",
+    "links": [
+      "/ja",
+      "/ja",
+      "/ja/bulletin",
+      "/ja/about",
+      "/ja/bulletin",
+      "/ja",
+      "/ja/bulletin",
+      "/ja/fursuit",
+      "/ja/fursuit/detail",
+      "/ja/fursuit/quote",
+      "/ja/fursuit/inn",
+      "/ja/fursuit/art",
+      "/ja/more",
+      "/ja/more/foot-frame",
+      "/ja/more/foot-pad",
+      "/ja/more/body-form",
+      "/ja/more/cleaning",
+      "/ja/about",
+      "https://beian.miit.gov.cn/",
+      "https://beian.mps.gov.cn/#/query/webSearch?code=21011202001306"
+    ],
+    "controls": [
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "言語"
+      },
+      {
+        "type": "button",
+        "aria-label": "切换主题"
+      },
+      {
+        "type": "button",
+        "aria-label": "メニューを開く"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "お問い合わせ 相談と見積もり"
+      }
+    ],
+    "extracted_text_sha256": "e9c6081f0b7eceadd6a8179b541b10aa43ca5db3a238a2e306ec74f1d95c68fa",
+    "text_characters": 544
+  },
+  {
+    "url": "https://fureststory.com/ja/fursuit",
+    "final_url": "https://fureststory.com/ja/fursuit",
+    "status": 200,
+    "content_type": "text/html; charset=utf-8",
+    "title": "ファースーツ · 森絨物語",
+    "links": [
+      "/ja",
+      "/ja",
+      "/ja/bulletin",
+      "/ja/about",
+      "/ja/fursuit/detail",
+      "/ja/fursuit/quote",
+      "/ja/fursuit/inn",
+      "/ja/fursuit/art",
+      "/ja",
+      "/ja/bulletin",
+      "/ja/fursuit",
+      "/ja/fursuit/detail",
+      "/ja/fursuit/quote",
+      "/ja/fursuit/inn",
+      "/ja/fursuit/art",
+      "/ja/more",
+      "/ja/more/foot-frame",
+      "/ja/more/foot-pad",
+      "/ja/more/body-form",
+      "/ja/more/cleaning",
+      "/ja/about",
+      "https://beian.miit.gov.cn/",
+      "https://beian.mps.gov.cn/#/query/webSearch?code=21011202001306"
+    ],
+    "controls": [
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "言語"
+      },
+      {
+        "type": "button",
+        "aria-label": "切换主题"
+      },
+      {
+        "type": "button",
+        "aria-label": "メニューを開く"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "お問い合わせ 相談と見積もり"
+      }
+    ],
+    "extracted_text_sha256": "c6c2e59e2ccda0ec08e38fad26c8ff168a83a04317b9e73e74455933ccee628e",
+    "text_characters": 600
+  },
+  {
+    "url": "https://fureststory.com/ja/fursuit/detail",
+    "final_url": "https://fureststory.com/ja/fursuit/detail",
+    "status": 200,
+    "content_type": "text/html; charset=utf-8",
+    "title": "詳細 · 森絨物語",
+    "links": [
+      "/ja",
+      "/ja",
+      "/ja/bulletin",
+      "/ja/about",
+      "/ja/fursuit/quote",
+      "/ja",
+      "/ja/bulletin",
+      "/ja/fursuit",
+      "/ja/fursuit/detail",
+      "/ja/fursuit/quote",
+      "/ja/fursuit/inn",
+      "/ja/fursuit/art",
+      "/ja/more",
+      "/ja/more/foot-frame",
+      "/ja/more/foot-pad",
+      "/ja/more/body-form",
+      "/ja/more/cleaning",
+      "/ja/about",
+      "https://beian.miit.gov.cn/",
+      "https://beian.mps.gov.cn/#/query/webSearch?code=21011202001306"
+    ],
+    "controls": [
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "言語"
+      },
+      {
+        "type": "button",
+        "aria-label": "切换主题"
+      },
+      {
+        "type": "button",
+        "aria-label": "メニューを開く"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "お問い合わせ 相談と見積もり"
+      }
+    ],
+    "extracted_text_sha256": "1465bc9499d3b9a41626aa582586bcf6f5fb59acb7b98f55d5c2d2f237bc9290",
+    "text_characters": 2826
+  },
+  {
+    "url": "https://fureststory.com/ja/fursuit/inn",
+    "final_url": "https://fureststory.com/ja/fursuit/inn",
+    "status": 200,
+    "content_type": "text/html; charset=utf-8",
+    "title": "森絨旅館 · 森絨物語",
+    "links": [
+      "/ja",
+      "/ja",
+      "/ja/bulletin",
+      "/ja/about",
+      "/ja",
+      "/ja/bulletin",
+      "/ja/fursuit",
+      "/ja/fursuit/detail",
+      "/ja/fursuit/quote",
+      "/ja/fursuit/inn",
+      "/ja/fursuit/art",
+      "/ja/more",
+      "/ja/more/foot-frame",
+      "/ja/more/foot-pad",
+      "/ja/more/body-form",
+      "/ja/more/cleaning",
+      "/ja/about",
+      "https://beian.miit.gov.cn/",
+      "https://beian.mps.gov.cn/#/query/webSearch?code=21011202001306"
+    ],
+    "controls": [
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "言語"
+      },
+      {
+        "type": "button",
+        "aria-label": "切换主题"
+      },
+      {
+        "type": "button",
+        "aria-label": "メニューを開く"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "お問い合わせ 相談と見積もり"
+      }
+    ],
+    "extracted_text_sha256": "292d020dfb7d43fd8e7c3bde39cf84f37b1cfacd68b0106a3055822e974b602a",
+    "text_characters": 516
+  },
+  {
+    "url": "https://fureststory.com/ja/more",
+    "final_url": "https://fureststory.com/ja/more",
+    "status": 200,
+    "content_type": "text/html; charset=utf-8",
+    "title": "その他の製品 · 森絨物語",
+    "links": [
+      "/ja",
+      "/ja",
+      "/ja/bulletin",
+      "/ja/about",
+      "/ja/more/foot-frame",
+      "/ja/more/foot-pad",
+      "/ja/more/body-form",
+      "/ja/more/cleaning",
+      "/ja",
+      "/ja/bulletin",
+      "/ja/fursuit",
+      "/ja/fursuit/detail",
+      "/ja/fursuit/quote",
+      "/ja/fursuit/inn",
+      "/ja/fursuit/art",
+      "/ja/more",
+      "/ja/more/foot-frame",
+      "/ja/more/foot-pad",
+      "/ja/more/body-form",
+      "/ja/more/cleaning",
+      "/ja/about",
+      "https://beian.miit.gov.cn/",
+      "https://beian.mps.gov.cn/#/query/webSearch?code=21011202001306"
+    ],
+    "controls": [
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "言語"
+      },
+      {
+        "type": "button",
+        "aria-label": "切换主题"
+      },
+      {
+        "type": "button",
+        "aria-label": "メニューを開く"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "お問い合わせ 相談と見積もり"
+      }
+    ],
+    "extracted_text_sha256": "20b68563a9e7d1c177bc724126c73277de6512bd46efa00cc25f27c91db6d7ae",
+    "text_characters": 578
+  },
+  {
+    "url": "https://fureststory.com/zh-TW",
+    "final_url": "https://fureststory.com/zh-TW",
+    "status": 200,
+    "content_type": "text/html; charset=utf-8",
+    "title": "森絨物語 · Furest",
+    "links": [
+      "/zh-TW",
+      "/zh-TW",
+      "/zh-TW/bulletin",
+      "/zh-TW/about",
+      "/zh-TW/fursuit/detail",
+      "/zh-TW/fursuit/quote",
+      "/zh-TW/fursuit/inn",
+      "/zh-TW/fursuit/art",
+      "/zh-TW/bulletin",
+      "/zh-TW/about",
+      "/zh-TW",
+      "/zh-TW/bulletin",
+      "/zh-TW/fursuit",
+      "/zh-TW/fursuit/detail",
+      "/zh-TW/fursuit/quote",
+      "/zh-TW/fursuit/inn",
+      "/zh-TW/fursuit/art",
+      "/zh-TW/more",
+      "/zh-TW/more/foot-frame",
+      "/zh-TW/more/foot-pad",
+      "/zh-TW/more/body-form",
+      "/zh-TW/more/cleaning",
+      "/zh-TW/about",
+      "https://beian.miit.gov.cn/",
+      "https://beian.mps.gov.cn/#/query/webSearch?code=21011202001306"
+    ],
+    "controls": [
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "語言"
+      },
+      {
+        "type": "button",
+        "aria-label": "切换主题"
+      },
+      {
+        "type": "button",
+        "aria-label": "開啟選單"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "聯絡客服 諮詢與估價"
+      }
+    ],
+    "extracted_text_sha256": "5a8f6bf01bc8715cf910f806d6c48988885fdfdcee79d5972a0a49c906b4e05e",
+    "text_characters": 543
+  },
+  {
+    "url": "https://fureststory.com/zh-TW/about",
+    "final_url": "https://fureststory.com/zh-TW/about",
+    "status": 200,
+    "content_type": "text/html; charset=utf-8",
+    "title": "針起絨、絨成森、森述童話 · 森絨物語",
+    "links": [
+      "/zh-TW",
+      "/zh-TW",
+      "/zh-TW/bulletin",
+      "/zh-TW/about",
+      "mailto:senrongwuyu@163.com",
+      "https://space.bilibili.com/3537108551600882",
+      "https://www.xiaohongshu.com/user/profile/5b9713aa4eacab68fa15a1c2",
+      "https://www.douyin.com/user/MS4wLjABAAAAkRlKFIwacw5L8JHMZhJHIn2K3-xTYtJOhWSQGhUeyoYD1OWnZsxWzoeJUanxgmwM",
+      "https://x.com/fureststudio",
+      "/zh-TW",
+      "/zh-TW/bulletin",
+      "/zh-TW/fursuit",
+      "/zh-TW/fursuit/detail",
+      "/zh-TW/fursuit/quote",
+      "/zh-TW/fursuit/inn",
+      "/zh-TW/fursuit/art",
+      "/zh-TW/more",
+      "/zh-TW/more/foot-frame",
+      "/zh-TW/more/foot-pad",
+      "/zh-TW/more/body-form",
+      "/zh-TW/more/cleaning",
+      "/zh-TW/about",
+      "https://beian.miit.gov.cn/",
+      "https://beian.mps.gov.cn/#/query/webSearch?code=21011202001306"
+    ],
+    "controls": [
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "語言"
+      },
+      {
+        "type": "button",
+        "aria-label": "切换主题"
+      },
+      {
+        "type": "button",
+        "aria-label": "開啟選單"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "聯絡客服 諮詢與估價"
+      }
+    ],
+    "extracted_text_sha256": "5d1b072852b05704c4e3c006ef0326bfb5d535a50f65bf0e907f1a84eee56c16",
+    "text_characters": 775
+  },
+  {
+    "url": "https://fureststory.com/zh-TW/bulletin",
+    "final_url": "https://fureststory.com/zh-TW/bulletin",
+    "status": 200,
+    "content_type": "text/html; charset=utf-8",
+    "title": "公告欄 · 森絨物語",
+    "links": [
+      "/zh-TW",
+      "/zh-TW",
+      "/zh-TW/bulletin",
+      "/zh-TW/about",
+      "/zh-TW/bulletin/1",
+      "/zh-TW",
+      "/zh-TW/bulletin",
+      "/zh-TW/fursuit",
+      "/zh-TW/fursuit/detail",
+      "/zh-TW/fursuit/quote",
+      "/zh-TW/fursuit/inn",
+      "/zh-TW/fursuit/art",
+      "/zh-TW/more",
+      "/zh-TW/more/foot-frame",
+      "/zh-TW/more/foot-pad",
+      "/zh-TW/more/body-form",
+      "/zh-TW/more/cleaning",
+      "/zh-TW/about",
+      "https://beian.miit.gov.cn/",
+      "https://beian.mps.gov.cn/#/query/webSearch?code=21011202001306"
+    ],
+    "controls": [
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "語言"
+      },
+      {
+        "type": "button",
+        "aria-label": "切换主题"
+      },
+      {
+        "type": "button",
+        "aria-label": "開啟選單"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "聯絡客服 諮詢與估價"
+      }
+    ],
+    "extracted_text_sha256": "aa775b5152fc55cb2926bfb66725a6dfb5d010514cfaf6eb59376c65e21a44b4",
+    "text_characters": 364
+  },
+  {
+    "url": "https://fureststory.com/zh-TW/bulletin/1",
+    "final_url": "https://fureststory.com/zh-TW/bulletin/1",
+    "status": 200,
+    "content_type": "text/html; charset=utf-8",
+    "title": "热烈庆祝网站demo上线 · 森絨物語",
+    "links": [
+      "/zh-TW",
+      "/zh-TW",
+      "/zh-TW/bulletin",
+      "/zh-TW/about",
+      "/zh-TW/bulletin",
+      "/zh-TW",
+      "/zh-TW/bulletin",
+      "/zh-TW/fursuit",
+      "/zh-TW/fursuit/detail",
+      "/zh-TW/fursuit/quote",
+      "/zh-TW/fursuit/inn",
+      "/zh-TW/fursuit/art",
+      "/zh-TW/more",
+      "/zh-TW/more/foot-frame",
+      "/zh-TW/more/foot-pad",
+      "/zh-TW/more/body-form",
+      "/zh-TW/more/cleaning",
+      "/zh-TW/about",
+      "https://beian.miit.gov.cn/",
+      "https://beian.mps.gov.cn/#/query/webSearch?code=21011202001306"
+    ],
+    "controls": [
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "語言"
+      },
+      {
+        "type": "button",
+        "aria-label": "切换主题"
+      },
+      {
+        "type": "button",
+        "aria-label": "開啟選單"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "聯絡客服 諮詢與估價"
+      }
+    ],
+    "extracted_text_sha256": "b4b57dac0088a1cb1f399fb178e56731ba400a98671d4153780b3196601c8e00",
+    "text_characters": 385
+  },
+  {
+    "url": "https://fureststory.com/zh-TW/fursuit",
+    "final_url": "https://fureststory.com/zh-TW/fursuit",
+    "status": 200,
+    "content_type": "text/html; charset=utf-8",
+    "title": "獸裝 · 森絨物語",
+    "links": [
+      "/zh-TW",
+      "/zh-TW",
+      "/zh-TW/bulletin",
+      "/zh-TW/about",
+      "/zh-TW/fursuit/detail",
+      "/zh-TW/fursuit/quote",
+      "/zh-TW/fursuit/inn",
+      "/zh-TW/fursuit/art",
+      "/zh-TW",
+      "/zh-TW/bulletin",
+      "/zh-TW/fursuit",
+      "/zh-TW/fursuit/detail",
+      "/zh-TW/fursuit/quote",
+      "/zh-TW/fursuit/inn",
+      "/zh-TW/fursuit/art",
+      "/zh-TW/more",
+      "/zh-TW/more/foot-frame",
+      "/zh-TW/more/foot-pad",
+      "/zh-TW/more/body-form",
+      "/zh-TW/more/cleaning",
+      "/zh-TW/about",
+      "https://beian.miit.gov.cn/",
+      "https://beian.mps.gov.cn/#/query/webSearch?code=21011202001306"
+    ],
+    "controls": [
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "語言"
+      },
+      {
+        "type": "button",
+        "aria-label": "切换主题"
+      },
+      {
+        "type": "button",
+        "aria-label": "開啟選單"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "聯絡客服 諮詢與估價"
+      }
+    ],
+    "extracted_text_sha256": "5b61e55388fbd9fe29ab0d036dce92b19e1825cff0a7078ae6c6d1b3d4ab353c",
+    "text_characters": 394
+  },
+  {
+    "url": "https://fureststory.com/zh-TW/fursuit/detail",
+    "final_url": "https://fureststory.com/zh-TW/fursuit/detail",
+    "status": 200,
+    "content_type": "text/html; charset=utf-8",
+    "title": "詳情 · 森絨物語",
+    "links": [
+      "/zh-TW",
+      "/zh-TW",
+      "/zh-TW/bulletin",
+      "/zh-TW/about",
+      "/zh-TW/fursuit/quote",
+      "/zh-TW",
+      "/zh-TW/bulletin",
+      "/zh-TW/fursuit",
+      "/zh-TW/fursuit/detail",
+      "/zh-TW/fursuit/quote",
+      "/zh-TW/fursuit/inn",
+      "/zh-TW/fursuit/art",
+      "/zh-TW/more",
+      "/zh-TW/more/foot-frame",
+      "/zh-TW/more/foot-pad",
+      "/zh-TW/more/body-form",
+      "/zh-TW/more/cleaning",
+      "/zh-TW/about",
+      "https://beian.miit.gov.cn/",
+      "https://beian.mps.gov.cn/#/query/webSearch?code=21011202001306"
+    ],
+    "controls": [
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "語言"
+      },
+      {
+        "type": "button",
+        "aria-label": "切换主题"
+      },
+      {
+        "type": "button",
+        "aria-label": "開啟選單"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "聯絡客服 諮詢與估價"
+      }
+    ],
+    "extracted_text_sha256": "6a7ed9e3331f6eca0e28f07ebd195493a164c2b5c92c9f018514518ed4e73118",
+    "text_characters": 2019
+  },
+  {
+    "url": "https://fureststory.com/zh-TW/fursuit/inn",
+    "final_url": "https://fureststory.com/zh-TW/fursuit/inn",
+    "status": 200,
+    "content_type": "text/html; charset=utf-8",
+    "title": "森絨旅社 · 森絨物語",
+    "links": [
+      "/zh-TW",
+      "/zh-TW",
+      "/zh-TW/bulletin",
+      "/zh-TW/about",
+      "/zh-TW",
+      "/zh-TW/bulletin",
+      "/zh-TW/fursuit",
+      "/zh-TW/fursuit/detail",
+      "/zh-TW/fursuit/quote",
+      "/zh-TW/fursuit/inn",
+      "/zh-TW/fursuit/art",
+      "/zh-TW/more",
+      "/zh-TW/more/foot-frame",
+      "/zh-TW/more/foot-pad",
+      "/zh-TW/more/body-form",
+      "/zh-TW/more/cleaning",
+      "/zh-TW/about",
+      "https://beian.miit.gov.cn/",
+      "https://beian.mps.gov.cn/#/query/webSearch?code=21011202001306"
+    ],
+    "controls": [
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "語言"
+      },
+      {
+        "type": "button",
+        "aria-label": "切换主题"
+      },
+      {
+        "type": "button",
+        "aria-label": "開啟選單"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "聯絡客服 諮詢與估價"
+      }
+    ],
+    "extracted_text_sha256": "316e5e7b6d7ffff848b71ab660a7ca83e6378c85d23691b21c4ef9508a07b584",
+    "text_characters": 345
+  },
+  {
+    "url": "https://fureststory.com/zh-TW/more",
+    "final_url": "https://fureststory.com/zh-TW/more",
+    "status": 200,
+    "content_type": "text/html; charset=utf-8",
+    "title": "更多產品 · 森絨物語",
+    "links": [
+      "/zh-TW",
+      "/zh-TW",
+      "/zh-TW/bulletin",
+      "/zh-TW/about",
+      "/zh-TW/more/foot-frame",
+      "/zh-TW/more/foot-pad",
+      "/zh-TW/more/body-form",
+      "/zh-TW/more/cleaning",
+      "/zh-TW",
+      "/zh-TW/bulletin",
+      "/zh-TW/fursuit",
+      "/zh-TW/fursuit/detail",
+      "/zh-TW/fursuit/quote",
+      "/zh-TW/fursuit/inn",
+      "/zh-TW/fursuit/art",
+      "/zh-TW/more",
+      "/zh-TW/more/foot-frame",
+      "/zh-TW/more/foot-pad",
+      "/zh-TW/more/body-form",
+      "/zh-TW/more/cleaning",
+      "/zh-TW/about",
+      "https://beian.miit.gov.cn/",
+      "https://beian.mps.gov.cn/#/query/webSearch?code=21011202001306"
+    ],
+    "controls": [
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "語言"
+      },
+      {
+        "type": "button",
+        "aria-label": "切换主题"
+      },
+      {
+        "type": "button",
+        "aria-label": "開啟選單"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "聯絡客服 諮詢與估價"
+      }
+    ],
+    "extracted_text_sha256": "a20e09345f4a2643f34aec6264aaa018640e086517ee997e7a315d03088eb47e",
+    "text_characters": 370
+  },
+  {
+    "url": "https://fureststory.com/en/fursuit/art",
+    "final_url": "https://fureststory.com/en/fursuit/art",
+    "status": 200,
+    "content_type": "text/html; charset=utf-8",
+    "title": "Furest Gallery · Furest",
+    "links": [
+      "/en",
+      "/en",
+      "/en/bulletin",
+      "/en/about",
+      "/en/fursuit/art/01",
+      "/en/fursuit/art/02",
+      "/en/fursuit/art/03",
+      "/en",
+      "/en/bulletin",
+      "/en/fursuit",
+      "/en/fursuit/detail",
+      "/en/fursuit/quote",
+      "/en/fursuit/inn",
+      "/en/fursuit/art",
+      "/en/more",
+      "/en/more/foot-frame",
+      "/en/more/foot-pad",
+      "/en/more/body-form",
+      "/en/more/cleaning",
+      "/en/about",
+      "https://beian.miit.gov.cn/",
+      "https://beian.mps.gov.cn/#/query/webSearch?code=21011202001306"
+    ],
+    "controls": [
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "Language"
+      },
+      {
+        "type": "button",
+        "aria-label": "切换主题"
+      },
+      {
+        "type": "button",
+        "aria-label": "Open menu"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "Contact us for inquiry and quote"
+      }
+    ],
+    "extracted_text_sha256": "554dd8d928477733f4c28d89e2869139ff63c6a947de01cffc263f14f20f7dbd",
+    "text_characters": 847
+  },
+  {
+    "url": "https://fureststory.com/en/fursuit/quote",
+    "final_url": "https://fureststory.com/en/fursuit/quote",
+    "status": 200,
+    "content_type": "text/html; charset=utf-8",
+    "title": "Commission Details · Furest",
+    "links": [
+      "/en",
+      "/en",
+      "/en/bulletin",
+      "/en/about",
+      "/en/fursuit/quote#quote-tab-content",
+      "/en/fursuit/quote?view=contract#quote-tab-content",
+      "mailto:senrongwuyu@163.com",
+      "/en",
+      "/en/bulletin",
+      "/en/fursuit",
+      "/en/fursuit/detail",
+      "/en/fursuit/quote",
+      "/en/fursuit/inn",
+      "/en/fursuit/art",
+      "/en/more",
+      "/en/more/foot-frame",
+      "/en/more/foot-pad",
+      "/en/more/body-form",
+      "/en/more/cleaning",
+      "/en/about",
+      "https://beian.miit.gov.cn/",
+      "https://beian.mps.gov.cn/#/query/webSearch?code=21011202001306"
+    ],
+    "controls": [
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "Language"
+      },
+      {
+        "type": "button",
+        "aria-label": "切换主题"
+      },
+      {
+        "type": "button",
+        "aria-label": "Open menu"
+      },
+      {
+        "type": "button",
+        "aria-label": "Copy support QQ number"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "Contact us for inquiry and quote"
+      }
+    ],
+    "extracted_text_sha256": "eed47a64cfda9bbbe979d78e8b24c15c7993085bd2ec28ebc2c5b225567d987f",
+    "text_characters": 4347
+  },
+  {
+    "url": "https://fureststory.com/en/more/body-form",
+    "final_url": "https://fureststory.com/en/more/body-form",
+    "status": 200,
+    "content_type": "text/html; charset=utf-8",
+    "title": "Body Form · Furest",
+    "links": [
+      "/en",
+      "/en",
+      "/en/bulletin",
+      "/en/about",
+      "/en",
+      "/en/bulletin",
+      "/en/fursuit",
+      "/en/fursuit/detail",
+      "/en/fursuit/quote",
+      "/en/fursuit/inn",
+      "/en/fursuit/art",
+      "/en/more",
+      "/en/more/foot-frame",
+      "/en/more/foot-pad",
+      "/en/more/body-form",
+      "/en/more/cleaning",
+      "/en/about",
+      "https://beian.miit.gov.cn/",
+      "https://beian.mps.gov.cn/#/query/webSearch?code=21011202001306"
+    ],
+    "controls": [
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "Language"
+      },
+      {
+        "type": "button",
+        "aria-label": "切换主题"
+      },
+      {
+        "type": "button",
+        "aria-label": "Open menu"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "Contact us for inquiry and quote"
+      }
+    ],
+    "extracted_text_sha256": "a4bed014dc93d63af6c67cc32c61d6221623475022677fb4947f236977067f0e",
+    "text_characters": 780
+  },
+  {
+    "url": "https://fureststory.com/en/more/cleaning",
+    "final_url": "https://fureststory.com/en/more/cleaning",
+    "status": 200,
+    "content_type": "text/html; charset=utf-8",
+    "title": "Cleaning · Furest",
+    "links": [
+      "/en",
+      "/en",
+      "/en/bulletin",
+      "/en/about",
+      "/en",
+      "/en/bulletin",
+      "/en/fursuit",
+      "/en/fursuit/detail",
+      "/en/fursuit/quote",
+      "/en/fursuit/inn",
+      "/en/fursuit/art",
+      "/en/more",
+      "/en/more/foot-frame",
+      "/en/more/foot-pad",
+      "/en/more/body-form",
+      "/en/more/cleaning",
+      "/en/about",
+      "https://beian.miit.gov.cn/",
+      "https://beian.mps.gov.cn/#/query/webSearch?code=21011202001306"
+    ],
+    "controls": [
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "Language"
+      },
+      {
+        "type": "button",
+        "aria-label": "切换主题"
+      },
+      {
+        "type": "button",
+        "aria-label": "Open menu"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "Contact us for inquiry and quote"
+      }
+    ],
+    "extracted_text_sha256": "915722a1c0c354389018a806ff21e3d80c5085f755ac3a66a48594a78db44c22",
+    "text_characters": 777
+  },
+  {
+    "url": "https://fureststory.com/en/more/foot-frame",
+    "final_url": "https://fureststory.com/en/more/foot-frame",
+    "status": 200,
+    "content_type": "text/html; charset=utf-8",
+    "title": "Foot Frame · Furest",
+    "links": [
+      "/en",
+      "/en",
+      "/en/bulletin",
+      "/en/about",
+      "/en",
+      "/en/bulletin",
+      "/en/fursuit",
+      "/en/fursuit/detail",
+      "/en/fursuit/quote",
+      "/en/fursuit/inn",
+      "/en/fursuit/art",
+      "/en/more",
+      "/en/more/foot-frame",
+      "/en/more/foot-pad",
+      "/en/more/body-form",
+      "/en/more/cleaning",
+      "/en/about",
+      "https://beian.miit.gov.cn/",
+      "https://beian.mps.gov.cn/#/query/webSearch?code=21011202001306"
+    ],
+    "controls": [
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "Language"
+      },
+      {
+        "type": "button",
+        "aria-label": "切换主题"
+      },
+      {
+        "type": "button",
+        "aria-label": "Open menu"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "Contact us for inquiry and quote"
+      }
+    ],
+    "extracted_text_sha256": "169edca92731a9b6377a5fcc333facf133f64bf2e39e8adfb01aa72dc52227b4",
+    "text_characters": 783
+  },
+  {
+    "url": "https://fureststory.com/en/more/foot-pad",
+    "final_url": "https://fureststory.com/en/more/foot-pad",
+    "status": 200,
+    "content_type": "text/html; charset=utf-8",
+    "title": "Foot Pads · Furest",
+    "links": [
+      "/en",
+      "/en",
+      "/en/bulletin",
+      "/en/about",
+      "/en",
+      "/en/bulletin",
+      "/en/fursuit",
+      "/en/fursuit/detail",
+      "/en/fursuit/quote",
+      "/en/fursuit/inn",
+      "/en/fursuit/art",
+      "/en/more",
+      "/en/more/foot-frame",
+      "/en/more/foot-pad",
+      "/en/more/body-form",
+      "/en/more/cleaning",
+      "/en/about",
+      "https://beian.miit.gov.cn/",
+      "https://beian.mps.gov.cn/#/query/webSearch?code=21011202001306"
+    ],
+    "controls": [
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "Language"
+      },
+      {
+        "type": "button",
+        "aria-label": "切换主题"
+      },
+      {
+        "type": "button",
+        "aria-label": "Open menu"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "Contact us for inquiry and quote"
+      }
+    ],
+    "extracted_text_sha256": "fa11d2ff3aded4bfcc4489dfe82c1dccc565930228eee98d2db4f31930f501f1",
+    "text_characters": 779
+  },
+  {
+    "url": "https://fureststory.com/ja/fursuit/art",
+    "final_url": "https://fureststory.com/ja/fursuit/art",
+    "status": 200,
+    "content_type": "text/html; charset=utf-8",
+    "title": "森絨ギャラリー · 森絨物語",
+    "links": [
+      "/ja",
+      "/ja",
+      "/ja/bulletin",
+      "/ja/about",
+      "/ja/fursuit/art/01",
+      "/ja/fursuit/art/02",
+      "/ja/fursuit/art/03",
+      "/ja",
+      "/ja/bulletin",
+      "/ja/fursuit",
+      "/ja/fursuit/detail",
+      "/ja/fursuit/quote",
+      "/ja/fursuit/inn",
+      "/ja/fursuit/art",
+      "/ja/more",
+      "/ja/more/foot-frame",
+      "/ja/more/foot-pad",
+      "/ja/more/body-form",
+      "/ja/more/cleaning",
+      "/ja/about",
+      "https://beian.miit.gov.cn/",
+      "https://beian.mps.gov.cn/#/query/webSearch?code=21011202001306"
+    ],
+    "controls": [
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "言語"
+      },
+      {
+        "type": "button",
+        "aria-label": "切换主题"
+      },
+      {
+        "type": "button",
+        "aria-label": "メニューを開く"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "お問い合わせ 相談と見積もり"
+      }
+    ],
+    "extracted_text_sha256": "0183df7e921cc17cc2205180ca39a3a4e2cf3f2b5c6696e23ae08104594b85cd",
+    "text_characters": 501
+  },
+  {
+    "url": "https://fureststory.com/ja/fursuit/quote",
+    "final_url": "https://fureststory.com/ja/fursuit/quote",
+    "status": 200,
+    "content_type": "text/html; charset=utf-8",
+    "title": "ご依頼ガイド · 森絨物語",
+    "links": [
+      "/ja",
+      "/ja",
+      "/ja/bulletin",
+      "/ja/about",
+      "/ja/fursuit/quote#quote-tab-content",
+      "/ja/fursuit/quote?view=contract#quote-tab-content",
+      "mailto:senrongwuyu@163.com",
+      "/ja",
+      "/ja/bulletin",
+      "/ja/fursuit",
+      "/ja/fursuit/detail",
+      "/ja/fursuit/quote",
+      "/ja/fursuit/inn",
+      "/ja/fursuit/art",
+      "/ja/more",
+      "/ja/more/foot-frame",
+      "/ja/more/foot-pad",
+      "/ja/more/body-form",
+      "/ja/more/cleaning",
+      "/ja/about",
+      "https://beian.miit.gov.cn/",
+      "https://beian.mps.gov.cn/#/query/webSearch?code=21011202001306"
+    ],
+    "controls": [
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "言語"
+      },
+      {
+        "type": "button",
+        "aria-label": "切换主题"
+      },
+      {
+        "type": "button",
+        "aria-label": "メニューを開く"
+      },
+      {
+        "type": "button",
+        "aria-label": "サポート QQ 番号をコピー"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "お問い合わせ 相談と見積もり"
+      }
+    ],
+    "extracted_text_sha256": "e5d0f669e09e99ce36f720971bc44a1276dda9af993de8bc160a597cc07e107c",
+    "text_characters": 2117
+  },
+  {
+    "url": "https://fureststory.com/ja/more/body-form",
+    "final_url": "https://fureststory.com/ja/more/body-form",
+    "status": 200,
+    "content_type": "text/html; charset=utf-8",
+    "title": "ボディフォーム · 森絨物語",
+    "links": [
+      "/ja",
+      "/ja",
+      "/ja/bulletin",
+      "/ja/about",
+      "/ja",
+      "/ja/bulletin",
+      "/ja/fursuit",
+      "/ja/fursuit/detail",
+      "/ja/fursuit/quote",
+      "/ja/fursuit/inn",
+      "/ja/fursuit/art",
+      "/ja/more",
+      "/ja/more/foot-frame",
+      "/ja/more/foot-pad",
+      "/ja/more/body-form",
+      "/ja/more/cleaning",
+      "/ja/about",
+      "https://beian.miit.gov.cn/",
+      "https://beian.mps.gov.cn/#/query/webSearch?code=21011202001306"
+    ],
+    "controls": [
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "言語"
+      },
+      {
+        "type": "button",
+        "aria-label": "切换主题"
+      },
+      {
+        "type": "button",
+        "aria-label": "メニューを開く"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "お問い合わせ 相談と見積もり"
+      }
+    ],
+    "extracted_text_sha256": "775bd08669d31203290654a34ab327783149f6b17d3caf4ca3df050342ed6813",
+    "text_characters": 466
+  },
+  {
+    "url": "https://fureststory.com/ja/more/cleaning",
+    "final_url": "https://fureststory.com/ja/more/cleaning",
+    "status": 200,
+    "content_type": "text/html; charset=utf-8",
+    "title": "クリーニング · 森絨物語",
+    "links": [
+      "/ja",
+      "/ja",
+      "/ja/bulletin",
+      "/ja/about",
+      "/ja",
+      "/ja/bulletin",
+      "/ja/fursuit",
+      "/ja/fursuit/detail",
+      "/ja/fursuit/quote",
+      "/ja/fursuit/inn",
+      "/ja/fursuit/art",
+      "/ja/more",
+      "/ja/more/foot-frame",
+      "/ja/more/foot-pad",
+      "/ja/more/body-form",
+      "/ja/more/cleaning",
+      "/ja/about",
+      "https://beian.miit.gov.cn/",
+      "https://beian.mps.gov.cn/#/query/webSearch?code=21011202001306"
+    ],
+    "controls": [
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "言語"
+      },
+      {
+        "type": "button",
+        "aria-label": "切换主题"
+      },
+      {
+        "type": "button",
+        "aria-label": "メニューを開く"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "お問い合わせ 相談と見積もり"
+      }
+    ],
+    "extracted_text_sha256": "fe5891406fe61df4b6f449be0f5875baf4aa0b0483ebd97766f60494eb8fb8b5",
+    "text_characters": 463
+  },
+  {
+    "url": "https://fureststory.com/ja/more/foot-frame",
+    "final_url": "https://fureststory.com/ja/more/foot-frame",
+    "status": 200,
+    "content_type": "text/html; charset=utf-8",
+    "title": "フットフレーム · 森絨物語",
+    "links": [
+      "/ja",
+      "/ja",
+      "/ja/bulletin",
+      "/ja/about",
+      "/ja",
+      "/ja/bulletin",
+      "/ja/fursuit",
+      "/ja/fursuit/detail",
+      "/ja/fursuit/quote",
+      "/ja/fursuit/inn",
+      "/ja/fursuit/art",
+      "/ja/more",
+      "/ja/more/foot-frame",
+      "/ja/more/foot-pad",
+      "/ja/more/body-form",
+      "/ja/more/cleaning",
+      "/ja/about",
+      "https://beian.miit.gov.cn/",
+      "https://beian.mps.gov.cn/#/query/webSearch?code=21011202001306"
+    ],
+    "controls": [
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "言語"
+      },
+      {
+        "type": "button",
+        "aria-label": "切换主题"
+      },
+      {
+        "type": "button",
+        "aria-label": "メニューを開く"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "お問い合わせ 相談と見積もり"
+      }
+    ],
+    "extracted_text_sha256": "f69f4b88a6a6adf05da9ff1bc540d6e267e4975819027d34aa996f8d404946b5",
+    "text_characters": 467
+  },
+  {
+    "url": "https://fureststory.com/ja/more/foot-pad",
+    "final_url": "https://fureststory.com/ja/more/foot-pad",
+    "status": 200,
+    "content_type": "text/html; charset=utf-8",
+    "title": "フットパッド · 森絨物語",
+    "links": [
+      "/ja",
+      "/ja",
+      "/ja/bulletin",
+      "/ja/about",
+      "/ja",
+      "/ja/bulletin",
+      "/ja/fursuit",
+      "/ja/fursuit/detail",
+      "/ja/fursuit/quote",
+      "/ja/fursuit/inn",
+      "/ja/fursuit/art",
+      "/ja/more",
+      "/ja/more/foot-frame",
+      "/ja/more/foot-pad",
+      "/ja/more/body-form",
+      "/ja/more/cleaning",
+      "/ja/about",
+      "https://beian.miit.gov.cn/",
+      "https://beian.mps.gov.cn/#/query/webSearch?code=21011202001306"
+    ],
+    "controls": [
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "言語"
+      },
+      {
+        "type": "button",
+        "aria-label": "切换主题"
+      },
+      {
+        "type": "button",
+        "aria-label": "メニューを開く"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "お問い合わせ 相談と見積もり"
+      }
+    ],
+    "extracted_text_sha256": "1b2b597e4f86a1d537a7c4941eb0c85c04769777367c8421d5c4e88f749afbcd",
+    "text_characters": 463
+  },
+  {
+    "url": "https://fureststory.com/zh-TW/fursuit/art",
+    "final_url": "https://fureststory.com/zh-TW/fursuit/art",
+    "status": 200,
+    "content_type": "text/html; charset=utf-8",
+    "title": "森絨畫廊 · 森絨物語",
+    "links": [
+      "/zh-TW",
+      "/zh-TW",
+      "/zh-TW/bulletin",
+      "/zh-TW/about",
+      "/zh-TW/fursuit/art/01",
+      "/zh-TW/fursuit/art/02",
+      "/zh-TW/fursuit/art/03",
+      "/zh-TW",
+      "/zh-TW/bulletin",
+      "/zh-TW/fursuit",
+      "/zh-TW/fursuit/detail",
+      "/zh-TW/fursuit/quote",
+      "/zh-TW/fursuit/inn",
+      "/zh-TW/fursuit/art",
+      "/zh-TW/more",
+      "/zh-TW/more/foot-frame",
+      "/zh-TW/more/foot-pad",
+      "/zh-TW/more/body-form",
+      "/zh-TW/more/cleaning",
+      "/zh-TW/about",
+      "https://beian.miit.gov.cn/",
+      "https://beian.mps.gov.cn/#/query/webSearch?code=21011202001306"
+    ],
+    "controls": [
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "語言"
+      },
+      {
+        "type": "button",
+        "aria-label": "切换主题"
+      },
+      {
+        "type": "button",
+        "aria-label": "開啟選單"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "聯絡客服 諮詢與估價"
+      }
+    ],
+    "extracted_text_sha256": "d44771df4dafcd997a10c76d4b18d53d7259ded30917df42e17c0fad95e0ef92",
+    "text_characters": 332
+  },
+  {
+    "url": "https://fureststory.com/zh-TW/fursuit/quote",
+    "final_url": "https://fureststory.com/zh-TW/fursuit/quote",
+    "status": 200,
+    "content_type": "text/html; charset=utf-8",
+    "title": "委託詳情 · 森絨物語",
+    "links": [
+      "/zh-TW",
+      "/zh-TW",
+      "/zh-TW/bulletin",
+      "/zh-TW/about",
+      "/zh-TW/fursuit/quote#quote-tab-content",
+      "/zh-TW/fursuit/quote?view=contract#quote-tab-content",
+      "mailto:senrongwuyu@163.com",
+      "/zh-TW",
+      "/zh-TW/bulletin",
+      "/zh-TW/fursuit",
+      "/zh-TW/fursuit/detail",
+      "/zh-TW/fursuit/quote",
+      "/zh-TW/fursuit/inn",
+      "/zh-TW/fursuit/art",
+      "/zh-TW/more",
+      "/zh-TW/more/foot-frame",
+      "/zh-TW/more/foot-pad",
+      "/zh-TW/more/body-form",
+      "/zh-TW/more/cleaning",
+      "/zh-TW/about",
+      "https://beian.miit.gov.cn/",
+      "https://beian.mps.gov.cn/#/query/webSearch?code=21011202001306"
+    ],
+    "controls": [
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "語言"
+      },
+      {
+        "type": "button",
+        "aria-label": "切换主题"
+      },
+      {
+        "type": "button",
+        "aria-label": "開啟選單"
+      },
+      {
+        "type": "button",
+        "aria-label": "複製客服 QQ 號"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "聯絡客服 諮詢與估價"
+      }
+    ],
+    "extracted_text_sha256": "85f6dc310d5cbc0d81b754aba550cf5abd2c48339c2ae9f96dc7dabcec6ce05f",
+    "text_characters": 1602
+  },
+  {
+    "url": "https://fureststory.com/zh-TW/more/body-form",
+    "final_url": "https://fureststory.com/zh-TW/more/body-form",
+    "status": 200,
+    "content_type": "text/html; charset=utf-8",
+    "title": "毛布架 · 森絨物語",
+    "links": [
+      "/zh-TW",
+      "/zh-TW",
+      "/zh-TW/bulletin",
+      "/zh-TW/about",
+      "/zh-TW",
+      "/zh-TW/bulletin",
+      "/zh-TW/fursuit",
+      "/zh-TW/fursuit/detail",
+      "/zh-TW/fursuit/quote",
+      "/zh-TW/fursuit/inn",
+      "/zh-TW/fursuit/art",
+      "/zh-TW/more",
+      "/zh-TW/more/foot-frame",
+      "/zh-TW/more/foot-pad",
+      "/zh-TW/more/body-form",
+      "/zh-TW/more/cleaning",
+      "/zh-TW/about",
+      "https://beian.miit.gov.cn/",
+      "https://beian.mps.gov.cn/#/query/webSearch?code=21011202001306"
+    ],
+    "controls": [
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "語言"
+      },
+      {
+        "type": "button",
+        "aria-label": "切换主题"
+      },
+      {
+        "type": "button",
+        "aria-label": "開啟選單"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "聯絡客服 諮詢與估價"
+      }
+    ],
+    "extracted_text_sha256": "8e10306cad86356ec161b69ec7ceec6dcc11c533eee9ed4d2651e97205a6231c",
+    "text_characters": 303
+  },
+  {
+    "url": "https://fureststory.com/zh-TW/more/cleaning",
+    "final_url": "https://fureststory.com/zh-TW/more/cleaning",
+    "status": 200,
+    "content_type": "text/html; charset=utf-8",
+    "title": "獸裝清潔 · 森絨物語",
+    "links": [
+      "/zh-TW",
+      "/zh-TW",
+      "/zh-TW/bulletin",
+      "/zh-TW/about",
+      "/zh-TW",
+      "/zh-TW/bulletin",
+      "/zh-TW/fursuit",
+      "/zh-TW/fursuit/detail",
+      "/zh-TW/fursuit/quote",
+      "/zh-TW/fursuit/inn",
+      "/zh-TW/fursuit/art",
+      "/zh-TW/more",
+      "/zh-TW/more/foot-frame",
+      "/zh-TW/more/foot-pad",
+      "/zh-TW/more/body-form",
+      "/zh-TW/more/cleaning",
+      "/zh-TW/about",
+      "https://beian.miit.gov.cn/",
+      "https://beian.mps.gov.cn/#/query/webSearch?code=21011202001306"
+    ],
+    "controls": [
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "語言"
+      },
+      {
+        "type": "button",
+        "aria-label": "切换主题"
+      },
+      {
+        "type": "button",
+        "aria-label": "開啟選單"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "聯絡客服 諮詢與估價"
+      }
+    ],
+    "extracted_text_sha256": "6e08df8f91a1433cab399a01b71eb67324d6892937c731e16cb8be9cfb39f79e",
+    "text_characters": 304
+  },
+  {
+    "url": "https://fureststory.com/zh-TW/more/foot-frame",
+    "final_url": "https://fureststory.com/zh-TW/more/foot-frame",
+    "status": 200,
+    "content_type": "text/html; charset=utf-8",
+    "title": "腳骨 · 森絨物語",
+    "links": [
+      "/zh-TW",
+      "/zh-TW",
+      "/zh-TW/bulletin",
+      "/zh-TW/about",
+      "/zh-TW",
+      "/zh-TW/bulletin",
+      "/zh-TW/fursuit",
+      "/zh-TW/fursuit/detail",
+      "/zh-TW/fursuit/quote",
+      "/zh-TW/fursuit/inn",
+      "/zh-TW/fursuit/art",
+      "/zh-TW/more",
+      "/zh-TW/more/foot-frame",
+      "/zh-TW/more/foot-pad",
+      "/zh-TW/more/body-form",
+      "/zh-TW/more/cleaning",
+      "/zh-TW/about",
+      "https://beian.miit.gov.cn/",
+      "https://beian.mps.gov.cn/#/query/webSearch?code=21011202001306"
+    ],
+    "controls": [
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "語言"
+      },
+      {
+        "type": "button",
+        "aria-label": "切换主题"
+      },
+      {
+        "type": "button",
+        "aria-label": "開啟選單"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "聯絡客服 諮詢與估價"
+      }
+    ],
+    "extracted_text_sha256": "6e707ba82cf891cb899ef9026911ac62159f8e5aa41e8a18adcd8b3e57db27c7",
+    "text_characters": 302
+  },
+  {
+    "url": "https://fureststory.com/zh-TW/more/foot-pad",
+    "final_url": "https://fureststory.com/zh-TW/more/foot-pad",
+    "status": 200,
+    "content_type": "text/html; charset=utf-8",
+    "title": "腳底板 · 森絨物語",
+    "links": [
+      "/zh-TW",
+      "/zh-TW",
+      "/zh-TW/bulletin",
+      "/zh-TW/about",
+      "/zh-TW",
+      "/zh-TW/bulletin",
+      "/zh-TW/fursuit",
+      "/zh-TW/fursuit/detail",
+      "/zh-TW/fursuit/quote",
+      "/zh-TW/fursuit/inn",
+      "/zh-TW/fursuit/art",
+      "/zh-TW/more",
+      "/zh-TW/more/foot-frame",
+      "/zh-TW/more/foot-pad",
+      "/zh-TW/more/body-form",
+      "/zh-TW/more/cleaning",
+      "/zh-TW/about",
+      "https://beian.miit.gov.cn/",
+      "https://beian.mps.gov.cn/#/query/webSearch?code=21011202001306"
+    ],
+    "controls": [
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "語言"
+      },
+      {
+        "type": "button",
+        "aria-label": "切换主题"
+      },
+      {
+        "type": "button",
+        "aria-label": "開啟選單"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "聯絡客服 諮詢與估價"
+      }
+    ],
+    "extracted_text_sha256": "da4efbb29bc527a817887d385b193d4b528d4644158b6e3d4df250bf70eaba4b",
+    "text_characters": 302
+  },
+  {
+    "url": "https://fureststory.com/en/fursuit/art/01",
+    "final_url": "https://fureststory.com/en/fursuit/art/01",
+    "status": 200,
+    "content_type": "text/html; charset=utf-8",
+    "title": "森屿 · Furest",
+    "links": [
+      "/en",
+      "/en",
+      "/en/bulletin",
+      "/en/about",
+      "/en/fursuit/art",
+      "https://cdn.fureststory.com/uploads/b8dd58f6-0657-42d3-8e9a-eb67734c4971.jpg",
+      "https://cdn.fureststory.com/uploads/afde06dd-311a-4c57-a62d-afcb5289536b.jpg",
+      "https://cdn.fureststory.com/uploads/e22dfe73-90a7-4603-a5af-24dbcf3c8338.jpg",
+      "/en",
+      "/en/bulletin",
+      "/en/fursuit",
+      "/en/fursuit/detail",
+      "/en/fursuit/quote",
+      "/en/fursuit/inn",
+      "/en/fursuit/art",
+      "/en/more",
+      "/en/more/foot-frame",
+      "/en/more/foot-pad",
+      "/en/more/body-form",
+      "/en/more/cleaning",
+      "/en/about",
+      "https://beian.miit.gov.cn/",
+      "https://beian.mps.gov.cn/#/query/webSearch?code=21011202001306"
+    ],
+    "controls": [
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "Language"
+      },
+      {
+        "type": "button",
+        "aria-label": "切换主题"
+      },
+      {
+        "type": "button",
+        "aria-label": "Open menu"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "Contact us for inquiry and quote"
+      }
+    ],
+    "extracted_text_sha256": "ef497c7309ffa565c32016cc695df39ff91f3e0e8e56dd9cf011351dca8ef9c5",
+    "text_characters": 762
+  },
+  {
+    "url": "https://fureststory.com/en/fursuit/art/02",
+    "final_url": "https://fureststory.com/en/fursuit/art/02",
+    "status": 200,
+    "content_type": "text/html; charset=utf-8",
+    "title": "归墟 · Furest",
+    "links": [
+      "/en",
+      "/en",
+      "/en/bulletin",
+      "/en/about",
+      "/en/fursuit/art",
+      "https://cdn.fureststory.com/uploads/dc9a8b54-b423-4496-b586-d41737a74e14.jpg",
+      "https://cdn.fureststory.com/uploads/442ffb05-4fc8-4f2a-b7f0-f15d5405d424.jpg",
+      "https://cdn.fureststory.com/uploads/c8049d6a-42f9-45d5-a6c4-d59aa01f6925.jpg",
+      "/en",
+      "/en/bulletin",
+      "/en/fursuit",
+      "/en/fursuit/detail",
+      "/en/fursuit/quote",
+      "/en/fursuit/inn",
+      "/en/fursuit/art",
+      "/en/more",
+      "/en/more/foot-frame",
+      "/en/more/foot-pad",
+      "/en/more/body-form",
+      "/en/more/cleaning",
+      "/en/about",
+      "https://beian.miit.gov.cn/",
+      "https://beian.mps.gov.cn/#/query/webSearch?code=21011202001306"
+    ],
+    "controls": [
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "Language"
+      },
+      {
+        "type": "button",
+        "aria-label": "切换主题"
+      },
+      {
+        "type": "button",
+        "aria-label": "Open menu"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "Contact us for inquiry and quote"
+      }
+    ],
+    "extracted_text_sha256": "5892dda5e9ea6866ecb2331a1db75cf6497bfd2b51d8b0ca3ffbeaaa5ec6e200",
+    "text_characters": 828
+  },
+  {
+    "url": "https://fureststory.com/en/fursuit/art/03",
+    "final_url": "https://fureststory.com/en/fursuit/art/03",
+    "status": 200,
+    "content_type": "text/html; charset=utf-8",
+    "title": "枫月（暗） · Furest",
+    "links": [
+      "/en",
+      "/en",
+      "/en/bulletin",
+      "/en/about",
+      "/en/fursuit/art",
+      "https://cdn.fureststory.com/uploads/689fb4fa-ed31-4d47-a46d-b97002c396b5.jpg",
+      "https://cdn.fureststory.com/uploads/4b031b28-3031-403b-b63b-29855303723e.jpg",
+      "https://cdn.fureststory.com/uploads/07f03264-f73f-4667-9c1b-1ff0fbbe0f14.jpg",
+      "/en",
+      "/en/bulletin",
+      "/en/fursuit",
+      "/en/fursuit/detail",
+      "/en/fursuit/quote",
+      "/en/fursuit/inn",
+      "/en/fursuit/art",
+      "/en/more",
+      "/en/more/foot-frame",
+      "/en/more/foot-pad",
+      "/en/more/body-form",
+      "/en/more/cleaning",
+      "/en/about",
+      "https://beian.miit.gov.cn/",
+      "https://beian.mps.gov.cn/#/query/webSearch?code=21011202001306"
+    ],
+    "controls": [
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "Language"
+      },
+      {
+        "type": "button",
+        "aria-label": "切换主题"
+      },
+      {
+        "type": "button",
+        "aria-label": "Open menu"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "Contact us for inquiry and quote"
+      }
+    ],
+    "extracted_text_sha256": "0e4d25a51551b64d8c70376a665e9986bb8aa76a97d8a8867b09fb49db9ec035",
+    "text_characters": 768
+  },
+  {
+    "url": "https://fureststory.com/en/fursuit/quote?view=contract",
+    "final_url": "https://fureststory.com/en/fursuit/quote?view=contract",
+    "status": 200,
+    "content_type": "text/html; charset=utf-8",
+    "title": "Commission Details · Furest",
+    "links": [
+      "/en",
+      "/en",
+      "/en/bulletin",
+      "/en/about",
+      "/en/fursuit/quote#quote-tab-content",
+      "/en/fursuit/quote?view=contract#quote-tab-content",
+      "mailto:senrongwuyu@163.com",
+      "/en",
+      "/en/bulletin",
+      "/en/fursuit",
+      "/en/fursuit/detail",
+      "/en/fursuit/quote",
+      "/en/fursuit/inn",
+      "/en/fursuit/art",
+      "/en/more",
+      "/en/more/foot-frame",
+      "/en/more/foot-pad",
+      "/en/more/body-form",
+      "/en/more/cleaning",
+      "/en/about",
+      "https://beian.miit.gov.cn/",
+      "https://beian.mps.gov.cn/#/query/webSearch?code=21011202001306"
+    ],
+    "controls": [
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "Language"
+      },
+      {
+        "type": "button",
+        "aria-label": "切换主题"
+      },
+      {
+        "type": "button",
+        "aria-label": "Open menu"
+      },
+      {
+        "type": "button",
+        "aria-label": "Copy support QQ number"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "Contact us for inquiry and quote"
+      }
+    ],
+    "extracted_text_sha256": "8944588e10ea1c105cc72a195c1fc1de83315cce26d18cd4e9907469cba59ebc",
+    "text_characters": 4602
+  },
+  {
+    "url": "https://fureststory.com/ja/fursuit/art/01",
+    "final_url": "https://fureststory.com/ja/fursuit/art/01",
+    "status": 200,
+    "content_type": "text/html; charset=utf-8",
+    "title": "森屿 · 森絨物語",
+    "links": [
+      "/ja",
+      "/ja",
+      "/ja/bulletin",
+      "/ja/about",
+      "/ja/fursuit/art",
+      "https://cdn.fureststory.com/uploads/b8dd58f6-0657-42d3-8e9a-eb67734c4971.jpg",
+      "https://cdn.fureststory.com/uploads/afde06dd-311a-4c57-a62d-afcb5289536b.jpg",
+      "https://cdn.fureststory.com/uploads/e22dfe73-90a7-4603-a5af-24dbcf3c8338.jpg",
+      "/ja",
+      "/ja/bulletin",
+      "/ja/fursuit",
+      "/ja/fursuit/detail",
+      "/ja/fursuit/quote",
+      "/ja/fursuit/inn",
+      "/ja/fursuit/art",
+      "/ja/more",
+      "/ja/more/foot-frame",
+      "/ja/more/foot-pad",
+      "/ja/more/body-form",
+      "/ja/more/cleaning",
+      "/ja/about",
+      "https://beian.miit.gov.cn/",
+      "https://beian.mps.gov.cn/#/query/webSearch?code=21011202001306"
+    ],
+    "controls": [
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "言語"
+      },
+      {
+        "type": "button",
+        "aria-label": "切换主题"
+      },
+      {
+        "type": "button",
+        "aria-label": "メニューを開く"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "お問い合わせ 相談と見積もり"
+      }
+    ],
+    "extracted_text_sha256": "468dbf18cabb96f3eec69c2f629e51e307108a3d09c7641f3790c7e98848f3c3",
+    "text_characters": 448
+  },
+  {
+    "url": "https://fureststory.com/ja/fursuit/art/02",
+    "final_url": "https://fureststory.com/ja/fursuit/art/02",
+    "status": 200,
+    "content_type": "text/html; charset=utf-8",
+    "title": "归墟 · 森絨物語",
+    "links": [
+      "/ja",
+      "/ja",
+      "/ja/bulletin",
+      "/ja/about",
+      "/ja/fursuit/art",
+      "https://cdn.fureststory.com/uploads/dc9a8b54-b423-4496-b586-d41737a74e14.jpg",
+      "https://cdn.fureststory.com/uploads/442ffb05-4fc8-4f2a-b7f0-f15d5405d424.jpg",
+      "https://cdn.fureststory.com/uploads/c8049d6a-42f9-45d5-a6c4-d59aa01f6925.jpg",
+      "/ja",
+      "/ja/bulletin",
+      "/ja/fursuit",
+      "/ja/fursuit/detail",
+      "/ja/fursuit/quote",
+      "/ja/fursuit/inn",
+      "/ja/fursuit/art",
+      "/ja/more",
+      "/ja/more/foot-frame",
+      "/ja/more/foot-pad",
+      "/ja/more/body-form",
+      "/ja/more/cleaning",
+      "/ja/about",
+      "https://beian.miit.gov.cn/",
+      "https://beian.mps.gov.cn/#/query/webSearch?code=21011202001306"
+    ],
+    "controls": [
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "言語"
+      },
+      {
+        "type": "button",
+        "aria-label": "切换主题"
+      },
+      {
+        "type": "button",
+        "aria-label": "メニューを開く"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "お問い合わせ 相談と見積もり"
+      }
+    ],
+    "extracted_text_sha256": "951570099d1bfe164f020d06662f498138871cd1a0de1f53b8a3e5528f6c85e9",
+    "text_characters": 495
+  },
+  {
+    "url": "https://fureststory.com/ja/fursuit/art/03",
+    "final_url": "https://fureststory.com/ja/fursuit/art/03",
+    "status": 200,
+    "content_type": "text/html; charset=utf-8",
+    "title": "枫月（暗） · 森絨物語",
+    "links": [
+      "/ja",
+      "/ja",
+      "/ja/bulletin",
+      "/ja/about",
+      "/ja/fursuit/art",
+      "https://cdn.fureststory.com/uploads/689fb4fa-ed31-4d47-a46d-b97002c396b5.jpg",
+      "https://cdn.fureststory.com/uploads/4b031b28-3031-403b-b63b-29855303723e.jpg",
+      "https://cdn.fureststory.com/uploads/07f03264-f73f-4667-9c1b-1ff0fbbe0f14.jpg",
+      "/ja",
+      "/ja/bulletin",
+      "/ja/fursuit",
+      "/ja/fursuit/detail",
+      "/ja/fursuit/quote",
+      "/ja/fursuit/inn",
+      "/ja/fursuit/art",
+      "/ja/more",
+      "/ja/more/foot-frame",
+      "/ja/more/foot-pad",
+      "/ja/more/body-form",
+      "/ja/more/cleaning",
+      "/ja/about",
+      "https://beian.miit.gov.cn/",
+      "https://beian.mps.gov.cn/#/query/webSearch?code=21011202001306"
+    ],
+    "controls": [
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "言語"
+      },
+      {
+        "type": "button",
+        "aria-label": "切换主题"
+      },
+      {
+        "type": "button",
+        "aria-label": "メニューを開く"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "お問い合わせ 相談と見積もり"
+      }
+    ],
+    "extracted_text_sha256": "6fee4dd68d2f36cf2c709ceb0c42fae8aba7185844a71d0300481aa7ebe84452",
+    "text_characters": 454
+  },
+  {
+    "url": "https://fureststory.com/ja/fursuit/quote?view=contract",
+    "final_url": "https://fureststory.com/ja/fursuit/quote?view=contract",
+    "status": 200,
+    "content_type": "text/html; charset=utf-8",
+    "title": "ご依頼ガイド · 森絨物語",
+    "links": [
+      "/ja",
+      "/ja",
+      "/ja/bulletin",
+      "/ja/about",
+      "/ja/fursuit/quote#quote-tab-content",
+      "/ja/fursuit/quote?view=contract#quote-tab-content",
+      "mailto:senrongwuyu@163.com",
+      "/ja",
+      "/ja/bulletin",
+      "/ja/fursuit",
+      "/ja/fursuit/detail",
+      "/ja/fursuit/quote",
+      "/ja/fursuit/inn",
+      "/ja/fursuit/art",
+      "/ja/more",
+      "/ja/more/foot-frame",
+      "/ja/more/foot-pad",
+      "/ja/more/body-form",
+      "/ja/more/cleaning",
+      "/ja/about",
+      "https://beian.miit.gov.cn/",
+      "https://beian.mps.gov.cn/#/query/webSearch?code=21011202001306"
+    ],
+    "controls": [
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "言語"
+      },
+      {
+        "type": "button",
+        "aria-label": "切换主题"
+      },
+      {
+        "type": "button",
+        "aria-label": "メニューを開く"
+      },
+      {
+        "type": "button",
+        "aria-label": "サポート QQ 番号をコピー"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "お問い合わせ 相談と見積もり"
+      }
+    ],
+    "extracted_text_sha256": "4b5a5c7446a9cc79c9336a3dcf9e4f5135ff29ddde81ac6f93a872910bda4689",
+    "text_characters": 4061
+  },
+  {
+    "url": "https://fureststory.com/zh-TW/fursuit/art/01",
+    "final_url": "https://fureststory.com/zh-TW/fursuit/art/01",
+    "status": 200,
+    "content_type": "text/html; charset=utf-8",
+    "title": "森屿 · 森絨物語",
+    "links": [
+      "/zh-TW",
+      "/zh-TW",
+      "/zh-TW/bulletin",
+      "/zh-TW/about",
+      "/zh-TW/fursuit/art",
+      "https://cdn.fureststory.com/uploads/b8dd58f6-0657-42d3-8e9a-eb67734c4971.jpg",
+      "https://cdn.fureststory.com/uploads/afde06dd-311a-4c57-a62d-afcb5289536b.jpg",
+      "https://cdn.fureststory.com/uploads/e22dfe73-90a7-4603-a5af-24dbcf3c8338.jpg",
+      "/zh-TW",
+      "/zh-TW/bulletin",
+      "/zh-TW/fursuit",
+      "/zh-TW/fursuit/detail",
+      "/zh-TW/fursuit/quote",
+      "/zh-TW/fursuit/inn",
+      "/zh-TW/fursuit/art",
+      "/zh-TW/more",
+      "/zh-TW/more/foot-frame",
+      "/zh-TW/more/foot-pad",
+      "/zh-TW/more/body-form",
+      "/zh-TW/more/cleaning",
+      "/zh-TW/about",
+      "https://beian.miit.gov.cn/",
+      "https://beian.mps.gov.cn/#/query/webSearch?code=21011202001306"
+    ],
+    "controls": [
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "語言"
+      },
+      {
+        "type": "button",
+        "aria-label": "切换主题"
+      },
+      {
+        "type": "button",
+        "aria-label": "開啟選單"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "聯絡客服 諮詢與估價"
+      }
+    ],
+    "extracted_text_sha256": "84ad18d43aec0d7d9582993f224f1cec3787f08ab07341e04c9153f3cc3255da",
+    "text_characters": 290
+  },
+  {
+    "url": "https://fureststory.com/zh-TW/fursuit/art/02",
+    "final_url": "https://fureststory.com/zh-TW/fursuit/art/02",
+    "status": 200,
+    "content_type": "text/html; charset=utf-8",
+    "title": "归墟 · 森絨物語",
+    "links": [
+      "/zh-TW",
+      "/zh-TW",
+      "/zh-TW/bulletin",
+      "/zh-TW/about",
+      "/zh-TW/fursuit/art",
+      "https://cdn.fureststory.com/uploads/dc9a8b54-b423-4496-b586-d41737a74e14.jpg",
+      "https://cdn.fureststory.com/uploads/442ffb05-4fc8-4f2a-b7f0-f15d5405d424.jpg",
+      "https://cdn.fureststory.com/uploads/c8049d6a-42f9-45d5-a6c4-d59aa01f6925.jpg",
+      "/zh-TW",
+      "/zh-TW/bulletin",
+      "/zh-TW/fursuit",
+      "/zh-TW/fursuit/detail",
+      "/zh-TW/fursuit/quote",
+      "/zh-TW/fursuit/inn",
+      "/zh-TW/fursuit/art",
+      "/zh-TW/more",
+      "/zh-TW/more/foot-frame",
+      "/zh-TW/more/foot-pad",
+      "/zh-TW/more/body-form",
+      "/zh-TW/more/cleaning",
+      "/zh-TW/about",
+      "https://beian.miit.gov.cn/",
+      "https://beian.mps.gov.cn/#/query/webSearch?code=21011202001306"
+    ],
+    "controls": [
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "語言"
+      },
+      {
+        "type": "button",
+        "aria-label": "切换主题"
+      },
+      {
+        "type": "button",
+        "aria-label": "開啟選單"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "聯絡客服 諮詢與估價"
+      }
+    ],
+    "extracted_text_sha256": "31e45383e85c34f985effa2d8692b9bd26cd92a8ac04da4c876a1f54aee70c89",
+    "text_characters": 337
+  },
+  {
+    "url": "https://fureststory.com/zh-TW/fursuit/art/03",
+    "final_url": "https://fureststory.com/zh-TW/fursuit/art/03",
+    "status": 200,
+    "content_type": "text/html; charset=utf-8",
+    "title": "枫月（暗） · 森絨物語",
+    "links": [
+      "/zh-TW",
+      "/zh-TW",
+      "/zh-TW/bulletin",
+      "/zh-TW/about",
+      "/zh-TW/fursuit/art",
+      "https://cdn.fureststory.com/uploads/689fb4fa-ed31-4d47-a46d-b97002c396b5.jpg",
+      "https://cdn.fureststory.com/uploads/4b031b28-3031-403b-b63b-29855303723e.jpg",
+      "https://cdn.fureststory.com/uploads/07f03264-f73f-4667-9c1b-1ff0fbbe0f14.jpg",
+      "/zh-TW",
+      "/zh-TW/bulletin",
+      "/zh-TW/fursuit",
+      "/zh-TW/fursuit/detail",
+      "/zh-TW/fursuit/quote",
+      "/zh-TW/fursuit/inn",
+      "/zh-TW/fursuit/art",
+      "/zh-TW/more",
+      "/zh-TW/more/foot-frame",
+      "/zh-TW/more/foot-pad",
+      "/zh-TW/more/body-form",
+      "/zh-TW/more/cleaning",
+      "/zh-TW/about",
+      "https://beian.miit.gov.cn/",
+      "https://beian.mps.gov.cn/#/query/webSearch?code=21011202001306"
+    ],
+    "controls": [
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "語言"
+      },
+      {
+        "type": "button",
+        "aria-label": "切换主题"
+      },
+      {
+        "type": "button",
+        "aria-label": "開啟選單"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "聯絡客服 諮詢與估價"
+      }
+    ],
+    "extracted_text_sha256": "ae22e6237812b15ca361fa973d254236c4a433192d88aee5a29c6e7c2a121826",
+    "text_characters": 296
+  },
+  {
+    "url": "https://fureststory.com/zh-TW/fursuit/quote?view=contract",
+    "final_url": "https://fureststory.com/zh-TW/fursuit/quote?view=contract",
+    "status": 200,
+    "content_type": "text/html; charset=utf-8",
+    "title": "委託詳情 · 森絨物語",
+    "links": [
+      "/zh-TW",
+      "/zh-TW",
+      "/zh-TW/bulletin",
+      "/zh-TW/about",
+      "/zh-TW/fursuit/quote#quote-tab-content",
+      "/zh-TW/fursuit/quote?view=contract#quote-tab-content",
+      "mailto:senrongwuyu@163.com",
+      "/zh-TW",
+      "/zh-TW/bulletin",
+      "/zh-TW/fursuit",
+      "/zh-TW/fursuit/detail",
+      "/zh-TW/fursuit/quote",
+      "/zh-TW/fursuit/inn",
+      "/zh-TW/fursuit/art",
+      "/zh-TW/more",
+      "/zh-TW/more/foot-frame",
+      "/zh-TW/more/foot-pad",
+      "/zh-TW/more/body-form",
+      "/zh-TW/more/cleaning",
+      "/zh-TW/about",
+      "https://beian.miit.gov.cn/",
+      "https://beian.mps.gov.cn/#/query/webSearch?code=21011202001306"
+    ],
+    "controls": [
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "語言"
+      },
+      {
+        "type": "button",
+        "aria-label": "切换主题"
+      },
+      {
+        "type": "button",
+        "aria-label": "開啟選單"
+      },
+      {
+        "type": "button",
+        "aria-label": "複製客服 QQ 號"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button"
+      },
+      {
+        "type": "button",
+        "aria-label": "聯絡客服 諮詢與估價"
+      }
+    ],
+    "extracted_text_sha256": "f1e284e3e51376e8adf03d29bf1547d978f46ad82a78dea1bedeb871d7b75656",
+    "text_characters": 3849
+  }
+]

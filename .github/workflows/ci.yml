@@ -1,0 +1,162 @@
+name: CI
+
+# 质量门禁（04/14 文档）：从锁文件安装、lint、类型检查、领域/集成/契约测试、
+# 依赖与密钥扫描，并检查 OpenAPI 契约漂移。
+
+on:
+  push:
+    branches: [main, "feature/**", "increment/**"]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  server:
+    name: 后端（lint + 类型 + 测试 + 契约）
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: server
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      - name: 按锁文件安装
+        run: uv sync --frozen
+      - name: Ruff 检查
+        run: uv run ruff check app tests migrations
+      - name: 类型检查（mypy strict）
+        run: uv run mypy app
+      - name: 单元与集成测试
+        run: uv run pytest -q
+      - name: 导出 OpenAPI 并检查漂移
+        run: |
+          uv run python -m app.cli export-openapi --output ../contracts/openapi.json
+          cd ..
+          git diff --exit-code -- contracts/openapi.json \
+            || (echo "OpenAPI 契约发生未提交的变更：请提交 contracts/openapi.json" && exit 1)
+      - name: 前端调用与 OpenAPI 契约一致性
+        run: python ../scripts/check_frontend_contract.py
+      - name: 响应形状漂移（服务端返回数组 / 前端按分页对象解析）
+        run: python ../scripts/check_response_shapes.py
+      - name: 模块边界（新增跨模块导入即失败）
+        run: python ../scripts/check_module_boundaries.py
+      - name: 迁移可执行性（空库升级 → 回滚 → 再升级）
+        run: |
+          export DATA_DIR="$(mktemp -d)"
+          uv run alembic upgrade head
+          uv run alembic downgrade 0001
+          uv run alembic upgrade head
+          uv run alembic current | grep -q '(head)'
+
+  web:
+    name: 前端（类型 + 测试 + 构建）
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: web/pnpm-lock.yaml
+      - name: 按锁文件安装
+        run: pnpm install --frozen-lockfile
+      - uses: astral-sh/setup-uv@v5
+      - name: 安装素材派生依赖
+        run: uv sync --frozen --project ../server
+      - name: 品牌素材校验与派生
+        run: |
+          pnpm assets:derive
+          git diff --exit-code -- public/assets/brand \
+            || (echo "品牌派生图与 manifest 不一致：请提交派生结果" && exit 1)
+      - name: 类型检查
+        run: pnpm typecheck
+      - name: 品牌素材合规（manifest 引用、原图摘要、无 emoji 替代）
+        run: python ../scripts/check_brand_assets.py
+      - name: 页面状态矩阵（数据页必须有 loading/empty/error/forbidden/not-found）
+        run: python ../scripts/check_page_states.py
+      - name: ESLint
+        run: pnpm lint
+      - name: 组件测试
+        run: pnpm test
+      - name: 构建两个入口
+        run: pnpm build
+
+  e2e:
+    name: 浏览器 journeys（桌面 / 360px / 微信 WebView 近似）
+    runs-on: ubuntu-latest
+    needs: [server, web]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: web/pnpm-lock.yaml
+      - name: 安装后端与前端依赖
+        run: |
+          uv sync --frozen --project server
+          cd web && pnpm install --frozen-lockfile
+      - name: 准备开发库与演示数据（沙盒短信/支付）
+        working-directory: server
+        env:
+          APP_ENV: development
+        run: |
+          uv run python -m app.cli init-db
+          uv run python -m app.cli seed-demo
+      - name: 安装浏览器
+        working-directory: web
+        run: pnpm exec playwright install --with-deps chromium
+      - name: 运行浏览器 journeys
+        working-directory: web
+        env:
+          APP_ENV: development
+        run: pnpm exec playwright test --config ../e2e/playwright.config.ts
+      - name: 上传失败证据
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: e2e/report
+          retention-days: 7
+
+  security:
+    name: 依赖与密钥扫描
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: 禁止提交密钥与客户资料
+        run: |
+          set -e
+          # 只允许示例文件出现占位值
+          if git ls-files | grep -E '(^|/)\.env$|\.(pem|p12|key)$'; then
+            echo "检测到疑似密钥文件被提交，请立即移除并轮换密钥" >&2
+            exit 1
+          fi
+          if git grep -nIE '(BEGIN [A-Z ]*PRIVATE KEY|AKIA[0-9A-Z]{16}|sk_live_[0-9a-zA-Z]{16,})' -- . ':!文档' ':!*.md'; then
+            echo "检测到疑似真实密钥内容" >&2
+            exit 1
+          fi
+      - uses: astral-sh/setup-uv@v5
+      - name: Python 依赖审计
+        working-directory: server
+        run: |
+          uv sync --frozen
+          uv run pip-audit --skip-editable

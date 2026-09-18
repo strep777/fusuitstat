@@ -1,0 +1,4 @@
+# pnpm 11 把依赖构建许可放在 workspace 设置里（package.json 的 pnpm 字段已不再读取）。
+# esbuild 的构建脚本只负责落地平台二进制，是 Vite 构建链的必要依赖。
+allowBuilds:
+  esbuild: true

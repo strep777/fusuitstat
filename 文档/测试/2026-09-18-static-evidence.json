@@ -1,0 +1,403 @@
+{
+  "python": "3.13.1",
+  "system": "Windows-11-10.0.26200-SP0",
+  "openapi_equal": true,
+  "live_path_count": 179,
+  "saved_path_count": 179,
+  "added_paths": [],
+  "removed_paths": [],
+  "duplicate_routes": [],
+  "cross_module_import_candidates": [
+    {
+      "file": "server\\app\\modules\\catalog\\repository.py",
+      "line": 16,
+      "import": "app.modules.media.models",
+      "names": [
+        "MediaLink"
+      ]
+    },
+    {
+      "file": "server\\app\\modules\\catalog\\service.py",
+      "line": 47,
+      "import": "app.modules.media.service",
+      "names": [
+        "public_media_payload"
+      ]
+    },
+    {
+      "file": "server\\app\\modules\\catalog\\service.py",
+      "line": 82,
+      "import": "app.modules.media.service",
+      "names": [
+        "public_media_payload"
+      ]
+    },
+    {
+      "file": "server\\app\\modules\\catalog\\service.py",
+      "line": 104,
+      "import": "app.modules.media.service",
+      "names": [
+        "public_media_payload"
+      ]
+    },
+    {
+      "file": "server\\app\\modules\\commerce\\service.py",
+      "line": 24,
+      "import": "app.modules.catalog",
+      "names": [
+        "repository"
+      ]
+    },
+    {
+      "file": "server\\app\\modules\\commerce\\service.py",
+      "line": 25,
+      "import": "app.modules.catalog",
+      "names": [
+        "service"
+      ]
+    },
+    {
+      "file": "server\\app\\modules\\commerce\\service.py",
+      "line": 41,
+      "import": "app.modules.content.service",
+      "names": [
+        "setting_value"
+      ]
+    },
+    {
+      "file": "server\\app\\modules\\commerce\\service.py",
+      "line": 43,
+      "import": "app.modules.identity",
+      "names": [
+        "repository"
+      ]
+    },
+    {
+      "file": "server\\app\\modules\\commissions\\admin_router.py",
+      "line": 153,
+      "import": "app.modules.media.service",
+      "names": [
+        "assets_for"
+      ]
+    },
+    {
+      "file": "server\\app\\modules\\commissions\\ports.py",
+      "line": 34,
+      "import": "app.modules.content.service",
+      "names": [
+        "commission_policy"
+      ]
+    },
+    {
+      "file": "server\\app\\modules\\commissions\\ports.py",
+      "line": 41,
+      "import": "app.modules.content",
+      "names": [
+        "repository"
+      ]
+    },
+    {
+      "file": "server\\app\\modules\\commissions\\ports.py",
+      "line": 54,
+      "import": "app.modules.media.service",
+      "names": [
+        "assert_owned_ready_design"
+      ]
+    },
+    {
+      "file": "server\\app\\modules\\commissions\\ports.py",
+      "line": 72,
+      "import": "app.modules.identity.service",
+      "names": [
+        "record_consent"
+      ]
+    },
+    {
+      "file": "server\\app\\modules\\commissions\\ports.py",
+      "line": 89,
+      "import": "app.modules.content.service",
+      "names": [
+        "require_feature"
+      ]
+    },
+    {
+      "file": "server\\app\\modules\\commissions\\ports.py",
+      "line": 96,
+      "import": "app.modules.identity.service",
+      "names": [
+        "has_consent"
+      ]
+    },
+    {
+      "file": "server\\app\\modules\\commissions\\ports.py",
+      "line": 117,
+      "import": "app.modules.notifications.service",
+      "names": [
+        "enqueue_notification"
+      ]
+    },
+    {
+      "file": "server\\app\\modules\\content\\router.py",
+      "line": 28,
+      "import": "app.modules.media.service",
+      "names": [
+        "public_media_payload"
+      ]
+    },
+    {
+      "file": "server\\app\\modules\\content\\router.py",
+      "line": 46,
+      "import": "app.modules.media.service",
+      "names": [
+        "assets_for"
+      ]
+    },
+    {
+      "file": "server\\app\\modules\\content\\router.py",
+      "line": 194,
+      "import": "app.modules.catalog",
+      "names": [
+        "repository"
+      ]
+    },
+    {
+      "file": "server\\app\\modules\\content\\router.py",
+      "line": 195,
+      "import": "app.modules.catalog",
+      "names": [
+        "service"
+      ]
+    },
+    {
+      "file": "server\\app\\modules\\content\\router.py",
+      "line": 215,
+      "import": "app.modules.media.service",
+      "names": [
+        "public_media_payload"
+      ]
+    },
+    {
+      "file": "server\\app\\modules\\content\\router.py",
+      "line": 209,
+      "import": "app.modules.commissions",
+      "names": [
+        "service"
+      ]
+    },
+    {
+      "file": "server\\app\\modules\\feedback\\service.py",
+      "line": 26,
+      "import": "app.modules.content.service",
+      "names": [
+        "loyalty_policy"
+      ]
+    },
+    {
+      "file": "server\\app\\modules\\feedback\\service.py",
+      "line": 165,
+      "import": "app.modules.media.models",
+      "names": [
+        "MediaAsset"
+      ]
+    },
+    {
+      "file": "server\\app\\modules\\feedback\\service.py",
+      "line": 494,
+      "import": "app.modules.content.service",
+      "names": [
+        "setting_value"
+      ]
+    },
+    {
+      "file": "server\\app\\modules\\feedback\\service.py",
+      "line": 918,
+      "import": "app.modules.media.service",
+      "names": [
+        "assets_for"
+      ]
+    },
+    {
+      "file": "server\\app\\modules\\feedback\\service.py",
+      "line": 1014,
+      "import": "app.modules.notifications.service",
+      "names": [
+        "enqueue_notification"
+      ]
+    },
+    {
+      "file": "server\\app\\modules\\feedback\\service.py",
+      "line": 1040,
+      "import": "app.modules.notifications.service",
+      "names": [
+        "enqueue_notification"
+      ]
+    },
+    {
+      "file": "server\\app\\modules\\feedback\\service.py",
+      "line": 1068,
+      "import": "app.modules.notifications.service",
+      "names": [
+        "enqueue_notification"
+      ]
+    },
+    {
+      "file": "server\\app\\modules\\feedback\\service.py",
+      "line": 293,
+      "import": "app.modules.media.service",
+      "names": [
+        "link_asset"
+      ]
+    },
+    {
+      "file": "server\\app\\modules\\identity\\router.py",
+      "line": 45,
+      "import": "app.modules.notifications",
+      "names": [
+        "service"
+      ]
+    },
+    {
+      "file": "server\\app\\modules\\identity\\router.py",
+      "line": 183,
+      "import": "app.modules.commerce",
+      "names": [
+        "repository"
+      ]
+    },
+    {
+      "file": "server\\app\\modules\\identity\\router.py",
+      "line": 184,
+      "import": "app.modules.commissions",
+      "names": [
+        "repository"
+      ]
+    },
+    {
+      "file": "server\\app\\modules\\identity\\router.py",
+      "line": 201,
+      "import": "app.modules.loyalty",
+      "names": [
+        "service"
+      ]
+    },
+    {
+      "file": "server\\app\\modules\\identity\\service.py",
+      "line": 146,
+      "import": "app.modules.notifications.service",
+      "names": [
+        "enqueue_notification"
+      ]
+    },
+    {
+      "file": "server\\app\\modules\\identity\\service.py",
+      "line": 608,
+      "import": "app.modules.commerce",
+      "names": [
+        "repository"
+      ]
+    },
+    {
+      "file": "server\\app\\modules\\identity\\service.py",
+      "line": 609,
+      "import": "app.modules.commissions",
+      "names": [
+        "repository"
+      ]
+    },
+    {
+      "file": "server\\app\\modules\\loyalty\\service.py",
+      "line": 31,
+      "import": "app.modules.content.service",
+      "names": [
+        "loyalty_policy"
+      ]
+    },
+    {
+      "file": "server\\app\\modules\\loyalty\\service.py",
+      "line": 754,
+      "import": "app.modules.notifications.service",
+      "names": [
+        "enqueue_notification"
+      ]
+    },
+    {
+      "file": "server\\app\\modules\\loyalty\\service.py",
+      "line": 1188,
+      "import": "app.modules.content.service",
+      "names": [
+        "feature_flags"
+      ]
+    },
+    {
+      "file": "server\\app\\modules\\loyalty\\service.py",
+      "line": 1337,
+      "import": "app.modules.notifications.service",
+      "names": [
+        "enqueue_notification"
+      ]
+    },
+    {
+      "file": "server\\app\\modules\\orders\\repository.py",
+      "line": 11,
+      "import": "app.modules.commerce",
+      "names": [
+        "repository"
+      ]
+    },
+    {
+      "file": "server\\app\\modules\\orders\\repository.py",
+      "line": 12,
+      "import": "app.modules.commerce.models",
+      "names": [
+        "Order"
+      ]
+    },
+    {
+      "file": "server\\app\\modules\\orders\\service.py",
+      "line": 10,
+      "import": "app.modules.commerce",
+      "names": [
+        "service"
+      ]
+    },
+    {
+      "file": "server\\app\\modules\\orders\\service.py",
+      "line": 11,
+      "import": "app.modules.commerce.models",
+      "names": [
+        "Order"
+      ]
+    },
+    {
+      "file": "server\\app\\modules\\payments\\repository_bridge.py",
+      "line": 34,
+      "import": "app.modules.commerce",
+      "names": [
+        "repository"
+      ]
+    }
+  ],
+  "assets": [
+    {
+      "file": "素材\\加载\\77_双曜弈兽.png",
+      "sha256_matches": true
+    },
+    {
+      "file": "素材\\积分点\\62_弈环双尾.png",
+      "sha256_matches": true
+    },
+    {
+      "file": "素材\\logo\\35_逐星绒龙.png",
+      "sha256_matches": true
+    },
+    {
+      "file": "素材\\logo\\35_逐星绒龙_bai.png",
+      "sha256_matches": true
+    }
+  ],
+  "test_function_count": 176,
+  "e2e_spec_count": 0,
+  "workflow_files": [
+    "server\\app\\application\\workflows\\__init__.py"
+  ]
+}

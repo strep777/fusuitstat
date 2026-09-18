@@ -85,4 +85,89 @@ export const enUS: MessageShapeOfDefault = {
     configFallback:
       "Site settings could not be loaded from the server, so documented baseline values are shown. Some operational details may be out of date.",
   },
+  login: {
+    eyebrow: "Customer account",
+    title: "Log in with your phone number",
+    intro:
+      "Browsing needs no account; you only log in to send an inquiry or to view orders and progress. An account is created on first successful verification.",
+    securityTitle: "Our staff will never ask you for a verification code.",
+    securityBody:
+      "Anyone asking for a code while claiming to be support, to fix an order or to process a refund is impersonating us. Codes are valid for five minutes and can be used once; we never write them to logs or replies.",
+    helpTitle: "Trouble signing in?",
+    helpRights:
+      "You do not need to log in to request account closure, access or correction of your data, or withdrawal of a display authorisation:",
+    helpComplaintLead: "Complaints and after-sales also keep a public channel:",
+    helpContact: "Contact & feedback",
+    helpOr: ", or read the",
+    helpPrivacy: "privacy policy and third-party list",
+    helpStaff:
+      "Staff use a separate back-office entry point with multi-factor authentication; a customer login never grants staff permissions.",
+    formTitle: "Log in with an SMS code",
+    formHint:
+      "The form cannot be submitted without accepting the agreements, and the server rejects it again; we never tick it for you.",
+    dialLabel: "Country code",
+    dialCn: "Mainland China +86",
+    dialUs: "United States / Canada +1",
+    phoneLabel: "Phone number",
+    phoneHint: "Used for verification codes and order notifications; never shown on public pages.",
+    phonePlaceholder: "11-digit phone number",
+    otpHint:
+      "After you tap “Send code”, the 6 digits from the SMS go here; pasting the whole message works too.",
+    agreementLead: "I have read and accept the",
+    terms: "Terms of Service",
+    agreementAnd: "and the",
+    privacy: "Privacy Policy",
+    agreementTail:
+      ", and understand that the SMS code is used only for this login and for sensitive operations.",
+    submit: "Log in / sign up",
+    goToTarget: "Go to the target page first (you can return after logging in)",
+    returnLead: "After logging in you will return to",
+    returnNote:
+      ". Only same-site relative paths are allowed; external addresses such as `//evil.example` and encoding tricks are ignored, and an invalid target falls back to “My account”.",
+    devHintLabel: "Development hint",
+    devHintNote:
+      "This hint is returned only in development and test environments for local integration; production has no universal code, no test-number allowlist, and never writes the code into the response.",
+  },
+  identity: {
+    phoneEmpty: "Enter your phone number first (mainland China or US).",
+    phoneRequiredShort: "Enter your phone number.",
+    phoneDigitsOnly: "A phone number may contain digits only.",
+    phoneFormatDetail:
+      "That phone number looks wrong: mainland China numbers have 11 digits starting with 1, US numbers have 10 digits (a leading +1 is fine).",
+    phoneInvalid: "Enter a valid phone number: 11 digits for mainland China or 10 for the US.",
+    challengeMissing: "Request an SMS code first.",
+    codeInvalid: "Enter the 6-digit verification code.",
+    codeInvalidDetail:
+      "The code is 6 digits; check for missing characters or stray spaces.",
+    agreementRequired: "Please accept the Terms of Service and the Privacy Policy first.",
+    agreementRequiredSubmit:
+      "You need to accept the Terms of Service and the Privacy Policy before logging in.",
+    challengeUsed: "The code is no longer valid; request a new one.",
+    phoneRequiredToSend: "Enter your phone number first so we can send a login code.",
+    network: "Network problem; please try again shortly.",
+    smsRateLimited: "Too many requests; please try again later.",
+    smsCodeInvalid: "That code is not correct; please enter it again.",
+    smsCodeExpired: "The code has expired; request a new one.",
+    sessionExpired: "Your session has expired; please log in again.",
+    forbidden: "This account is not allowed to perform that action.",
+    unknown: "The action failed; please try again shortly.",
+    authRequired: "Your session has ended; please log in again to continue.",
+    sessionExpiredDetail: "Your session has expired; please log in again to continue.",
+    csrfInvalid: "The page was open too long; please refresh and try again.",
+    smsRateLimitedDetail: "Sending too often; wait for the countdown to finish and try again.",
+    smsCodeInvalidDetail: "That code is not correct; please check it and enter it again.",
+    smsChallengeUsed: "That code has already been used; request a new one.",
+    reauthRequired:
+      "This action needs you to verify your identity again; complete one SMS code verification first.",
+    sensitiveVerificationRequired:
+      "This action needs one SMS code verification before it can continue.",
+    validationError: "The submission did not pass validation; adjust the fields marked below.",
+    versionConflict: "This record was updated elsewhere; refresh and submit again.",
+    stateConflict: "The current state does not allow this action; refresh and try again.",
+    idempotencyConflict: "Duplicate request; the first result has been returned.",
+    resourceNotFound: "No matching record was found.",
+    rateLimited: "Too many requests; please try again later.",
+    providerUnavailable: "The service is temporarily unavailable; please try again later.",
+    internalError: "Something went wrong on our side; please try again later.",
+  },
 };

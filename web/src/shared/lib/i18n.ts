@@ -18,6 +18,8 @@ import { enUS } from "@/shared/i18n/en-US";
 import { zhCN, type MessageKey, type MessageTree } from "@/shared/i18n/zh-CN";
 import { usePreferencesStore, type Locale } from "@/shared/stores/preferences";
 
+export type { MessageKey };
+
 export const SUPPORTED_LOCALES: readonly Locale[] = ["zh-CN", "en-US"];
 export const DEFAULT_LOCALE: Locale = "zh-CN";
 

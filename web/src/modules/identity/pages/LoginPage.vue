@@ -28,6 +28,7 @@ import {
 } from "@/modules/identity/api/identity";
 import { useAuthStore } from "@/modules/identity/stores/auth";
 import { useSiteStore } from "@/modules/content/stores/site";
+import { useI18n } from "@/shared/lib/i18n";
 import { AppButton, FieldRow, StatusBadge, SurfaceCard } from "@/shared/ui/base";
 import { BrandMark } from "@/shared/ui/BrandMark";
 
@@ -35,15 +36,16 @@ const route = useRoute();
 const router = useRouter();
 const auth = useAuthStore();
 const site = useSiteStore();
+const { t } = useI18n();
 
 /**
  * 区号列表必须与服务端白名单（`SMS_REGIONS`，默认 CN,US）一致：
  * C02/C24 首发中国大陆 + 美国，其他地区在没有通道与合规确认前不做假入口。
  */
-const DIAL_CODES = [
-  { code: "+86", label: "中国大陆 +86" },
-  { code: "+1", label: "美国 / 加拿大 +1" },
-] as const;
+const DIAL_CODES = computed(() => [
+  { code: "+86", label: t("login.dialCn") },
+  { code: "+1", label: t("login.dialUs") },
+]);
 
 const dialCode = ref<string>("+86");
 const phone = ref("");
@@ -74,13 +76,13 @@ const canSubmit = computed(
 
 /** 禁用提交的原因必须写在按钮旁（11 文档）。 */
 const submitBlockedReason = computed(() => {
-  if (!phone.value.trim()) return "请先填写手机号（中国大陆或美国号码）。";
+  if (!phone.value.trim()) return t("identity.phoneEmpty");
   if (phoneFormatError(normalizePhoneForSubmit(dialCode.value, phone.value))) {
-    return "请填写正确的手机号：中国大陆 11 位或美国 10 位。";
+    return t("identity.phoneInvalid");
   }
-  if (!challengeId.value) return "请先获取短信验证码。";
-  if (!isSixDigitCode(code.value)) return "请输入 6 位数字验证码。";
-  if (!accepted.value) return "请先勾选同意《用户服务协议》与《隐私政策》。";
+  if (!challengeId.value) return t("identity.challengeMissing");
+  if (!isSixDigitCode(code.value)) return t("identity.codeInvalid");
+  if (!accepted.value) return t("identity.agreementRequired");
   return "";
 });
 
@@ -106,7 +108,7 @@ async function sendCode(): Promise<void> {
   // 手机号格式由字段级错误提示（11 文档：错误贴字段）。
   // 发送按钮保持可用，否则这条提示永远无法触达用户。
   if (!phone.value.trim()) {
-    phoneError.value = "请先填写手机号，用于接收登录验证码。";
+    phoneError.value = t("identity.phoneRequiredToSend");
     return;
   }
   // C02/C24：中国大陆与美国号码都接受；服务端按 E.164 归一化并做区号白名单校验。
@@ -142,15 +144,15 @@ async function submit(): Promise<void> {
   acceptedError.value = "";
 
   if (!isSixDigitCode(code.value)) {
-    codeError.value = "验证码为 6 位数字，请检查是否漏输或包含空格。";
+    codeError.value = t("identity.codeInvalidDetail");
     return;
   }
   if (!accepted.value) {
-    acceptedError.value = "需要先勾选同意《用户服务协议》与《隐私政策》才能登录。";
+    acceptedError.value = t("identity.agreementRequiredSubmit");
     return;
   }
   if (!challengeId.value) {
-    formError.value = "验证码已失效，请重新获取。";
+    formError.value = t("identity.challengeUsed");
     return;
   }
 
@@ -195,61 +197,59 @@ async function submit(): Promise<void> {
           <BrandMark :size="44" decorative />
           <div>
             <p class="eyebrow">{{ site.brand.brand_name }}</p>
-            <p class="text-sm text-ink-muted">客户账号登录</p>
+            <p class="text-sm text-ink-muted">{{ t("login.eyebrow") }}</p>
           </div>
         </div>
 
-        <h1 class="mt-8 font-display text-3xl leading-tight sm:text-4xl">手机号验证码登录</h1>
+        <h1 class="mt-8 font-display text-3xl leading-tight sm:text-4xl">{{ t("login.title") }}</h1>
         <p class="mt-3 max-w-md text-sm leading-relaxed text-ink-muted">
-          浏览不需要登录；提交询价、查看订单与进度时才需要。首次验证通过会按需创建账号。
+          {{ t("login.intro") }}
         </p>
 
         <div class="mt-6 rounded-lg border border-amber bg-amber-soft p-4 text-sm text-amber-strong">
-          <p class="font-medium">工作人员不会向你索取验证码。</p>
+          <p class="font-medium">{{ t("login.securityTitle") }}</p>
           <p class="mt-1 text-xs leading-relaxed">
-            任何人以「客服」「补单」「退款」为由索要验证码都是冒充。验证码只在 5 分钟内有效、
-            只能使用一次；我们不会把它写进日志或回复消息。
+            {{ t("login.securityBody") }}
           </p>
         </div>
 
         <SurfaceCard class="mt-6" as="section">
-          <h2 class="font-display text-lg">登录遇到问题？</h2>
+          <h2 class="font-display text-lg">{{ t("login.helpTitle") }}</h2>
           <ul class="mt-3 space-y-2 text-sm text-ink-muted">
             <li>
-              注销账号、访问或更正资料、撤回展示授权等数据权利请求，不必先登录：
+              {{ t("login.helpRights") }}
               <a class="link-underline" :href="`mailto:${site.brand.support_email}`">{{ site.brand.support_email }}</a>
               （{{ site.brand.service_hours }}）。
             </li>
             <li>
-              投诉与售后同样保留公开入口：
-              <RouterLink class="link-underline" to="/contact">联系与反馈</RouterLink>，
-              或查看
-              <RouterLink class="link-underline" to="/legal/privacy">隐私政策与第三方清单</RouterLink>。
+              {{ t("login.helpComplaintLead") }}
+              <RouterLink class="link-underline" to="/contact">{{ t("login.helpContact") }}</RouterLink>{{ t("login.helpOr") }}
+              <RouterLink class="link-underline" to="/legal/privacy">{{ t("login.helpPrivacy") }}</RouterLink>。
             </li>
-            <li>员工使用独立后台入口与多因素验证，客户登录不会获得员工权限。</li>
+            <li>{{ t("login.helpStaff") }}</li>
           </ul>
         </SurfaceCard>
       </div>
 
       <SurfaceCard as="section" class="h-fit">
-        <h2 class="font-display text-xl">使用短信验证码登录</h2>
+        <h2 class="font-display text-xl">{{ t("login.formTitle") }}</h2>
         <p class="mt-2 text-xs text-ink-faint">
-          未勾选协议不能提交，服务端也会再次拒绝；我们不会代替你勾选。
+          {{ t("login.formHint") }}
         </p>
 
         <form class="mt-6 space-y-5" novalidate @submit.prevent="submit">
-          <FieldRow label="区号" for="login-dial" required>
+          <FieldRow :label="t('login.dialLabel')" for="login-dial" required>
             <select id="login-dial" v-model="dialCode" class="field-base" name="dial">
               <option v-for="item in DIAL_CODES" :key="item.code" :value="item.code">{{ item.label }}</option>
             </select>
           </FieldRow>
 
           <FieldRow
-            label="手机号"
+            :label="t('login.phoneLabel')"
             for="login-phone"
             required
             :error="phoneError"
-            hint="用于接收验证码与订单通知；不会出现在公开页面。"
+            :hint="t('login.phoneHint')"
           >
             <input
               id="login-phone"
@@ -260,7 +260,7 @@ async function submit(): Promise<void> {
               autocomplete="tel-national"
               name="phone"
               maxlength="11"
-              placeholder="11 位手机号"
+              :placeholder="t('login.phonePlaceholder')"
               :aria-invalid="phoneError ? 'true' : undefined"
             />
           </FieldRow>
@@ -272,7 +272,7 @@ async function submit(): Promise<void> {
               data-testid="otp-input"
               :error="codeError"
               :disabled="verifying"
-              hint="点击「获取验证码」后，短信里的 6 位数字会出现在这里；支持整段粘贴。"
+              :hint="t('login.otpHint')"
             />
             <CountdownButton ref="countdown" :loading="sending" @send="sendCode" />
           </div>
@@ -287,11 +287,10 @@ async function submit(): Promise<void> {
                 :aria-invalid="acceptedError ? 'true' : undefined"
               />
               <span>
-                我已阅读并同意
-                <RouterLink class="link-underline" to="/legal/terms" target="_blank">《用户服务协议》</RouterLink>
-                与
-                <RouterLink class="link-underline" to="/legal/privacy" target="_blank">《隐私政策》</RouterLink>，
-                知悉短信验证码只用于本次登录与敏感操作验证。
+                {{ t("login.agreementLead") }}
+                <RouterLink class="link-underline" to="/legal/terms" target="_blank">{{ t("login.terms") }}</RouterLink>
+                {{ t("login.agreementAnd") }}
+                <RouterLink class="link-underline" to="/legal/privacy" target="_blank">{{ t("login.privacy") }}</RouterLink>{{ t("login.agreementTail") }}
               </span>
             </label>
             <p v-if="acceptedError" class="text-xs font-medium text-wine" role="alert">{{ acceptedError }}</p>
@@ -314,17 +313,16 @@ async function submit(): Promise<void> {
               :disabled="!canSubmit"
               :disabled-reason="submitBlockedReason"
             >
-              登录 / 注册
+              {{ t("login.submit") }}
             </AppButton>
             <RouterLink class="link-underline text-sm text-ink-muted" :to="returnTo">
-              先去目标页面（登录后可返回）
+              {{ t("login.goToTarget") }}
             </RouterLink>
           </div>
 
           <p class="text-xs text-ink-faint">
-            登录后回到 <span class="font-mono">{{ returnTo }}</span
-            >。返回目标只允许本站相对路径，`//evil.example` 这类外部地址与编码绕过写法一律忽略，
-            不合法时回到「我的账户」。
+            {{ t("login.returnLead") }} <span class="font-mono">{{ returnTo }}</span
+            >{{ t("login.returnNote") }}
           </p>
         </form>
 
@@ -336,12 +334,11 @@ async function submit(): Promise<void> {
           role="status"
         >
           <div class="flex items-center gap-2">
-            <StatusBadge tone="neutral" label="开发提示" />
+            <StatusBadge tone="neutral" :label="t('login.devHintLabel')" />
             <span class="font-mono">{{ devHint }}</span>
           </div>
           <p class="mt-1 leading-relaxed">
-            该提示只在开发/测试环境返回，用于本地联调；生产环境不存在万能码、测试号码白名单，
-            也不会把验证码写入响应。
+            {{ t("login.devHintNote") }}
           </p>
         </div>
       </SurfaceCard>

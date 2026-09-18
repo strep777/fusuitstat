@@ -19,6 +19,7 @@ import { createMemoryHistory, createRouter } from "vue-router";
 import SiteFooter from "@/app/components/SiteFooter.vue";
 import SiteHeader from "@/app/components/SiteHeader.vue";
 import { useSiteStore } from "@/modules/content/stores/site";
+import LoginPage from "@/modules/identity/pages/LoginPage.vue";
 import { enUS } from "@/shared/i18n/en-US";
 import { zhCN } from "@/shared/i18n/zh-CN";
 import {
@@ -293,5 +294,36 @@ describe("语言切换与入口门禁", () => {  beforeEach(() => {
     expect(wrapper.text()).toContain("Works");
     expect(wrapper.text()).toContain("Commissions");
     expect(wrapper.text()).not.toContain("作品");
+  });
+
+  it("登录页在英文语言下渲染英文文案（含字段级错误提示）", async () => {
+    const pinia = createPinia();
+    setActivePinia(pinia);
+    const preferences = usePreferencesStore();
+    preferences.setLocale("en-US");
+    await nextTick();
+
+    const router = createRouter({
+      history: createMemoryHistory(),
+      routes: [
+        { path: "/", component: { template: "<div />" } },
+        { path: "/login", component: { template: "<div />" } },
+        { path: "/account", component: { template: "<div />" } },
+        { path: "/contact", component: { template: "<div />" } },
+        { path: "/legal/terms", component: { template: "<div />" } },
+        { path: "/legal/privacy", component: { template: "<div />" } },
+      ],
+    });
+    await router.push("/login");
+    await router.isReady();
+
+    const wrapper = mount(LoginPage, { global: { plugins: [pinia, router] } });
+    for (let index = 0; index < 20; index += 1) await Promise.resolve();
+    await nextTick();
+
+    expect(wrapper.text()).toContain("Log in with your phone number");
+    expect(wrapper.text()).toContain("Our staff will never ask you for a verification code.");
+    expect(wrapper.text()).toContain("Mainland China +86");
+    expect(wrapper.text()).not.toContain("手机号验证码登录");
   });
 });

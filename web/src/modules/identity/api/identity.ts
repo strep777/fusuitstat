@@ -7,6 +7,7 @@
  * - 手机号/地址等隐私字段只用于本人页面渲染；服务端返回脱敏手机号。
  */
 
+import { translate, type MessageKey } from "@/shared/lib/i18n";
 import { ApiError, api, newIdempotencyKey } from "@/shared/lib/http";
 
 export type { UserSummary } from "@/modules/identity/stores/auth";
@@ -99,37 +100,41 @@ export const OPTIONAL_CONSENT_PURPOSES: readonly ConsentPurpose[] = [
 // ------------------------------------------------------------------ 错误码文案
 
 /**
- * 服务端稳定错误码 → 用户可读文案（06 文档「稳定业务错误码」）。
+ * 服务端稳定错误码 → 词条键（06 文档「稳定业务错误码」）。
+ *
+ * 文案**集中在词条表**里（`shared/i18n`），这样中英文各一份、键集由门禁保证一致；
  * 未列出的码回落到服务端 message，仍然只按 code 分流，不做字符串匹配。
  */
-export const IDENTITY_ERROR_MESSAGE: Record<string, string> = {
-  AUTH_REQUIRED: "登录状态已失效，请重新登录后继续。",
-  SESSION_EXPIRED: "登录状态已过期，请重新登录后继续。",
-  CSRF_INVALID: "页面停留时间过长，请刷新页面后重试。",
-  SMS_RATE_LIMITED: "发送过于频繁，请等待倒计时结束后再试。",
-  SMS_CODE_INVALID: "验证码不正确，请核对后重新输入。",
-  SMS_CODE_EXPIRED: "验证码已过期，请重新获取。",
-  SMS_CHALLENGE_USED: "该验证码已被使用，请重新获取。",
-  REAUTH_REQUIRED: "该操作需要重新验证身份，请先完成一次短信验证码验证。",
-  SENSITIVE_VERIFICATION_REQUIRED: "该操作需要先完成一次短信验证码验证。",
-  VALIDATION_ERROR: "提交内容未通过校验，请按字段提示修改。",
-  VERSION_CONFLICT: "资料已被其他操作更新，请刷新后重新提交。",
-  STATE_CONFLICT: "当前状态不允许该操作，请刷新后重试。",
-  IDEMPOTENCY_CONFLICT: "请求重复，已返回第一次的处理结果。",
-  RESOURCE_NOT_FOUND: "没有找到符合条件的记录。",
-  FORBIDDEN: "当前账号无权执行该操作。",
-  RATE_LIMITED: "操作过于频繁，请稍后再试。",
-  PROVIDER_UNAVAILABLE: "服务暂时不可用，请稍后重试。",
-  INTERNAL_ERROR: "服务出现异常，请稍后重试。",
+export const IDENTITY_ERROR_KEY: Record<string, MessageKey> = {
+  AUTH_REQUIRED: "identity.authRequired",
+  SESSION_EXPIRED: "identity.sessionExpiredDetail",
+  CSRF_INVALID: "identity.csrfInvalid",
+  SMS_RATE_LIMITED: "identity.smsRateLimitedDetail",
+  SMS_CODE_INVALID: "identity.smsCodeInvalidDetail",
+  SMS_CODE_EXPIRED: "identity.smsCodeExpired",
+  SMS_CHALLENGE_USED: "identity.smsChallengeUsed",
+  REAUTH_REQUIRED: "identity.reauthRequired",
+  SENSITIVE_VERIFICATION_REQUIRED: "identity.sensitiveVerificationRequired",
+  VALIDATION_ERROR: "identity.validationError",
+  VERSION_CONFLICT: "identity.versionConflict",
+  STATE_CONFLICT: "identity.stateConflict",
+  IDEMPOTENCY_CONFLICT: "identity.idempotencyConflict",
+  RESOURCE_NOT_FOUND: "identity.resourceNotFound",
+  FORBIDDEN: "identity.forbidden",
+  RATE_LIMITED: "identity.rateLimited",
+  PROVIDER_UNAVAILABLE: "identity.providerUnavailable",
+  INTERNAL_ERROR: "identity.internalError",
 };
 
-/** 取错误码对应的中文文案；未知 code 时回落服务端 message。 */
+/** 取错误码对应的文案（查词条；未知 code 回落服务端 message）。 */
 export function describeIdentityError(error: unknown): string {
   if (error instanceof ApiError) {
-    return IDENTITY_ERROR_MESSAGE[error.code] ?? error.message;
+    const key = IDENTITY_ERROR_KEY[error.code];
+    if (key) return translate(key);
+    return error.message;
   }
   if (error instanceof Error) return error.message;
-  return "操作失败，请稍后重试。";
+  return translate("identity.unknown");
 }
 
 /** 错误码取用：只在需要分支时使用，不解析 message。 */
@@ -230,13 +235,13 @@ export function phoneDigits(value: string): string {
  */
 export function phoneFormatError(value: string): string {
   const digits = phoneDigits(value);
-  if (digits === "") return "请填写手机号。";
-  if (!/^\d+$/.test(digits)) return "手机号只能包含数字。";
+  if (digits === "") return translate("identity.phoneRequiredShort");
+  if (!/^\d+$/.test(digits)) return translate("identity.phoneDigitsOnly");
   if (digits.startsWith("86") && CN_MOBILE_PATTERN.test(digits.slice(2))) return "";
   if (digits.startsWith("1") && NANP_PATTERN.test(digits.slice(1))) return "";
   if (CN_MOBILE_PATTERN.test(digits)) return "";
   if (NANP_PATTERN.test(digits)) return "";
-  return "手机号格式不正确：中国大陆号码为 1 开头的 11 位数字，美国号码为 10 位数字（可带 +1）。";
+  return translate("identity.phoneFormatDetail");
 }
 
 /** 6 位数字验证码：保留前导零，因此用字符串而不是数字。 */

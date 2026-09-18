@@ -16,6 +16,7 @@ from sqlalchemy.orm import Session
 from app.modules.identity import repository as repo
 from app.modules.identity.models import (
     Address,
+    ClosureExecution,
     Consent,
     PhoneChangeRequest,
     SmsChallenge,
@@ -668,6 +669,120 @@ def request_closure(
         "scheduled_for": iso(add_days_ms(30)),
         "message": "注销申请已受理：账号立即停止服务并撤销全部会话，可删除资料进入清理流程，"
         "交易、付款、退款、合同与发票按适用法定义务隔离保留。",
+    }
+
+
+def process_due_closures(
+    session: Session, *, now: int | None = None, limit: int = 20
+) -> dict[str, Any]:
+    """执行到期的注销清理（C22 / 10 文档「隐私和保留草案」）。
+
+    注销时承诺「账号立即停止服务、可删除资料进入清理流程、交易记录依法隔离保留」，
+    本函数就是那个清理流程：
+
+    - 只处理 `status="closed"` 且 `closed_at + retention_closure_days` 已到期的账号；
+    - 每个账号一行 `closure_executions`，唯一索引保证幂等（重复扫描不会重复删除）；
+    - **删除**：手机号密文与查找值（改为不可逆墓碑，保留唯一性即可）、昵称与头像、
+      地址、购物车、未提交的询价草稿、未被引用的私有附件、站内通知；
+    - **保留**：订单、付款、退款、发票、物流、合同与授权留证、积分账本、委托询价与报价
+      （账户注销后隔离，仅为法定义务访问），计数写入执行记录便于回答「保留了什么」。
+    """
+    moment = now if now is not None else now_ms()
+    settings = get_settings()
+    window = max(0, int(getattr(settings, "retention_closure_days", 30)))
+    due_before = moment - window * 24 * 3600 * 1000
+    rows = list(
+        session.scalars(
+            sa.select(User)
+            .outerjoin(ClosureExecution, ClosureExecution.user_id == User.id)
+            .where(
+                User.status == "closed",
+                User.closed_at.is_not(None),
+                User.closed_at <= due_before,
+                ClosureExecution.id.is_(None),
+            )
+            .order_by(User.closed_at)
+            .limit(max(1, min(limit, 200)))
+        )
+    )
+    executed: list[dict[str, Any]] = []
+    for user in rows:
+        purged = _purge_closable_data(session, user=user)
+        retained = _retained_snapshot(session, user_id=user.id)
+        session.add(
+            ClosureExecution(
+                id=new_id("closure"),
+                user_id=user.id,
+                executed_at=moment,
+                purged=purged,
+                retained=retained,
+                note="注销到期清理：可删除资料已清理，交易与合同记录依法隔离保留",
+            )
+        )
+        audit.record(
+            session,
+            actor_type="system",
+            actor_id=None,
+            action="user.closure_executed",
+            resource_type="user",
+            resource_id=user.id,
+            after={"purged": purged, "retained": retained},
+            reason="注销到期：执行可删除资料清理",
+        )
+        executed.append({"user_id": user.id, "purged": purged, "retained": retained})
+    session.flush()
+    return {"processed": len(executed), "executions": executed}
+
+
+def _purge_closable_data(session: Session, *, user: User) -> dict[str, int]:
+    """删除可删除资料；跨模块数据只经各自的 ports。"""
+    from app.modules.commerce import ports as commerce_ports
+    from app.modules.commissions import ports as commission_ports
+    from app.modules.media import ports as media_ports
+    from app.modules.notifications import ports as notification_ports
+
+    addresses = list(session.scalars(sa.select(Address).where(Address.user_id == user.id)))
+    for address in addresses:
+        session.delete(address)
+    purged = {
+        "addresses": len(addresses),
+        "cart_items": commerce_ports.purge_customer_cart(session, user_id=user.id),
+        "draft_inquiries": commission_ports.purge_draft_inquiries(session, user_id=user.id),
+        "private_assets": media_ports.purge_owned_unreferenced(session, owner_id=user.id),
+        "notifications": notification_ports.purge_user_inbox(session, user_id=user.id),
+    }
+    # 手机号：删除密文，查找值改成不可逆墓碑（既不可再用于登录，也不影响再次注册）。
+    original_lookup = user.phone_lookup
+    user.phone_ciphertext = ""
+    user.phone_lookup = hmac_code(original_lookup, namespace="closure-tombstone")
+    user.nickname = "已注销用户"
+    user.avatar_asset_id = None
+    user.status_reason = "closure"
+    user.version += 1
+    user.updated_at = now_ms()
+    purged["phone_identity"] = 1
+    session.flush()
+    return purged
+
+
+def _retained_snapshot(session: Session, *, user_id: str) -> dict[str, int]:
+    """依法隔离保留的数据计数（只统计，不删除）。"""
+    from app.modules.commerce import ports as commerce_ports
+    from app.modules.commissions import ports as commission_ports
+    from app.modules.loyalty import ports as loyalty_ports
+
+    consents = int(
+        session.scalar(
+            sa.select(sa.func.count()).select_from(Consent).where(Consent.user_id == user_id)
+        )
+        or 0
+    )
+    points = loyalty_ports.account_view(session, user_id=user_id)
+    return {
+        **commerce_ports.customer_retained_counts(session, user_id=user_id),
+        **commission_ports.customer_retained_counts(session, user_id=user_id),
+        "consents": consents,
+        "points_posted": int(points.get("posted_balance") or 0),
     }
 
 

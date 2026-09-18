@@ -23,6 +23,7 @@ __all__ = [
     "linked_asset_ids",
     "public_assets_for_owner",
     "public_media_payload",
+    "purge_owned_unreferenced",
     "retract_public_display",
 ]
 
@@ -49,6 +50,33 @@ def public_assets_for_owner(session: Session, *, owner_id: str) -> list[dict[str
         }
         for row in rows
     ]
+
+
+def purge_owned_unreferenced(session: Session, *, owner_id: str, limit: int = 200) -> int:
+    """注销清理：删除本人**未被任何业务记录引用**且非公开的附件。
+
+    被订单/委托/制作单引用过的附件属于交易与履约证据，保留；公开素材（已进入公开页面
+    或静态产物）不在注销清理范围内，由撤回展示授权单独处理。
+    """
+    from app.modules.media.models import MediaAsset, MediaLink
+
+    rows = list(
+        session.scalars(
+            sa.select(MediaAsset)
+            .outerjoin(MediaLink, MediaLink.asset_id == MediaAsset.id)
+            .where(
+                MediaAsset.owner_id == owner_id,
+                MediaAsset.status == "active",
+                MediaAsset.visibility == "private",
+                MediaLink.id.is_(None),
+            )
+            .limit(limit)
+        )
+    )
+    for asset in rows:
+        asset.status = "deleted"
+    session.flush()
+    return len(rows)
 
 
 def retract_public_display(session: Session, *, asset_id: str, owner_id: str) -> bool:

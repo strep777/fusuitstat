@@ -15,6 +15,7 @@ from __future__ import annotations
 
 from typing import Any
 
+import sqlalchemy as sa
 from sqlalchemy.orm import Session
 
 from app.modules.commerce import service as svc
@@ -215,4 +216,64 @@ __all__ = [
     "order_reward_snapshot",
     "order_status_counts",
     "order_summary_payload",
+    "purge_customer_cart",
 ]
+
+
+def purge_customer_cart(session: Session, *, user_id: str) -> int:
+    """注销清理：删除本人购物车与条目（可删除资料）。返回删除的条目数。"""
+    from app.modules.commerce import repository as commerce_repo
+
+    cart = commerce_repo.get_cart(session, user_id=user_id)
+    if cart is None:
+        return 0
+    items = commerce_repo.list_cart_items(session, cart_id=cart.id)
+    for row in items:
+        session.delete(row)
+    session.delete(cart)
+    session.flush()
+    return len(items)
+
+
+def customer_retained_counts(session: Session, *, user_id: str) -> dict[str, int]:
+    """注销清理时依法隔离保留的数据计数（订单、付款与发票不做删除）。"""
+    from app.modules.commerce.models import Invoice, Order, OrderAddressChange, Shipment
+
+    def _count(model: Any, **conditions: Any) -> int:
+        stmt = sa.select(sa.func.count()).select_from(model)
+        for column, value in conditions.items():
+            stmt = stmt.where(getattr(model, column) == value)
+        return int(session.scalar(stmt) or 0)
+
+    orders = _count(Order, user_id=user_id)
+    order_ids = list(session.scalars(sa.select(Order.id).where(Order.user_id == user_id)))
+    invoices = 0
+    shipments = 0
+    address_changes = 0
+    if order_ids:
+        invoices = int(
+            session.scalar(
+                sa.select(sa.func.count()).select_from(Invoice).where(Invoice.order_id.in_(order_ids))
+            )
+            or 0
+        )
+        shipments = int(
+            session.scalar(
+                sa.select(sa.func.count()).select_from(Shipment).where(Shipment.order_id.in_(order_ids))
+            )
+            or 0
+        )
+        address_changes = int(
+            session.scalar(
+                sa.select(sa.func.count())
+                .select_from(OrderAddressChange)
+                .where(OrderAddressChange.order_id.in_(order_ids))
+            )
+            or 0
+        )
+    return {
+        "orders": orders,
+        "invoices": invoices,
+        "shipments": shipments,
+        "address_changes": address_changes,
+    }

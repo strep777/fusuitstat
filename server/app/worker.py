@@ -167,8 +167,9 @@ def _remind_stage(session: Any, event: OutboxEvent) -> str:
 
 
 def _cleanup(session: Any, event: OutboxEvent) -> str:
-    """定期清理：过期验证码、无引用附件、过期限流窗口、失败投递重试。"""
+    """定期清理：过期验证码、无引用附件、过期限流窗口、失败投递重试、到期注销清理。"""
     from app.modules.identity import repository as identity_repo
+    from app.modules.identity import service as identity_service
     from app.modules.media import service as media_service
     from app.modules.notifications import service as notification_service
     from app.platform import rate_limit
@@ -177,7 +178,20 @@ def _cleanup(session: Any, event: OutboxEvent) -> str:
     orphans = media_service.cleanup_orphans(session, limit=50)
     rate_limit.cleanup(session, limit=200)
     retried = notification_service.retry_failed(session, limit=20)
-    return f"cleanup:otp={purged},media={orphans},deliveries={retried}"
+    # 未提交草稿的保留窗口（10 文档「草稿 30 天」草案值，C22 定稿后调整配置即可）。
+    from app.modules.commissions import ports as commission_ports
+    from app.platform.config import get_settings
+
+    retention_days = max(1, int(getattr(get_settings(), "retention_draft_days", 30)))
+    stale_drafts = commission_ports.purge_stale_drafts(
+        session, before_ms=now_ms() - retention_days * 24 * 3600 * 1000, limit=50
+    )
+    # 注销到期：执行可删除资料清理（C22）；幂等，重复运行不会重复删除或重复计数。
+    closures = identity_service.process_due_closures(session, limit=20)
+    return (
+        f"cleanup:otp={purged},media={orphans},deliveries={retried},"
+        f"drafts={stale_drafts},closures={closures['processed']}"
+    )
 
 
 def _reconcile(session: Any, event: OutboxEvent) -> str:

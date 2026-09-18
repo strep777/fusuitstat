@@ -58,6 +58,27 @@ class User(PkMixin, TimestampMixin, VersionMixin, Base):
     )
 
 
+class ClosureExecution(PkMixin, Base):
+    """注销后的清理执行记录（C22/10 文档：区分可删除资料与依法隔离保留的交易记录）。
+
+    一行一个账号，`user_id` 唯一保证清理**幂等**：重复扫描同一个注销账号不会重复删除，
+    也不会重复计数。`purged` 与 `retained` 保存当次执行的分类计数，用于回答
+    「哪些资料被删除、哪些按法定义务保留」。
+    """
+
+    __tablename__ = "closure_executions"
+
+    user_id: Mapped[str] = mapped_column(
+        sa.ForeignKey("users.id", ondelete="CASCADE"), nullable=False, unique=True, index=True
+    )
+    executed_at: Mapped[int] = mapped_column(sa.BigInteger, nullable=False, default=now_ms)
+    # 可删除资料的清理计数（地址、购物车、草稿询价、私有附件、站内通知等）
+    purged: Mapped[dict[str, Any] | None] = mapped_column(sa.JSON)
+    # 依法隔离保留的数据计数（订单、付款、退款、合同/发票、积分账本等）
+    retained: Mapped[dict[str, Any] | None] = mapped_column(sa.JSON)
+    note: Mapped[str | None] = mapped_column(sa.String(200))
+
+
 class SmsChallenge(PkMixin, TimestampMixin, Base):
     """验证码挑战。只保存 HMAC，不保存明文；一次性原子消费。"""
 
@@ -87,7 +108,6 @@ class SmsChallenge(PkMixin, TimestampMixin, Base):
 
 class Session(PkMixin, TimestampMixin, Base):
     """不透明会话。只保存 token 哈希；CSRF 密钥同样只存哈希。"""
-
     __tablename__ = "sessions"
     id_kind = "session"
 
@@ -252,6 +272,7 @@ __all__ = [
     "Address",
     "CHALLENGE_PURPOSES",
     "CONSENT_PURPOSES",
+    "ClosureExecution",
     "Consent",
     "Permission",
     "PhoneChangeRequest",

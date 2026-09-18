@@ -101,6 +101,11 @@ class Settings(BaseSettings):
     otp_phone_daily_limit: int = 10
     otp_ip_hourly_limit: int = 20
     otp_daily_budget: int = 2000
+    # 数据保留（C22 / 10 文档「隐私和保留草案」；草案值，C22 定稿后调整）
+    # 注销后多久执行可删除资料清理：与注销页面展示的「清理计划完成时间」一致。
+    retention_closure_days: int = 30
+    # 未提交询价草稿与无引用附件的保留窗口（周期清理用）。
+    retention_draft_days: int = 30
 
     # ---- 支付 ----
     payment_providers: str = "mock"

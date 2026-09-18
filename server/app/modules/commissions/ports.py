@@ -347,12 +347,15 @@ __all__ = [
     "count_stages_awaiting_confirmation",
     "create_change_installment",
     "create_commission_order",
+    "customer_retained_counts",
     "design_assets_owned_ready",
     "has_guardian_consent",
     "notify_customer",
     "order_balance_settled",
     "project_for_order",
     "public_schedule_summary",
+    "purge_draft_inquiries",
+    "purge_stale_drafts",
     "record_terms_consent",
     "release_slot_on_order_closed",
     "require_rush_enabled",
@@ -392,3 +395,80 @@ def can_access_asset(session: Session, *, asset_id: str, principal_id: str, is_s
             if asset_id in (change.media_asset_ids or []):
                 return True
     return False
+
+
+def purge_draft_inquiries(session: Session, *, user_id: str) -> int:
+    """注销清理：删除**未提交**的询价草稿（可删除资料）。已提交的询价按保留期处理。"""
+    import sqlalchemy as sa
+
+    from app.modules.commissions.models import Inquiry, InquiryRevision
+
+    drafts = list(
+        session.scalars(
+            sa.select(Inquiry).where(
+                Inquiry.user_id == user_id,
+                Inquiry.status.in_(("DRAFT", "WITHDRAWN")),
+            )
+        )
+    )
+    for inquiry in drafts:
+        for revision in session.scalars(
+            sa.select(InquiryRevision).where(InquiryRevision.inquiry_id == inquiry.id)
+        ):
+            session.delete(revision)
+        session.delete(inquiry)
+    session.flush()
+    return len(drafts)
+
+
+def purge_stale_drafts(session: Session, *, before_ms: int, limit: int = 50) -> int:
+    """周期清理：删除超过保留窗口仍未提交的询价草稿（10 文档「草稿 30 天」）。"""
+    import sqlalchemy as sa
+
+    from app.modules.commissions.models import Inquiry, InquiryRevision
+
+    drafts = list(
+        session.scalars(
+            sa.select(Inquiry)
+            .where(
+                Inquiry.status.in_(("DRAFT", "WITHDRAWN")),
+                Inquiry.updated_at < before_ms,
+            )
+            .order_by(Inquiry.updated_at)
+            .limit(max(1, min(limit, 200)))
+        )
+    )
+    for inquiry in drafts:
+        for revision in session.scalars(
+            sa.select(InquiryRevision).where(InquiryRevision.inquiry_id == inquiry.id)
+        ):
+            session.delete(revision)
+        session.delete(inquiry)
+    session.flush()
+    return len(drafts)
+
+
+def customer_retained_counts(session: Session, *, user_id: str) -> dict[str, int]:
+    """注销清理时依法隔离保留的委托数据计数（询价、报价与制作单不做删除）。"""
+    import sqlalchemy as sa
+
+    from app.modules.commissions.models import CommissionProject, Inquiry, Quote
+
+    inquiry_ids = list(session.scalars(sa.select(Inquiry.id).where(Inquiry.user_id == user_id)))
+    quotes = 0
+    if inquiry_ids:
+        quotes = int(
+            session.scalar(
+                sa.select(sa.func.count()).select_from(Quote).where(Quote.inquiry_id.in_(inquiry_ids))
+            )
+            or 0
+        )
+    projects = int(
+        session.scalar(
+            sa.select(sa.func.count())
+            .select_from(CommissionProject)
+            .where(CommissionProject.user_id == user_id)
+        )
+        or 0
+    )
+    return {"inquiries": len(inquiry_ids), "quotes": quotes, "projects": projects}

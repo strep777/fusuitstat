@@ -89,6 +89,7 @@ const LOCALIZED_ROUTE_NAMES: readonly string[] = [
   "commission-guide",
   "commission-schedules",
   "commission-contract",
+  "inquiry-new",
   "characters",
   "character-detail",
   "shop",
@@ -396,7 +397,9 @@ router.beforeEach(async (to) => {
     }
     if (!auth.isAuthenticated) {
       // 返回目标只允许本站相对路径（10 文档）。
-      return { name: "login", query: { returnTo: to.fullPath } };
+      // 英文页面引导到**英文登录地址**，否则语言会被中文路由带回去。
+      const loginRoute = to.meta.locale === "en-US" ? "login-en" : "login";
+      return { name: loginRoute, query: { returnTo: to.fullPath } };
     }
   }
   return true;

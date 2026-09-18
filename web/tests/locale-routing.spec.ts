@@ -69,6 +69,15 @@ describe("locale 前缀路由", () => {
     expect(missing.meta.locale).toBe("en-US");
   });
 
+  it("英文页面上的需登录路由引导到英文登录页，语言不被带回中文", async () => {
+    // 未登录访问英文询价页：应跳到 /en/login 并保留英文界面
+    const target = await visit(`${ENGLISH_PREFIX}/commission/new`);
+    expect(String(target.name)).toBe("login-en");
+    expect(target.path).toBe(`${ENGLISH_PREFIX}/login`);
+    expect(target.query.returnTo).toBe(`${ENGLISH_PREFIX}/commission/new`);
+    expect(usePreferencesStore().locale).toBe("en-US");
+  });
+
   it("counterpartPath 给出对位地址，且对未双语页面返回 null", async () => {
     await visit("/shop");
     expect(counterpartPath("/shop")).toBe(`${ENGLISH_PREFIX}/shop`);

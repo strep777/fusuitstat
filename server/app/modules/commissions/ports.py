@@ -351,6 +351,7 @@ __all__ = [
     "create_commission_order",
     "customer_retained_counts",
     "design_assets_owned_ready",
+    "expire_stale_contracts",
     "has_guardian_consent",
     "notify_customer",
     "order_balance_settled",
@@ -443,6 +444,13 @@ def contract_status_for_project(session: Session, *, project_id: str) -> dict[st
     from app.modules.commissions import esign_service
 
     return esign_service.contract_status_for_project(session, project_id=project_id)
+
+
+def expire_stale_contracts(session: Session, *, now: int | None = None, limit: int = 50) -> dict[str, Any]:
+    """周期任务：签署链接过期仍未签完的合同转 EXPIRED（worker 调用）。"""
+    from app.modules.commissions import esign_service
+
+    return esign_service.expire_stale_envelopes(session, now=now, limit=limit)
 
 
 def purge_stale_drafts(session: Session, *, before_ms: int, limit: int = 50) -> int:

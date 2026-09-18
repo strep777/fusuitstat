@@ -467,6 +467,56 @@ def test_void_rejects_signed_contract(
     assert "已签署的合同不能作废" in str(error.value)
 
 
+def test_expired_signing_link_is_marked_and_blocks_production(
+    db: Session, client: Any, esign_sandbox: SandboxEsignGateway
+) -> None:
+    """签署链接过期：周期任务把它转成 EXPIRED，且开工门禁给出可读原因（不无限期等人签）。"""
+    from app.modules.commissions import ports as commission_ports
+
+    _actor, envelope = _accepted_quote(db, client)
+    assert envelope.expires_at is not None
+    # 把有效期改到过去（模拟链接到期）
+    envelope.expires_at = now_ms() - 3600 * 1000
+    db.commit()
+
+    result = commission_ports.expire_stale_contracts(db, now=now_ms())
+    db.commit()
+    assert result["expired"] == 1 and envelope.id in result["envelope_ids"]
+    db.refresh(envelope)
+    assert envelope.status == "EXPIRED"
+
+    # 已过期任务不再被重复处理；制作仍被门禁拦住
+    again = commission_ports.expire_stale_contracts(db, now=now_ms())
+    assert again["expired"] == 0
+    with pytest.raises(AppError) as error:
+        esign_service.assert_contract_signed(db, project_id=envelope.project_id or "")
+    assert error.value.code == "STATE_CONFLICT"
+
+
+def test_worker_reports_contract_expiry_count(
+    db: Session, client: Any, esign_sandbox: SandboxEsignGateway
+) -> None:
+    from app.platform.reliability import OutboxEvent
+    from app.worker import _HANDLERS
+
+    _actor, envelope = _accepted_quote(db, client)
+    envelope.expires_at = now_ms() - 1000
+    db.commit()
+    handler = _HANDLERS["support.sla_check"]
+    event = OutboxEvent(
+        id="evt-esign-expiry",
+        event_id="evt-esign-expiry",
+        event_type="support.sla_check",
+        aggregate_id="scheduler",
+        aggregate_version=1,
+        payload={},
+        available_at=now_ms(),
+    )
+    report = handler(db, event)
+    db.commit()
+    assert "contracts_expired=1" in report, report
+
+
 def test_esign_event_payload_is_persisted_for_evidence(
     db: Session, client: Any, esign_sandbox: SandboxEsignGateway
 ) -> None:

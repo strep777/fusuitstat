@@ -495,6 +495,44 @@ def _apply_state(
     _notify_status_change(session, envelope=envelope, source=source)
 
 
+def expire_stale_envelopes(session: Session, *, now: int | None = None, limit: int = 50) -> dict[str, Any]:
+    """周期任务：签署链接过期仍未签完的任务转为 `EXPIRED`（并留痕）。
+
+    C07 的签署链接有有效期；到期后既不该继续等人签，也不该一直显示"待签署"。
+    这里只处理**本地已知过期**的任务：状态以 `expires_at` 为准，不猜测平台侧结论。
+    """
+    moment = now if now is not None else now_ms()
+    rows = list(
+        session.scalars(
+            sa.select(ContractEnvelope)
+            .where(
+                ContractEnvelope.status.in_((ENVELOPE_PENDING_SEND, ENVELOPE_SENT, ENVELOPE_PARTIALLY_SIGNED)),
+                ContractEnvelope.expires_at.is_not(None),
+                ContractEnvelope.expires_at < moment,
+            )
+            .order_by(ContractEnvelope.expires_at)
+            .limit(max(1, min(limit, 200)))
+        )
+    )
+    for envelope in rows:
+        envelope.status = ENVELOPE_EXPIRED
+        envelope.updated_at = moment
+        audit.record(
+            session,
+            actor_type="system",
+            actor_id=None,
+            action="contract.envelope_expired",
+            resource_type="contract_envelope",
+            resource_id=envelope.id,
+            reason=f"签署链接于 {iso(envelope.expires_at)} 到期仍未签完",
+        )
+    session.flush()
+    if rows:
+        for envelope in rows:
+            _notify_status_change(session, envelope=envelope, source="expiry_check")
+    return {"expired": len(rows), "envelope_ids": [row.id for row in rows]}
+
+
 def _record_signature_consent(session: Session, *, envelope: ContractEnvelope) -> None:
     """签署完成写一条 `consents` 留证：谁、什么时间、通过哪个平台签了哪一版。"""
     from app.modules.identity import ports as identity_ports
@@ -701,6 +739,7 @@ __all__ = [
     "create_envelope",
     "envelope_for_project",
     "envelope_payload",
+    "expire_stale_envelopes",
     "get_envelope_for_user",
     "latest_envelope",
     "latest_envelope_for_inquiry",

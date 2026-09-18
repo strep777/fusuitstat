@@ -195,11 +195,16 @@ def _cleanup(session: Any, event: OutboxEvent) -> str:
 
 
 def _support_sla(session: Any, event: OutboxEvent) -> str:
-    """C30 首响时效巡检：对逾期未响应的询价登记一次提醒（同日去重）。"""
+    """C30 首响时效巡检：对逾期未响应的询价与反馈各登记一次提醒（同一条只提醒一次）。"""
     from app.modules.commissions import ports as commission_ports
+    from app.modules.feedback import service as feedback_service
 
-    result = commission_ports.remind_overdue_inquiries(session, limit=50)
-    return f"sla:overdue={result['overdue']},reminded={result['reminded']}"
+    inquiries = commission_ports.remind_overdue_inquiries(session, limit=50)
+    feedback = feedback_service.remind_overdue_feedback(session, limit=50)
+    return (
+        f"sla:inquiries_overdue={inquiries['overdue']},inquiries_reminded={inquiries['reminded']},"
+        f"feedback_overdue={feedback['overdue']},feedback_reminded={feedback['reminded']}"
+    )
 
 
 def _reconcile(session: Any, event: OutboxEvent) -> str:

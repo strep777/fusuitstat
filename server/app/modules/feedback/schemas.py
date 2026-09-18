@@ -41,6 +41,15 @@ class FeedbackCreatedResponse(Dto):
     reward_status: RewardStatus
 
 
+class FeedbackSla(Dto):
+    """首响时效（C30：反馈 7 个工作日首响）。与询价侧同一套计算口径与字段名。"""
+
+    sla_workdays: int = 0
+    response_due_at: str | None = None
+    first_responded_at: str | None = None
+    response_overdue: bool = False
+
+
 class FeedbackSummaryItem(Dto):
     id: str
     category: str
@@ -52,6 +61,10 @@ class FeedbackSummaryItem(Dto):
     reward_points: int = 0
     created_at: str | None = None
     updated_at: str | None = None
+    sla_workdays: int = 0
+    response_due_at: str | None = None
+    first_responded_at: str | None = None
+    response_overdue: bool = False
 
 
 class FeedbackPage(Page[FeedbackSummaryItem]):
@@ -92,6 +105,10 @@ class FeedbackDetailResponse(Dto):
     created_at: str | None = None
     updated_at: str | None = None
     closed_at: str | None = None
+    sla_workdays: int = 0
+    response_due_at: str | None = None
+    first_responded_at: str | None = None
+    response_overdue: bool = False
 
 
 class FeedbackMessageCreate(StrictDto):
@@ -159,6 +176,7 @@ __all__ = [
     "FeedbackPage",
     "FeedbackReviewCreate",
     "FeedbackRewardRevoke",
+    "FeedbackSla",
     "FeedbackStatus",
     "FeedbackSummaryItem",
     "FeedbackWithdrawRequest",

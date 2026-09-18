@@ -335,7 +335,7 @@ def list_feedback_page(
         session, user_id=user_id, status=status, category=category, limit=limit, offset=offset
     )
     total = repo.count_feedbacks(session, user_id=user_id, status=status, category=category)
-    return [serialize_summary(row) for row in rows], total
+    return [serialize_summary(session, row) for row in rows], total
 
 
 def get_feedback_detail(session: Session, *, user_id: str, feedback_id: str) -> dict[str, Any]:
@@ -599,6 +599,8 @@ def review_feedback(
         return _concurrent_review_result(session, row=row)
 
     row.status = result
+    # C30 首响：审核结论是工作人员第一次对用户可见的响应，只记一次。
+    _mark_first_response(row, moment)
     if resolution_note or result in ("RESOLVED", "CLOSED", "REJECTED", "DUPLICATE"):
         row.resolution_note = (resolution_note or clean_reason)[:500]
     row.reward_status = reward_status
@@ -871,7 +873,7 @@ def _categories() -> tuple[str, ...]:  # pragma: no cover - 供运营脚本读�
 
 
 # ------------------------------------------------------------------ 序列化
-def serialize_summary(row: Feedback) -> dict[str, Any]:
+def serialize_summary(session: Session, row: Feedback) -> dict[str, Any]:
     return {
         "id": row.id,
         "category": row.category,
@@ -883,6 +885,7 @@ def serialize_summary(row: Feedback) -> dict[str, Any]:
         "reward_points": int(row.reward_points),
         "created_at": iso(row.created_at),
         "updated_at": iso(row.updated_at),
+        **feedback_sla(session, row),
     }
 
 
@@ -937,7 +940,87 @@ def serialize_detail(session: Session, row: Feedback) -> dict[str, Any]:
         "created_at": iso(row.created_at),
         "updated_at": iso(row.updated_at),
         "closed_at": iso(row.closed_at),
+        # C30：反馈承诺 7 个工作日首响；与询价侧同一套日历与计算口径。
+        **feedback_sla(session, row),
     }
+
+
+# ------------------------------------------------------------------ 首响时效（C30）
+def feedback_sla(session: Session, row: Feedback, *, now: int | None = None) -> dict[str, Any]:
+    """反馈首响时效：承诺工作日数、首响截止时间与是否已逾期。
+
+    截止时间按**客服日历**（工作日 + 节假日 + 调休）计算；已响应则报告实际响应时间。
+    已结束（CLOSED/REJECTED/DUPLICATE/撤回）的反馈不再算逾期：它们已经有结论，
+    继续提醒没有意义，也会让后台列表长期飘红。
+    """
+    from app.modules.content import ports as content_ports
+
+    moment = now if now is not None else now_ms()
+    workdays = int(content_ports.response_sla_workdays(session)["feedback_workdays"])
+    start = row.created_at
+    deadline = content_ports.response_deadline(session, start_ms=start, workdays=workdays)
+    responded = row.first_responded_at
+    settled = row.status in ("CLOSED", "REJECTED", "DUPLICATE") or row.withdrawn_at is not None
+    return {
+        "sla_workdays": workdays,
+        "response_due_at": iso(deadline),
+        "first_responded_at": iso(responded),
+        "response_overdue": responded is None and not settled and deadline < moment,
+    }
+
+
+def _mark_first_response(row: Feedback, moment: int) -> None:
+    """首次工作人员响应只写一次；后续审核或回复不覆盖（首响时效以第一次为准）。"""
+    if row.first_responded_at is None:
+        row.first_responded_at = moment
+
+
+def mark_first_response(row: Feedback, moment: int | None = None) -> None:
+    """供后台路由调用：把「用户可见的响应」写进首响时间（内部备注不算）。"""
+    _mark_first_response(row, moment if moment is not None else now_ms())
+
+
+def remind_overdue_feedback(session: Session, *, now: int | None = None, limit: int = 50) -> dict[str, Any]:
+    """C30 逾期提醒：超过首响承诺仍未响应的反馈，给工作人员登记一次提醒。
+
+    去重靠通知模块的 `(user_id, event_id)` 唯一约束——同一个反馈只提醒一次
+    （event_id 含首响截止日）。返回本轮新增提醒数与仍在逾期的数量。
+    """
+    from app.modules.content import ports as content_ports
+    from app.modules.notifications.ports import NotificationRequest
+    from app.modules.notifications.ports import notify as enqueue_notification
+
+    moment = now if now is not None else now_ms()
+    workdays = int(content_ports.response_sla_workdays(session)["feedback_workdays"])
+    calendar = content_ports.support_calendar(session)
+    reminded = 0
+    overdue_ids: list[str] = []
+    for row in repo.overdue_feedback(session, before_ms=moment, workdays=workdays, limit=limit):
+        deadline = content_ports.add_workdays(row.created_at, workdays, calendar=calendar)
+        if deadline >= moment:
+            continue
+        overdue_ids.append(row.id)
+        due_date = iso(deadline) or ""
+        created = enqueue_notification(
+            session,
+            NotificationRequest(
+                # 同一反馈只提醒一次（event_id 含首响截止日，跨天也不会重复提醒）。
+                event_id=f"feedback-sla-overdue-{row.id}-{due_date[:10]}",
+                event_type="support.sla_overdue",
+                user_id=None,
+                title="反馈首响已逾期",
+                body=(
+                    f"反馈 {row.id}（{row.title}）承诺 {workdays} 个工作日首响，"
+                    f"截止 {due_date}，至今没有工作人员响应。"
+                ),
+                link_path="/admin/feedback",
+                category="support",
+                channels=(),
+                payload={"feedback_id": row.id, "response_due_at": due_date},
+            ),
+        )
+        reminded += created
+    return {"overdue": len(overdue_ids), "reminded": reminded, "feedback_ids": overdue_ids}
 
 
 def _reward_note(row: Feedback) -> str | None:

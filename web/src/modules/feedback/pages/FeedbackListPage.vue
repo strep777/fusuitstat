@@ -251,6 +251,17 @@ function rewardTone(status: string): "neutral" | "amber" | "jade" | "wine" {
                 <p v-if="item.duplicate_of_summary" class="mt-2 rounded-sm bg-canvas-sunk px-3 py-2 text-xs text-ink-muted">
                   与已有反馈重复：{{ truncate(item.duplicate_of_summary, 80) }}
                 </p>
+                <!-- 首响时效（C30：反馈 7 个工作日） -->
+                <p v-if="item.first_responded_at" class="mt-2 text-xs text-jade">
+                  已于 {{ formatDateTime(item.first_responded_at) }} 首次响应（承诺 {{ item.sla_workdays }} 个工作日）。
+                </p>
+                <p v-else-if="item.response_overdue" class="mt-2 text-xs text-wine">
+                  首响承诺 {{ item.sla_workdays }} 个工作日，截止
+                  {{ formatDateTime(item.response_due_at) }} 仍未响应，我们正在跟进。
+                </p>
+                <p v-else-if="item.response_due_at" class="mt-2 text-xs text-ink-muted">
+                  首响承诺 {{ item.sla_workdays }} 个工作日，本次截止 {{ formatDateTime(item.response_due_at) }}。
+                </p>
               </div>
               <AppButton size="sm" :to="`/account/feedback/${item.id}`">查看详情</AppButton>
             </div>

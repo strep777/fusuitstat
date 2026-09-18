@@ -19,6 +19,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
+from typing import Any
 
 import pytest
 import sqlalchemy as sa
@@ -253,4 +254,153 @@ def test_worker_sla_check_task_reports_counts(db: Session, monkeypatch: pytest.M
     )
     result = handler(db, event)
     db.commit()
-    assert result.startswith("sla:overdue=1"), result
+    assert result.startswith("sla:inquiries_overdue=1"), result
+    assert "feedback_overdue=0" in result, result
+
+
+# ------------------------------------------------------------------ 反馈侧首响（C30 的 7 个工作日）
+def _submitted_feedback(db: Session, *, created_at: int, title: str = "反馈示例") -> Any:
+    """建一条反馈并把提交时间固定到指定时刻（首响时效按提交时间计算）。"""
+    from app.modules.feedback import service as feedback_service
+    from tests.conftest import create_user
+
+    user = create_user(db, nickname=f"反馈人{title[:4]}", phone=f"139{abs(hash(title)) % 100000000:08d}")
+    row = feedback_service.create_feedback(
+        db,
+        user_id=user.id,
+        category="experience",
+        title=title,
+        body="在移动端打开商城页时，筛选条件会被顶出屏幕，需要横向滚动才能看到。",
+        now=created_at,
+    )
+    # `created_at` 由 TimestampMixin 写入真实时间；测试要按指定时刻判定时效，因此显式覆盖。
+    row.created_at = created_at
+    row.updated_at = created_at
+    db.commit()
+    return row
+
+
+def test_feedback_sla_counts_seven_workdays_and_clears_on_response(db: Session) -> None:
+    """反馈承诺 7 个工作日首响；工作人员响应（审核结论或用户可见回复）后不再算逾期。"""
+    from app.modules.feedback import service as feedback_service
+
+    _set_calendar(db, holidays=[], extra_workdays=[], workdays=[1, 2, 3, 4, 5])
+    row = _submitted_feedback(db, created_at=_ms(2026, 9, 18))
+
+    sla = feedback_service.feedback_sla(db, row, now=_ms(2026, 9, 22))
+    assert sla["sla_workdays"] == 7
+    # 2026-09-18（周五）+7 个工作日 = 9/29（周二，跳过周末）
+    assert sla["response_due_at"] and sla["response_due_at"].startswith("2026-09-29")
+    assert sla["first_responded_at"] is None
+    assert sla["response_overdue"] is False
+
+    # 超过截止时间仍未响应 → 逾期
+    assert feedback_service.feedback_sla(db, row, now=_ms(2026, 9, 30))["response_overdue"] is True
+
+    # 首次工作人员响应写入一次；再次响应不覆盖
+    feedback_service.mark_first_response(row, _ms(2026, 9, 21))
+    first = row.first_responded_at
+    assert first == _ms(2026, 9, 21)
+    feedback_service.mark_first_response(row, _ms(2026, 9, 25))
+    assert row.first_responded_at == first
+    db.commit()
+    assert feedback_service.feedback_sla(db, row, now=_ms(2026, 9, 30))["response_overdue"] is False
+
+
+def test_feedback_review_marks_first_response(db: Session) -> None:
+    """审核结论是工作人员对用户可见的响应：写入首响时间。"""
+    from app.modules.feedback import service as feedback_service
+
+    _set_calendar(db, holidays=[], extra_workdays=[], workdays=[1, 2, 3, 4, 5])
+    row = _submitted_feedback(db, created_at=_ms(2026, 9, 18), title="审核写入首响")
+    feedback_service.review_feedback(
+        db,
+        feedback_id=row.id,
+        reviewer_id="staff-1",
+        result="IN_PROGRESS",
+        reason="已受理，正在复现",
+        now=_ms(2026, 9, 21),
+    )
+    db.commit()
+    db.expire_all()
+    assert row.first_responded_at == _ms(2026, 9, 21)
+
+
+def test_feedback_overdue_reminder_once_and_skips_settled(
+    db: Session, client: TestClient
+) -> None:
+    """逾期提醒只发一次；已结束或已响应的反馈不再提醒，也不会让后台长期飘红。"""
+    from app.modules.feedback import service as feedback_service
+
+    _set_calendar(db, holidays=[], extra_workdays=[], workdays=[1, 2, 3, 4, 5])
+    moment = _ms(2026, 9, 30, 12)
+    overdue = _submitted_feedback(db, created_at=_ms(2026, 9, 18), title="逾期反馈")
+    fresh = _submitted_feedback(db, created_at=moment - 3600 * 1000, title="刚提交反馈")
+
+    first = feedback_service.remind_overdue_feedback(db, now=moment)
+    db.commit()
+    assert first["overdue"] == 1 and first["reminded"] == 1
+    assert overdue.id in first["feedback_ids"] and fresh.id not in first["feedback_ids"]
+
+    second = feedback_service.remind_overdue_feedback(db, now=moment + 24 * 3600 * 1000)
+    db.commit()
+    assert second["overdue"] == 1 and second["reminded"] == 0
+
+    rows = list(
+        db.scalars(sa.select(Notification).where(Notification.event_type == "support.sla_overdue"))
+    )
+    assert len(rows) == 1 and rows[0].link_path == "/admin/feedback"
+    assert "反馈首响已逾期" in rows[0].title
+
+    # 已结束的反馈不算逾期
+    setattr(overdue, "status", "CLOSED")
+    db.commit()
+    assert feedback_service.remind_overdue_feedback(db, now=moment + 2 * 24 * 3600 * 1000)["overdue"] == 0
+    assert feedback_service.feedback_sla(db, overdue, now=moment)["response_overdue"] is False
+
+
+def test_feedback_api_exposes_sla_for_customer_and_admin(
+    db: Session, client: TestClient
+) -> None:
+    """客户列表/详情与后台列表都要带上承诺工作日、截止时间与逾期标记。"""
+    from app.modules.feedback import service as feedback_service
+    from tests.conftest import admin_session, create_staff, create_user, issue_login
+
+    _set_calendar(db, holidays=[], extra_workdays=[], workdays=[1, 2, 3, 4, 5])
+    user = create_user(db, nickname="时效客户", phone="13800009999")
+    row = feedback_service.create_feedback(
+        db,
+        user_id=user.id,
+        category="bug",
+        title="结算页金额与预期不一致",
+        body="购物车里看到的价格与结算页数量不同，刷新后恢复，疑似缓存问题。",
+        now=_ms(2026, 1, 5),
+    )
+    # 提交时间固定到年初：接口用真实「现在」判定逾期，因此必须足够早才可能逾期。
+    row.created_at = _ms(2026, 1, 5)
+    row.updated_at = _ms(2026, 1, 5)
+    csrf = issue_login(db, client, user)
+    client.headers["X-CSRF-Token"] = csrf
+    db.commit()
+
+    listed = client.get("/api/v1/feedback")
+    assert listed.status_code == 200, listed.text
+    item = next(entry for entry in listed.json()["items"] if entry["id"] == row.id)
+    assert item["sla_workdays"] == 7
+    # 2026-01-05（周一）+7 个工作日 = 2026-01-14（周三）
+    assert item["response_due_at"] and item["response_due_at"].startswith("2026-01-14")
+    assert item["first_responded_at"] is None
+    assert item["response_overdue"] is True  # 早已超过 7 个工作日且无人响应
+
+    detail = client.get(f"/api/v1/feedback/{row.id}")
+    assert detail.status_code == 200, detail.text
+    assert detail.json()["sla_workdays"] == 7
+
+    staff, secret = create_staff(db, login_name="feedback-ops", roles=["support"])
+    db.commit()
+    admin_csrf = admin_session(db, client, staff, secret)
+    headers = {"X-CSRF-Token": admin_csrf["csrf_token"], "Origin": "http://127.0.0.1:5173"}
+    admin_rows = client.get("/api/v1/admin/feedback", headers=headers)
+    assert admin_rows.status_code == 200, admin_rows.text
+    admin_item = next(entry for entry in admin_rows.json()["items"] if entry["id"] == row.id)
+    assert admin_item["sla_workdays"] == 7 and admin_item["response_overdue"] is True

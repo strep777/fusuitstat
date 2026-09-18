@@ -94,6 +94,8 @@ class Feedback(PkMixin, TimestampMixin, VersionMixin, Base):
     review_revision: Mapped[int] = mapped_column(sa.Integer, nullable=False, default=0)
     content_fingerprint: Mapped[str] = mapped_column(sa.String(64), nullable=False, default="")
     last_message_at: Mapped[int | None] = mapped_column(sa.BigInteger)
+    # 首次工作人员响应时间（C30 的 7 个工作日首响）：只写一次，后续回复不覆盖。
+    first_responded_at: Mapped[int | None] = mapped_column(sa.BigInteger)
     closed_at: Mapped[int | None] = mapped_column(sa.BigInteger)
     withdrawn_at: Mapped[int | None] = mapped_column(sa.BigInteger)
 
@@ -105,6 +107,7 @@ class Feedback(PkMixin, TimestampMixin, VersionMixin, Base):
         sa.Index("ix_feedbacks_user_status", "user_id", "status", "created_at"),
         sa.Index("ix_feedbacks_fingerprint", "user_id", "content_fingerprint"),
         sa.Index("ix_feedbacks_reward_day", "user_id", "reward_granted_at"),
+        sa.Index("ix_feedbacks_first_response", "status", "first_responded_at"),
     )
 
 

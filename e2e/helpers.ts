@@ -180,16 +180,23 @@ export function sessionReadHeaders(): Record<string, string> {
 /** 断言页面上不出现禁止暴露的敏感内容（NFR-09）。 */
 export async function assertNoSensitiveLeak(page: Page): Promise<void> {
   const html = await page.content();
-  const forbidden = [
-    /1[3-9]\d{9}(?![\d*])/, // 未脱敏手机号
-    /__Host-/, // cookie 名出现在页面文本
-    /BEGIN [A-Z ]*PRIVATE KEY/,
-    /otpauth:\/\//, // 员工 MFA 绑定信息不应出现在普通页面
+  const forbidden: Array<{ pattern: RegExp; hint: string }> = [
+    { pattern: /1[3-9]\d{9}(?![\d*])/, hint: "未脱敏手机号" },
+    { pattern: /__Host-/, hint: "cookie 名出现在页面文本" },
+    { pattern: /BEGIN [A-Z ]*PRIVATE KEY/, hint: "私钥内容" },
+    { pattern: /otpauth:\/\//, hint: "员工 MFA 绑定信息不应出现在普通页面" },
   ];
-  for (const pattern of forbidden) {
-    if (pattern.test(html)) {
-      throw new Error(`页面出现不应暴露的内容：${pattern}`);
-    }
+  for (const { pattern, hint } of forbidden) {
+    const match = pattern.exec(html);
+    if (!match) continue;
+    // 失败信息必须能定位到**具体位置**：泄漏值本身按手机号规则脱敏，只保留上下文，
+    // 否则只报「出现了手机号」无法判断是哪一处渲染漏了脱敏。
+    const start = Math.max(0, match.index - 120);
+    const context = html
+      .slice(start, match.index + match[0].length + 120)
+      .replace(/\s+/g, " ")
+      .replace(match[0], `${match[0].slice(0, 3)}****${match[0].slice(-2)}`);
+    throw new Error(`页面出现不应暴露的内容（${hint}）：…${context}…`);
   }
 }
 

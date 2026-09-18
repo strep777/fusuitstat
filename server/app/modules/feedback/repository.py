@@ -44,6 +44,29 @@ def find_duplicate(
     return session.scalars(stmt.order_by(Feedback.created_at)).first()
 
 
+def overdue_feedback(
+    session: Session, *, before_ms: int, workdays: int = 7, limit: int = 50
+) -> list[Feedback]:
+    """已提交、尚未结束、工作人员尚未响应，且提交时间已早于「最宽可能截止时间」的反馈（C30 逾期提醒）。
+
+    这里只做粗筛（`workdays` 个自然日前），精确判定按客服日历在服务层完成。
+    """
+    natural_cutoff = before_ms - max(1, workdays) * 24 * 3600 * 1000
+    return list(
+        session.scalars(
+            sa.select(Feedback)
+            .where(
+                Feedback.status.not_in(("CLOSED", "REJECTED", "DUPLICATE")),
+                Feedback.withdrawn_at.is_(None),
+                Feedback.first_responded_at.is_(None),
+                Feedback.created_at <= natural_cutoff,
+            )
+            .order_by(Feedback.created_at)
+            .limit(max(1, min(limit, 200)))
+        )
+    )
+
+
 def list_feedbacks(
     session: Session,
     *,

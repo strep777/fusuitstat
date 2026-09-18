@@ -25,7 +25,7 @@ from app.modules.feedback.schemas import (
 )
 from app.platform import audit
 from app.platform.errors import AppError
-from app.platform.ids import new_id
+from app.platform.ids import new_id, now_ms
 
 admin_router = APIRouter(tags=["admin-feedback"])
 
@@ -59,7 +59,7 @@ def list_feedback(
         ctx.session, status=status, category=category, reward_status=reward_status, query=q
     )
     return {
-        "items": [svc.serialize_summary(row) for row in rows],
+        "items": [svc.serialize_summary(ctx.session, row) for row in rows],
         "total": total,
         "page": page,
         "limit": limit,
@@ -190,6 +190,9 @@ def add_staff_message(
         visibility=visibility,
     )
     ctx.session.add(message)
+    # C30 首响：**用户可见**的回复才算响应；内部备注不算（用户看不到，不能算已响应）。
+    if visibility == "user":
+        svc.mark_first_response(row, now_ms())
     ctx.session.flush()
     audit.record(
         ctx.session,

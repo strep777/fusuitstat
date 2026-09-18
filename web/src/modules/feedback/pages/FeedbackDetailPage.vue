@@ -98,6 +98,11 @@ onMounted(async () => {
 
 const statusLabel = computed(() => FEEDBACK_STATUS_LABEL[feedback.value?.status ?? ""] ?? feedback.value?.status ?? "");
 
+/** 终态反馈不再计时（与服务端 `feedback_sla` 的口径一致）。 */
+const isSettledStatus = computed(() =>
+  ["CLOSED", "REJECTED", "DUPLICATE"].includes(String(feedback.value?.status ?? "")),
+);
+
 const rewardLabel = computed(
   () => REWARD_STATUS_LABEL[feedback.value?.reward_status ?? ""] ?? feedback.value?.reward_status ?? "",
 );
@@ -252,6 +257,24 @@ async function submitAppeal(): Promise<void> {
         <h1 class="mt-4 font-display text-3xl leading-tight">{{ feedback.title }}</h1>
         <p class="mt-3 text-sm text-ink-muted">
           提交于 {{ formatDateTime(feedback.created_at) }} · 最近更新 {{ formatDateTime(feedback.updated_at) }}
+        </p>
+        <!-- 首响时效（C30：反馈 7 个工作日）与询价侧同一口径：三种状态如实呈现 -->
+        <p v-if="feedback.response_due_at && !isSettledStatus" class="mt-2 text-sm">
+          <span v-if="feedback.first_responded_at" class="text-jade">
+            工作人员已于 {{ formatDateTime(feedback.first_responded_at) }} 首次响应
+            （承诺 {{ feedback.sla_workdays }} 个工作日）。
+          </span>
+          <span v-else-if="feedback.response_overdue" class="text-wine">
+            首响承诺为 {{ feedback.sla_workdays }} 个工作日，截止
+            {{ formatDateTime(feedback.response_due_at) }} 仍未响应；我们正在跟进，也可直接联系客服催办。
+          </span>
+          <span v-else>
+            首响承诺 {{ feedback.sla_workdays }} 个工作日，本次截止
+            {{ formatDateTime(feedback.response_due_at) }}（按客服工作日计算，节假日顺延）。
+          </span>
+        </p>
+        <p v-else-if="!isSettledStatus" class="mt-2 text-sm text-ink-muted">
+          该反馈已有处理结论，首响时效不再计时。
         </p>
         <p class="mt-2 text-xs text-ink-faint">
           页面路径：<span class="font-mono">{{ feedback.page_path }}</span>

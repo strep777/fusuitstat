@@ -96,6 +96,11 @@ export interface FeedbackSummary {
   updated_at: string;
   /** 重复反馈关联原反馈的匿名摘要，不公开原提交者。 */
   duplicate_of_summary: string | null;
+  /** 首响时效（C30：反馈 7 个工作日首响，按客服日历计算）。 */
+  sla_workdays: number;
+  response_due_at: string | null;
+  first_responded_at: string | null;
+  response_overdue: boolean;
 }
 
 export interface FeedbackDetail extends FeedbackSummary {

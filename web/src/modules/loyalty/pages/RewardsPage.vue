@@ -15,11 +15,14 @@ import { useAuthStore } from "@/modules/identity/stores/auth";
 import { useSiteStore } from "@/modules/content/stores/site";
 import { POINTS_PROHIBITION_NOTICE } from "@/modules/loyalty/api/loyalty";
 import { useDocumentTitle } from "@/modules/commissions/api/commissions";
+import { resolveText } from "@/shared/lib/i18n";
 import { AppButton, Breadcrumbs, EmptyState, SkeletonBlock, StatusBadge, SurfaceCard } from "@/shared/ui/base";
 import { PointsIcon } from "@/shared/ui/BrandMark";
+import { usePreferencesStore } from "@/shared/stores/preferences";
 
 const site = useSiteStore();
 const auth = useAuthStore();
+const preferences = usePreferencesStore();
 const setTitle = useDocumentTitle();
 
 onMounted(async () => {
@@ -34,7 +37,7 @@ const rules = computed(() => site.loyaltyRules);
 const enabled = computed(() => rules.value.redemption_enabled === true);
 
 /** 只有服务端给出真实说明时才展示；没有就不编造兑换率或商品范围。 */
-const ratioNote = computed(() => (rules.value.redemption_ratio_note ?? "").trim());
+const ratioNote = computed(() => resolveText(rules.value.redemption_ratio_note, preferences.locale).trim());
 
 /** 抵扣规则是否配置齐全：缺任何一项都不在页面上给出具体数值。 */
 const redemptionRulesReady = computed(

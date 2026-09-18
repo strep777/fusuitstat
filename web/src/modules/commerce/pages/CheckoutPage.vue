@@ -33,6 +33,7 @@ import {
 } from "@/modules/loyalty/api/loyalty";
 import { phoneFormatError } from "@/modules/identity/api/identity";
 import { formatDateTime, formatMoneyExact, formatPoints } from "@/shared/lib/format";
+import { resolveText, useI18n } from "@/shared/lib/i18n";
 import { ApiError, newIdempotencyKey } from "@/shared/lib/http";
 import { useToast } from "@/shared/lib/toast";
 import {
@@ -49,6 +50,7 @@ import {
 const router = useRouter();
 const site = useSiteStore();
 const toast = useToast();
+const { locale } = useI18n();
 
 interface PriceChangeRow {
   sku_id: string;
@@ -187,7 +189,8 @@ const crossBorderNotice = computed(() => {
   if (!current || !current.cross_border) return null;
   const hasEstimate = current.estimate_available && current.duty_estimate_cents !== null;
   return {
-    note: current.duty_note || addressRequirement.value.crossBorder,
+    // 说明文案可能是按语言给出的运营配置：先取服务端冻结的说明，再回退站点政策文案。
+    note: resolveText(current.duty_note, locale.value) || addressRequirement.value.crossBorder,
     estimateText: hasEstimate
       ? `${formatMoneyExact(current.duty_estimate_cents ?? 0, currency.value)}（按 ${current.duty_percent}% 预估）`
       : "",
@@ -917,7 +920,9 @@ function markDirty(): void {
               折算后只需 <span class="tabular-nums">{{ formatPoints(pointsQuote.applied_points) }}</span>，零头不会扣除。
             </template>
           </p>
-          <p v-if="pointsQuote?.ratio_note" class="mt-1 text-xs text-ink-faint">{{ pointsQuote.ratio_note }}</p>
+          <p v-if="pointsQuote?.ratio_note" class="mt-1 text-xs text-ink-faint">
+            {{ resolveText(pointsQuote.ratio_note, locale) }}
+          </p>
         </SurfaceCard>
 
         <!-- 订单条款 -->

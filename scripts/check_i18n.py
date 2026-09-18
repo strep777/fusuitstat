@@ -62,6 +62,50 @@ ALLOWED_CJK_KEYS: dict[str, str] = {
 #: 词条目录之外仍然包含中文字面量的文件里，允许豁免的路径前缀（及理由）。
 ALLOWED_CHINESE_FILES: dict[str, str] = {}
 
+#: 服务端下发的「按语言给出的」运营文案字段。它们在模板里**必须**先解析成一句话，
+#: 否则英文站会渲染出 `[object Object]`（或把中文原文当成英文）。
+LOCALIZED_FIELDS = (
+    "duty_note",
+    "policy_note",
+    "ratio_note",
+    "redemption_ratio_note",
+    "tagline",
+    "statement",
+    "holiday_note",
+)
+
+#: 已经由 `useSiteStore()` 统一解析过的访问前缀：模板直接取值是安全的。
+RESOLVED_PREFIXES = ("site.brand.", "site.commercePolicy.")
+
+INTERPOLATION = re.compile(r"\{\{(.*?)\}\}", re.DOTALL)
+BARE_FIELD = re.compile(
+    r"^\s*[A-Za-z_$][\w$]*(?:\??\.[A-Za-z_$][\w$]*|\[[^\]]+\])*\s*$"
+)
+
+
+def check_localized_rendering() -> list[str]:
+    """模板里不得直接渲染「按语言给出的」字段（必须先经 `resolveText()` 或解析后的计算属性）。"""
+    problems: list[str] = []
+    for path in sorted(WEB_SRC.glob("**/*.vue")):
+        text = path.read_text(encoding="utf-8")
+        relative = str(path.relative_to(ROOT))
+        for match in INTERPOLATION.finditer(text):
+            expression = match.group(1).strip()
+            if "resolveText(" in expression:
+                continue
+            if any(prefix in expression for prefix in RESOLVED_PREFIXES):
+                continue
+            for field in LOCALIZED_FIELDS:
+                if not re.search(rf"(?<![\w]){re.escape(field)}\b", expression):
+                    continue
+                # 只拦「整段就是这个字段路径」的裸渲染；带 `??`/`||` 等回退的表达式由人工复核。
+                if BARE_FIELD.match(expression):
+                    problems.append(
+                        f"模板直接渲染多语言字段：{relative} → {{{{{expression}}}}}"
+                        f"（应经 resolveText() 或站点 store 解析）"
+                    )
+    return problems
+
 
 def load_catalog(path: Path) -> dict[str, str]:
     """用 Node 读出扁平化的键 → 文案（复用前端 TypeScript 源，避免第二份词条）。
@@ -182,7 +226,7 @@ def main() -> int:
     zh = load_catalog(CATALOG_DIR / "zh-CN.ts")
     en = load_catalog(CATALOG_DIR / "en-US.ts")
 
-    problems = check_catalogs(zh, en) + check_usage(zh)
+    problems = check_catalogs(zh, en) + check_usage(zh) + check_localized_rendering()
 
     print(f"词条数：zh-CN {len(zh)}；en-US {len(en)}")
     rows = coverage_rows(zh)
@@ -227,7 +271,7 @@ def main() -> int:
             print(f"  - {problem}")
         return 1
 
-    print("PASS：词条键集一致、无空词条、占位符一致、源码未引用未定义键、英文词条无漏译。")
+    print("PASS：词条键集一致、无空词条、占位符一致、源码未引用未定义键、英文词条无漏译、模板未裸渲染多语言字段。")
     return 0
 
 

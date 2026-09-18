@@ -15,7 +15,7 @@ from typing import Any, Literal, Protocol
 from pydantic import Field
 from sqlalchemy.orm import Session
 
-from app.modules.shared.schemas import Dto, Page
+from app.modules.shared.schemas import Dto, LocalizedTextDto, Page
 
 # ------------------------------------------------------------------ 目录
 InventoryAction = Literal["reserve", "release", "consume", "restock"]
@@ -350,6 +350,8 @@ class AfterSaleDto(Dto):
     created_at: str | None = None
     decided_at: str | None = None
     resolved_at: str | None = None
+    # 售后条件说明由运营配置给出，可能是按语言给出的值；为空表示未配置（前端不得自造）。
+    policy_note: LocalizedTextDto | None = None
     messages: list[AfterSaleMessageDto] = Field(default_factory=list)
     policy: dict[str, Any] = Field(default_factory=dict)
 
@@ -405,7 +407,7 @@ class OrderDetailDto(OrderSummaryDto):
     # 预估**不计入** total_cents，页脚必须写明「以清关为准」。
     cross_border: bool = False
     duty_estimate_cents: int | None = None
-    duty_note: str = ""
+    duty_note: LocalizedTextDto = ""
 
 
 class PendingActionsDto(Dto):

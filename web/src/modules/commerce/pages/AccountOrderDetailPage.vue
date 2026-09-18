@@ -32,6 +32,7 @@ import OrderStatusTimeline from "@/modules/commerce/components/OrderStatusTimeli
 import PaymentCountdown from "@/modules/commerce/components/PaymentCountdown.vue";
 import { useSiteStore } from "@/modules/content/stores/site";
 import { formatDateTime, formatMoneyExact } from "@/shared/lib/format";
+import { resolveText, useI18n } from "@/shared/lib/i18n";
 import { ApiError, newIdempotencyKey } from "@/shared/lib/http";
 import { useToast } from "@/shared/lib/toast";
 import {
@@ -48,8 +49,11 @@ import {
 const route = useRoute();
 const site = useSiteStore();
 const toast = useToast();
+const { locale } = useI18n();
 
 const order = ref<OrderDetail | null>(null);
+/** 下单时冻结的跨境说明（可能是按语言给出的值）：为空时页面回退到站点政策文案。 */
+const dutyNote = computed(() => resolveText(order.value?.duty_note, locale.value));
 const loading = ref(true);
 const error = ref<string | null>(null);
 const forbidden = ref(false);
@@ -689,9 +693,9 @@ function statusLabel(status: OrderStatus): string {
                   以清关时海关核定为准。
                 </dd>
               </div>
-              <div v-if="order.duty_note" class="flex flex-wrap gap-2">
+              <div v-if="dutyNote" class="flex flex-wrap gap-2">
                 <dt class="text-ink-faint">跨境说明</dt>
-                <dd>{{ order.duty_note }}</dd>
+                <dd>{{ dutyNote }}</dd>
               </div>
               <div v-else-if="site.commercePolicy.cross_border_note" class="flex flex-wrap gap-2">
                 <dt class="text-ink-faint">跨境说明</dt>

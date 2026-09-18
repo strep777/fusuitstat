@@ -83,11 +83,33 @@ export function clearMissingMessageKeys(): void {
   missing.clear();
 }
 
+/**
+ * 面向用户的运营文案：可以是所有语言共用的一句话，也可以是 `{"zh-CN": …, "en-US": …}`。
+ *
+ * 服务端**不按请求语言裁剪**（06 文档「多语言文本」），由这里按当前语言解析：
+ * 目标语言缺失时回退简中，再缺失返回空串——**不显示 `[object Object]`，也不编造文案**。
+ */
+export type LocalizedText = string | Record<string, string> | null | undefined;
+
+export function resolveText(value: LocalizedText, locale?: Locale): string {
+  if (typeof value === "string") return value;
+  if (value && typeof value === "object") {
+    const target = locale ?? currentLocale();
+    for (const candidate of [target, DEFAULT_LOCALE, ...SUPPORTED_LOCALES]) {
+      const text = value[candidate];
+      if (typeof text === "string" && text.trim() !== "") return text;
+    }
+  }
+  return "";
+}
+
 export interface I18n {
   locale: ComputedRef<Locale>;
   /** 是否为默认语言（简中）；英文站特有文案用它分支时更明确。 */
   isDefaultLocale: ComputedRef<boolean>;
   t: (key: MessageKey, params?: MessageParams) => string;
+  /** 解析服务端下发的运营文案（可能是按语言给出的对象）。 */
+  text: (value: LocalizedText) => string;
   setLocale: (value: Locale) => void;
 }
 
@@ -98,6 +120,7 @@ export function useI18n(): I18n {
     locale,
     isDefaultLocale: computed(() => locale.value === DEFAULT_LOCALE),
     t: (key, params) => translate(key, params, locale.value),
+    text: (value) => resolveText(value, locale.value),
     setLocale: (value) => preferences.setLocale(value),
   };
 }

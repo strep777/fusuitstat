@@ -14,9 +14,11 @@ import { RouterLink } from "vue-router";
 import { fetchHome, type HomeAggregate } from "@/modules/content/api/content";
 import { useSiteStore } from "@/modules/content/stores/site";
 import { useAuthStore } from "@/modules/identity/stores/auth";
+import { useI18n } from "@/shared/lib/i18n";
 import { BrandMark, StarLoader } from "@/shared/ui/BrandMark";
 import { AppButton, EmptyState, SectionHeading, StatusBadge, SurfaceCard } from "@/shared/ui/base";
 import { formatCountdown, formatMoney, formatPriceFrom, truncate } from "@/shared/lib/format";
+import { resolveText } from "@/shared/lib/i18n";
 import { ApiError } from "@/shared/lib/http";
 
 const home = ref<HomeAggregate | null>(null);
@@ -24,6 +26,28 @@ const loading = ref(true);
 const error = ref<string | null>(null);
 const site = useSiteStore();
 const auth = useAuthStore();
+const { locale } = useI18n();
+
+/** 首页首屏文案由服务端给出（可能是按语言给出的值）：按当前语言解析，缺语言回退简中。 */
+const heroTagline = computed(() => resolveText(home.value?.hero.tagline, locale.value) || "绒里有星，装配成纪");
+const heroStatement = computed(
+  () =>
+    resolveText(home.value?.hero.statement, locale.value) ||
+    "从设定到实装，一步一步做成可以穿在身上的角色。工作室按季度开放委托名额，先询价、再报价，签合同后进入排期。",
+);
+const heroPrimaryLabel = computed(
+  () => resolveText(home.value?.hero.primary_action.label, locale.value) || "查看委托指南",
+);
+const heroSecondaryLabel = computed(
+  () => resolveText(home.value?.hero.secondary_action.label, locale.value) || "浏览作品集",
+);
+const steps = computed(() =>
+  (home.value?.commission_steps ?? []).map((step) => ({
+    step: step.step,
+    title: resolveText(step.title, locale.value),
+    description: resolveText(step.description, locale.value),
+  })),
+);
 
 async function load(): Promise<void> {
   loading.value = true;
@@ -72,7 +96,7 @@ const scheduleBadge = computed(() => {
             <BrandMark :size="56" variant="light" decorative />
             <div>
               <p class="eyebrow text-canvas/50">{{ home?.hero.brand_name ?? site.brand.brand_name }}</p>
-              <p class="font-display text-lg">{{ home?.hero.tagline ?? "绒里有星，装配成纪" }}</p>
+              <p class="font-display text-lg">{{ heroTagline }}</p>
             </div>
           </div>
 
@@ -80,15 +104,12 @@ const scheduleBadge = computed(() => {
             把设定变成<br class="hidden sm:block" />可以穿在身上的角色
           </h1>
           <p class="mt-6 max-w-xl text-base leading-relaxed text-canvas/75">
-            {{
-              home?.hero.statement ??
-              "从设定到实装，一步一步做成可以穿在身上的角色。工作室按季度开放委托名额，先询价、再报价，签合同后进入排期。"
-            }}
+            {{ heroStatement }}
           </p>
 
           <div class="mt-8 flex flex-wrap items-center gap-3">
             <AppButton :to="home?.hero.primary_action.to ?? '/commission/guide'" size="lg">
-              {{ home?.hero.primary_action.label ?? "查看委托指南" }}
+              {{ heroPrimaryLabel }}
             </AppButton>
             <AppButton
               :to="home?.hero.secondary_action.to ?? '/works'"
@@ -96,7 +117,7 @@ const scheduleBadge = computed(() => {
               size="lg"
               class="!border-night-line !bg-transparent !text-canvas hover:!border-amber-ink hover:!text-amber-ink"
             >
-              {{ home?.hero.secondary_action.label ?? "浏览作品集" }}
+              {{ heroSecondaryLabel }}
             </AppButton>
             <RouterLink
               v-if="!auth.isAuthenticated"
@@ -337,7 +358,7 @@ const scheduleBadge = computed(() => {
         </SectionHeading>
 
         <ol class="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          <li v-for="step in home.commission_steps" :key="step.step">
+          <li v-for="step in steps" :key="step.step">
             <SurfaceCard class="h-full">
               <p class="font-display text-3xl text-amber">{{ step.step }}</p>
               <h3 class="mt-3 font-display text-lg">{{ step.title }}</h3>

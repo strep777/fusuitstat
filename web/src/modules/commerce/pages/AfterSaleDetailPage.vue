@@ -21,6 +21,7 @@ import {
 } from "@/modules/commerce/api/commerce";
 import { useSiteStore } from "@/modules/content/stores/site";
 import { formatDateTime, formatMoneyExact } from "@/shared/lib/format";
+import { resolveText, useI18n } from "@/shared/lib/i18n";
 import { ApiError } from "@/shared/lib/http";
 import { useToast } from "@/shared/lib/toast";
 import {
@@ -37,8 +38,11 @@ import {
 const route = useRoute();
 const site = useSiteStore();
 const toast = useToast();
+const { locale } = useI18n();
 
 const record = ref<AfterSaleDetail | null>(null);
+/** 售后条件说明来自服务端配置（可能是按语言给出的值）：未配置时为空，由页面回退到站点政策。 */
+const afterSalePolicyNote = computed(() => resolveText(record.value?.policy_note, locale.value) || null);
 const loading = ref(true);
 const error = ref<string | null>(null);
 const forbidden = ref(false);
@@ -302,11 +306,11 @@ function markMessageDirty(): void {
 
             <div class="mt-4 rounded-sm bg-surface-muted p-3 text-xs text-ink-muted">
               <p v-if="isCustom">
-                定制售后条件：{{ record.policy_note ?? site.commercePolicy.returns_reference }}。
+                定制售后条件：{{ afterSalePolicyNote ?? site.commercePolicy.returns_reference }}。
                 定制商品的特殊退货条件不消除质量瑕疵责任。
               </p>
               <p v-else>
-                现货售后条件：{{ record.policy_note ?? site.commercePolicy.returns_reference }}。
+                现货售后条件：{{ afterSalePolicyNote ?? site.commercePolicy.returns_reference }}。
               </p>
               <p v-if="site.commercePolicy.cross_border_note" class="mt-1">
                 {{ site.commercePolicy.cross_border_note }}
@@ -555,7 +559,7 @@ function markMessageDirty(): void {
             <dl class="mt-3 space-y-2 text-xs text-ink-muted">
               <div class="flex flex-wrap gap-2">
                 <dt class="text-ink-faint">{{ isCustom ? "定制条件" : "现货条件" }}</dt>
-                <dd>{{ record.policy_note ?? site.commercePolicy.returns_reference }}</dd>
+                <dd>{{ afterSalePolicyNote ?? site.commercePolicy.returns_reference }}</dd>
               </div>
               <div class="flex flex-wrap gap-2">
                 <dt class="text-ink-faint">退款方式</dt>

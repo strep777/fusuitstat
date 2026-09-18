@@ -3,6 +3,7 @@
  * 路径与 06 文档一致；所有公开读取只返回已发布内容。
  */
 
+import { type LocalizedText } from "@/shared/lib/i18n";
 import { ApiError, api } from "@/shared/lib/http";
 
 export type ContentKind =
@@ -151,7 +152,7 @@ export interface LoyaltyRules {
   feedback_rewards: { minor: number; normal: number; major: number };
   feedback_daily_reward_limit: number;
   redemption_enabled: boolean;
-  redemption_ratio_note?: string;
+  redemption_ratio_note?: LocalizedText;
   /** 兑换规则（N02/N04）：未配置时为 0，前端不推算任何金额。 */
   redemption_points_per_yuan?: number;
   redemption_min_points?: number;
@@ -161,11 +162,12 @@ export interface LoyaltyRules {
 }
 
 export interface BrandProfile {
-  brand_name: string;
-  legal_entity: string;
+  /** 品牌名与法定主体名可以是按语言给出的值（英文名未确认前保持中文，见 N14）。 */
+  brand_name: LocalizedText;
+  legal_entity: LocalizedText;
   domain: string;
   support_email: string;
-  service_hours: string;
+  service_hours: LocalizedText;
   response_sla: { inquiry_workdays: number; feedback_workdays: number };
 }
 
@@ -176,6 +178,24 @@ export interface SocialLink {
 }
 
 export interface CommercePolicy {
+  returns_reference: LocalizedText;
+  cross_border_note: LocalizedText;
+  invoice_enabled: boolean;
+  shipping_template_note: LocalizedText;
+}
+
+/** 已按当前语言解析的站点信息（`useSiteStore()` 对外的形状）。 */
+export interface ResolvedBrandProfile {
+  brand_name: string;
+  legal_entity: string;
+  domain: string;
+  support_email: string;
+  service_hours: string;
+  response_sla: { inquiry_workdays: number; feedback_workdays: number };
+}
+
+/** 已按当前语言解析的商务政策（运营文案部分）。 */
+export interface ResolvedCommercePolicy {
   returns_reference: string;
   cross_border_note: string;
   invoice_enabled: boolean;
@@ -194,15 +214,15 @@ export interface PublicSettings {
 export interface HomeAggregate {
   hero: {
     brand_name: string;
-    tagline: string;
-    statement: string;
-    primary_action: { label: string; to: string };
-    secondary_action: { label: string; to: string };
+    tagline: LocalizedText;
+    statement: LocalizedText;
+    primary_action: { label: LocalizedText; to: string };
+    secondary_action: { label: LocalizedText; to: string };
   };
   schedule: ScheduleSummary | null;
   featured_works: { items: ContentSummary[]; total: number; more: string };
   series: Array<SeriesSpec & ContentSummary>;
-  commission_steps: Array<{ step: string; title: string; description: string }>;
+  commission_steps: Array<{ step: string; title: LocalizedText; description: LocalizedText }>;
   products: {
     items: Array<{
       id: string;

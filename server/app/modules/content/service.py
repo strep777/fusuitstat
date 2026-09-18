@@ -32,6 +32,28 @@ from app.platform.reliability import enqueue
 
 SLUG_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 
+#: 首发语言（C02/C24）。服务端**不按请求语言裁剪**：面向用户的运营文案以「值自带语言」
+#: 的形式下发（`{"zh-CN": …, "en-US": …}`），由客户端按当前语言解析——这样切换语言不需要
+#: 重新取配置，也不存在两份设置漂移。服务端自己需要一句话时用 `localized_text()`。
+DEFAULT_LOCALE = "zh-CN"
+SUPPORTED_LOCALES = ("zh-CN", "en-US")
+
+
+def localized_text(value: Any, locale: str = DEFAULT_LOCALE) -> str:
+    """把「一句话或按语言给出的文案」解析成一句话。
+
+    - 纯字符串：所有语言都用它（老配置天然兼容）；
+    - 字典：取目标语言，缺失时回退到简中；都没有就返回空串（**不编造文案**）。
+    """
+    if isinstance(value, str):
+        return value
+    if isinstance(value, dict):
+        for candidate in (locale, DEFAULT_LOCALE, *SUPPORTED_LOCALES):
+            text = value.get(candidate)
+            if isinstance(text, str) and text.strip():
+                return text
+    return ""
+
 
 def _validate_slug(slug: str) -> str:
     value = slug.strip().lower()
@@ -330,7 +352,11 @@ DEFAULT_SETTINGS: tuple[dict[str, Any], ...] = (
             "legal_entity": "弈星纪元（上海）文化发展有限公司",
             "domain": "starium.cn",
             "support_email": "support@starium.cn",
-            "service_hours": "周一至周五 10:00–19:00（Asia/Shanghai），节假日另行说明",
+            # 工作时段是面向客户的运营文案：按语言分别给出（英文站需要英文说明）。
+            "service_hours": {
+                "zh-CN": "周一至周五 10:00–19:00（Asia/Shanghai），节假日另行说明",
+                "en-US": "Mon–Fri 10:00–19:00 (Asia/Shanghai); holidays are announced separately",
+            },
             "response_sla": {"inquiry_workdays": 3, "feedback_workdays": 7},
         },
     },
@@ -413,10 +439,19 @@ DEFAULT_SETTINGS: tuple[dict[str, Any], ...] = (
         "description": "C10/C16/C17：退换货、跨境、运费与开票说明。",
         "is_public": 1,
         "value": {
-            "returns_reference": "参照淘宝 / 闲鱼平台规则执行",
-            "cross_border_note": "跨境订单的物流、关税与偏远地区附加费单独说明。",
+            "returns_reference": {
+                "zh-CN": "参照淘宝 / 闲鱼平台规则执行",
+                "en-US": "Follows the marketplace rules of Taobao / Xianyu",
+            },
+            "cross_border_note": {
+                "zh-CN": "跨境订单的物流、关税与偏远地区附加费单独说明。",
+                "en-US": "Shipping, duties and remote-area surcharges for cross-border orders are quoted separately.",
+            },
             "invoice_enabled": True,
-            "shipping_template_note": "运费模板由工作室配置，结算时以服务端计算为准。",
+            "shipping_template_note": {
+                "zh-CN": "运费模板由工作室配置，结算时以服务端计算为准。",
+                "en-US": "Shipping rates are configured by the studio; the server-computed amount is authoritative at checkout.",
+            },
         },
     },
     {
@@ -730,7 +765,11 @@ def _record_display_retraction(
 
 
 def support_calendar(session: Session) -> dict[str, Any]:
-    """客服工作日与节假日（C30）。缺失时给出「周一至周五、无节假日」的安全基线。"""
+    """客服工作日与节假日（C30）。缺失时给出「周一至周五、无节假日」的安全基线。
+
+    `holiday_note` 是面向客户的文案（N13 待运营填写）：这里**不猜语言**，把原始值原样带出，
+    由调用方按语言解析（需要一句话时用 `localized_text()`）。
+    """
     stored = setting_value(session, "support.calendar", {}) or {}
     workdays = sorted({int(day) for day in (stored.get("workdays") or [1, 2, 3, 4, 5])})
     return {
@@ -738,7 +777,7 @@ def support_calendar(session: Session) -> dict[str, Any]:
         "workdays": workdays or [1, 2, 3, 4, 5],
         "holidays": sorted({str(day) for day in (stored.get("holidays") or [])}),
         "extra_workdays": sorted({str(day) for day in (stored.get("extra_workdays") or [])}),
-        "holiday_note": str(stored.get("holiday_note") or ""),
+        "holiday_note": stored.get("holiday_note") or "",
     }
 
 
@@ -860,7 +899,8 @@ def loyalty_policy(session: Session) -> dict[str, Any]:
         "redemption_enabled": bool(stored.get("redemption_enabled", False)),
         # 兑换规则（N02/N04）：未配置时如实返回 0 / 默认值，由积分模块决定是否可兑换。
         # 这里必须逐项转发——漏掉任何一项都会让「已配置」在服务端看起来仍是未配置。
-        "redemption_ratio_note": str(stored.get("redemption_ratio_note", "")),
+        # 说明文案可能是「按语言给出的值」，原样带出（不字符串化），由客户端解析。
+        "redemption_ratio_note": stored.get("redemption_ratio_note", ""),
         "redemption_points_per_yuan": int(stored.get("redemption_points_per_yuan", 0)),
         "redemption_min_points": int(stored.get("redemption_min_points", 0)),
         "redemption_max_ratio_percent": int(stored.get("redemption_max_ratio_percent", 0)),
@@ -893,41 +933,70 @@ def require_feature(session: Session, name: str) -> None:
         raise AppError("FEATURE_DISABLED", "该功能尚未开放。")
 
 
-def commission_steps(policy: dict[str, Any], loyalty: dict[str, Any]) -> list[dict[str, str]]:
+def commission_steps(policy: dict[str, Any], loyalty: dict[str, Any]) -> list[dict[str, Any]]:
     """委托步骤文案由服务端生成，数值取自后台配置，避免前端硬编码业务规则。
 
     信息顺序对应 11 文档的首页布局基线与 07 文档的流程分段：
     询价（需求沟通）→ 报价（有期限的商业提案）→ 条款与预付款（合同留证）→ 制作与交付。
+
+    `title` / `description` 是**面向用户的文案**，按 C02/C24 同时给出简中与美式英文；
+    两种语言里的数值来自同一份后台配置，不存在两份业务数值。
     """
+    quote_days = policy["quote_valid_days"]
+    prepayment = policy["prepayment_percent"]
+    hold_minutes = policy["slot_hold_minutes"]
+    free_revisions = policy["free_revision_count"]
+    release_days = loyalty["release_delay_days"]
     return [
         {
             "step": "01",
-            "title": "提交询价",
-            "description": "填写角色、物种、系列与制作要求，上传 1–3 张设定图。资料不足时我们会说明需要补什么。",
+            "title": {"zh-CN": "提交询价", "en-US": "Send an inquiry"},
+            "description": {
+                "zh-CN": "填写角色、物种、系列与制作要求，上传 1–3 张设定图。资料不足时我们会说明需要补什么。",
+                "en-US": "Describe the character, species, series and build requirements, and upload 1–3 reference images. If anything is missing we will say exactly what to add.",
+            },
         },
         {
             "step": "02",
-            "title": "收到报价",
-            "description": (
-                f"工作室按可制造性发布有版本的报价，有效期 {policy['quote_valid_days']} 天，"
-                "明细、包含项与例外都会列出。"
-            ),
+            "title": {"zh-CN": "收到报价", "en-US": "Receive a quote"},
+            "description": {
+                "zh-CN": (
+                    f"工作室按可制造性发布有版本的报价，有效期 {quote_days} 天，"
+                    "明细、包含项与例外都会列出。"
+                ),
+                "en-US": (
+                    f"The studio issues a versioned quote based on buildability, valid for {quote_days} days, "
+                    "listing line items, inclusions and exceptions."
+                ),
+            },
         },
         {
             "step": "03",
-            "title": "确认条款并付预付款",
-            "description": (
-                f"确认报价后记录条款版本与同意时间，支付预付款 {policy['prepayment_percent']}%，"
-                f"名额预留 {policy['slot_hold_minutes']} 分钟用于付款。"
-            ),
+            "title": {"zh-CN": "确认条款并付预付款", "en-US": "Accept the terms and pay the deposit"},
+            "description": {
+                "zh-CN": (
+                    f"确认报价后记录条款版本与同意时间，支付预付款 {prepayment}%，"
+                    f"名额预留 {hold_minutes} 分钟用于付款。"
+                ),
+                "en-US": (
+                    f"Accepting the quote records the terms version and timestamp; the deposit is {prepayment}% "
+                    f"and the slot is held for {hold_minutes} minutes while you pay."
+                ),
+            },
         },
         {
             "step": "04",
-            "title": "跟踪制作并收货",
-            "description": (
-                f"每个制作阶段可查看图片并确认，免费修改 {policy['free_revision_count']} 次；"
-                f"交付后 {loyalty['release_delay_days']} 天发放星绒币。"
-            ),
+            "title": {"zh-CN": "跟踪制作并收货", "en-US": "Follow the build and receive the suit"},
+            "description": {
+                "zh-CN": (
+                    f"每个制作阶段可查看图片并确认，免费修改 {free_revisions} 次；"
+                    f"交付后 {release_days} 天发放星绒币。"
+                ),
+                "en-US": (
+                    f"Each production stage can be reviewed with photos and confirmed, with {free_revisions} free "
+                    f"revisions; reward points are issued {release_days} days after delivery."
+                ),
+            },
         },
     ]
 

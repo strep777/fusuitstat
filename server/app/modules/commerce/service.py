@@ -73,18 +73,27 @@ DEFAULT_POLICY: dict[str, Any] = {
     "after_sale": {
         "window_days": 15,
         "types": ["refund_only", "return_refund", "repair", "exchange"],
-        "note": "定制商品的特殊退货条件不消除质量瑕疵责任。",
+        "note": {
+            "zh-CN": "定制商品的特殊退货条件不消除质量瑕疵责任。",
+            "en-US": "Special return conditions for custom items do not remove liability for defects.",
+        },
     },
     "invoice": {
         "types": ["personal", "business"],
-        "note": "抬头与税号仅用于开票，按最小化原则加密保存。",
+        "note": {
+            "zh-CN": "抬头与税号仅用于开票，按最小化原则加密保存。",
+            "en-US": "Invoice titles and tax numbers are used only for invoicing and stored encrypted on a minimisation basis.",
+        },
     },
     # 跨境（C02/C24 双区；N07 的跨境物流、关税与偏远地区首版值待补）：
     # 默认**不预估**关税与税费——读到配置前不编造比例，页面必须写「以清关为准」。
     "cross_border": {
         "enabled": False,
         "duty_percent": 0,
-        "note": "跨境订单的关税与进口税费由清关时按目的地法规确定，本站不预估、不代收。",
+        "note": {
+            "zh-CN": "跨境订单的关税与进口税费由清关时按目的地法规确定，本站不预估、不代收。",
+            "en-US": "Duties and import taxes on cross-border orders are determined by destination customs at clearance; we neither estimate nor collect them.",
+        },
     },
 }
 
@@ -130,7 +139,8 @@ def cross_border_estimate(
         "cross_border": is_cross_border,
         "duty_estimate_cents": estimate,
         "duty_percent": percent,
-        "duty_note": str(cross.get("note") or ""),
+        # 说明文案可能是「按语言给出的值」，原样带出由客户端解析，不在这里字符串化。
+        "duty_note": cross.get("note") or "",
         "estimate_available": estimate is not None,
     }
 
@@ -697,7 +707,7 @@ def create_order(
             "cross_border": bool(priced["cross_border"]),
             "duty_estimate_cents": priced["duty_estimate_cents"],
             "duty_percent": int(priced["duty_percent"]),
-            "duty_note": str(priced["duty_note"]) if priced["cross_border"] else "",
+            "duty_note": priced["duty_note"] if priced["cross_border"] else "",
         },
     )
     session.add(order)
@@ -2731,12 +2741,13 @@ def order_detail_payload(session: Session, order: Order) -> dict[str, Any]:
         # 跨境（C02/C24、N07 待补）：下单时冻结的判定与关税预估；未跨境时为空。
         "cross_border": bool(order_snapshot.get("cross_border", False)),
         "duty_estimate_cents": order_snapshot.get("duty_estimate_cents"),
-        "duty_note": str(order_snapshot.get("duty_note") or ""),
+        "duty_note": order_snapshot.get("duty_note") or "",
     }
 
 
 def after_sale_payload(session: Session, row: AfterSale) -> dict[str, Any]:
     order = repo.get_order(session, order_id=row.order_id)
+    policy = commerce_policy(session)["after_sale"]
     return {
         "id": row.id,
         "order_id": row.order_id,
@@ -2764,7 +2775,10 @@ def after_sale_payload(session: Session, row: AfterSale) -> dict[str, Any]:
             for message in repo.list_after_sale_messages(session, after_sale_id=row.id)
             if message.visibility == "customer"
         ],
-        "policy": commerce_policy(session)["after_sale"],
+        # 售后条件说明由运营配置给出（可能是按语言给出的值）：这里是**权威来源**，
+        # 前端不再用自己的兜底文案冒充"当前售后条件"。
+        "policy_note": policy.get("note") or None,
+        "policy": policy,
     }
 
 

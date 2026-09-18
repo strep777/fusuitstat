@@ -16,11 +16,18 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { nextTick } from "vue";
 import { createMemoryHistory, createRouter } from "vue-router";
 
+import SiteFooter from "@/app/components/SiteFooter.vue";
 import SiteHeader from "@/app/components/SiteHeader.vue";
 import { useSiteStore } from "@/modules/content/stores/site";
 import { enUS } from "@/shared/i18n/en-US";
 import { zhCN } from "@/shared/i18n/zh-CN";
-import { clearMissingMessageKeys, missingMessageKeys, translate, useI18n } from "@/shared/lib/i18n";
+import {
+  clearMissingMessageKeys,
+  missingMessageKeys,
+  resolveText,
+  translate,
+  useI18n,
+} from "@/shared/lib/i18n";
 import { usePreferencesStore } from "@/shared/stores/preferences";
 
 function flatten(tree: unknown, prefix = ""): Record<string, string> {
@@ -137,8 +144,96 @@ describe("文案层取词与回退", () => {
   });
 });
 
-describe("语言切换与入口门禁", () => {
+describe("服务端运营文案的解析（LocalizedText）", () => {
   beforeEach(() => {
+    localStorage.clear();
+  });
+
+  it("纯字符串对所有语言共用", () => {
+    expect(resolveText("周一至周五", "en-US")).toBe("周一至周五");
+  });
+
+  it("按语言取值：命中目标语言，缺失回退简中，都没有则空串", () => {
+    const value = { "zh-CN": "周一至周五", "en-US": "Mon–Fri" };
+    expect(resolveText(value, "en-US")).toBe("Mon–Fri");
+    expect(resolveText(value, "zh-CN")).toBe("周一至周五");
+    expect(resolveText({ "zh-CN": "只有中文" }, "en-US")).toBe("只有中文");
+    expect(resolveText({ "en-US": "   " }, "en-US")).toBe("");
+    expect(resolveText(null, "en-US")).toBe("");
+    expect(resolveText(undefined, "zh-CN")).toBe("");
+  });
+
+  it("空对象不会被渲染成 [object Object]", () => {
+    expect(resolveText({}, "zh-CN")).toBe("");
+    expect(String(resolveText({}, "zh-CN"))).not.toContain("[object Object]");
+  });
+
+  it("站点 store 按当前语言解析品牌与商务政策，并在切换语言后立即更新", async () => {
+    const pinia = createPinia();
+    setActivePinia(pinia);
+    const site = useSiteStore();
+    const preferences = usePreferencesStore();
+    site.settings = {
+      "brand.profile": {
+        brand_name: "弈星纪元兽装工作室",
+        legal_entity: "弈星纪元（上海）文化发展有限公司",
+        domain: "starium.cn",
+        support_email: "support@starium.cn",
+        service_hours: { "zh-CN": "周一至周五 10:00–19:00", "en-US": "Mon–Fri 10:00–19:00" },
+        response_sla: { inquiry_workdays: 3, feedback_workdays: 7 },
+      },
+      "commerce.policy": {
+        returns_reference: { "zh-CN": "参照平台规则", "en-US": "Follows marketplace rules" },
+        cross_border_note: "跨境单独说明",
+        invoice_enabled: true,
+        shipping_template_note: { "zh-CN": "运费模板由工作室配置", "en-US": "Rates configured by the studio" },
+      },
+    };
+
+    expect(site.brand.service_hours).toBe("周一至周五 10:00–19:00");
+    expect(site.commercePolicy.shipping_template_note).toBe("运费模板由工作室配置");
+    // 纯字符串字段在任何语言下都是同一句
+    expect(site.commercePolicy.cross_border_note).toBe("跨境单独说明");
+
+    preferences.setLocale("en-US");
+    await nextTick();
+    expect(site.brand.service_hours).toBe("Mon–Fri 10:00–19:00");
+    expect(site.commercePolicy.shipping_template_note).toBe("Rates configured by the studio");
+    // 未配英文的字段回退中文，而不是显示空白
+    expect(site.commercePolicy.cross_border_note).toBe("跨境单独说明");
+  });
+
+  it("页脚在工作时段只有一种语言时回退，不会渲染成对象", async () => {
+    const pinia = createPinia();
+    setActivePinia(pinia);
+    const site = useSiteStore();
+    const preferences = usePreferencesStore();
+    site.settings = {
+      "brand.profile": {
+        brand_name: "弈星纪元兽装工作室",
+        legal_entity: "弈星纪元（上海）文化发展有限公司",
+        domain: "starium.cn",
+        support_email: "support@starium.cn",
+        service_hours: { "zh-CN": "周一至周五 10:00–19:00", "en-US": "Mon–Fri 10:00–19:00" },
+        response_sla: { inquiry_workdays: 3, feedback_workdays: 7 },
+      },
+    };
+    preferences.setLocale("en-US");
+    await nextTick();
+
+    const router = createRouter({
+      history: createMemoryHistory(),
+      routes: [{ path: "/", component: { template: "<div />" } }],
+    });
+    await router.push("/");
+    await router.isReady();
+    const wrapper = mount(SiteFooter, { global: { plugins: [pinia, router] } });
+    expect(wrapper.text()).toContain("Mon–Fri 10:00–19:00");
+    expect(wrapper.text()).not.toContain("[object Object]");
+  });
+});
+
+describe("语言切换与入口门禁", () => {  beforeEach(() => {
     localStorage.clear();
     clearMissingMessageKeys();
   });

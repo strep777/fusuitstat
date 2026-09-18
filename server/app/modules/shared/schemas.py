@@ -13,6 +13,11 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 LimitField = Annotated[int, Field(ge=1, le=100)]
 CursorField = Annotated[str | None, Field(default=None, max_length=200)]
 
+#: 面向用户的运营文案：可以是所有语言共用的一句话，也可以是 `{"zh-CN": …, "en-US": …}`。
+#: 服务端**不按请求语言裁剪**，由客户端按当前语言解析（06 文档「多语言文本」一节）：
+#: 这样切换语言不需要重新取配置，也不会出现两份设置互相漂移。
+LocalizedTextDto = str | dict[str, str]
+
 
 class Dto(BaseModel):
     """输出 DTO。允许从 ORM 属性构造，但不允许多余字段。"""
@@ -80,6 +85,7 @@ __all__ = [
     "Dto",
     "IdResponse",
     "LimitField",
+    "LocalizedTextDto",
     "Money",
     "OkResponse",
     "Page",

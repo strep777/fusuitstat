@@ -9,6 +9,15 @@ from app.platform.errors import AppError
 Positive = Annotated[int, Field(strict=True, gt=0, le=1_000_000)]
 Nonnegative = Annotated[int, Field(strict=True, ge=0, le=10_000_000_000)]
 
+#: 首发语言（C02/C24）：简中与美式英文。未列出的语言写进配置一律拒绝，
+#: 避免出现「配了但站点不支持」的静默失效。
+Locale = Literal["zh-CN", "en-US"]
+
+#: 面向用户的运营文案：可以是一句话（对所有语言相同），也可以**按语言分别给出**。
+#: 采用「值本身携带语言」的口径而不是每个语言存一份设置，这样切换语言不需要重新取配置，
+#: 也不会出现两份设置互相漂移（详见 `文档/06_API接口契约.md` 的多语言文本一节）。
+LocalizedText = str | dict[Locale, Annotated[str, Field(min_length=1, max_length=600)]]
+
 
 class Policy(BaseModel):
     model_config = ConfigDict(strict=True, extra="forbid")
@@ -37,7 +46,7 @@ class LoyaltyPolicy(Policy):
     feedback_rewards: Rewards = Field(default_factory=Rewards)
     feedback_daily_reward_limit: Positive = 1
     redemption_enabled: bool = False
-    redemption_ratio_note: str = ""
+    redemption_ratio_note: LocalizedText = ""
     # N02/N04 未确认前一律为 0：服务端不发明兑换率、上限与有效期，
     # 读不到规则时兑换入口保持关闭（09 文档：不能宣传未上线的兑换权益）。
     # ``redemption_points_per_yuan`` = 抵扣 1 元需要多少星绒币。
@@ -78,6 +87,29 @@ class FeatureFlags(Policy):
     marketing_email: bool = False
 
 
+class ResponseSla(Policy):
+    """首响承诺（C30）：工作日数量由运营配置；节假日说明见 `support.calendar.holiday_note`。"""
+
+    inquiry_workdays: Positive = 3
+    feedback_workdays: Positive = 7
+
+
+class BrandProfile(Policy):
+    """品牌与经营信息（页脚、合同抬头、邮件落款都要用）。
+
+    `brand_name` / `legal_entity` / `service_hours` 允许按语言分别配置：英文站需要英文
+    工作时段说明；品牌名与法定主体名的英文写法**未经确认前保持中文**（N14），
+    因此这里不做翻译，只提供"可以分别配置"的位置。
+    """
+
+    brand_name: LocalizedText = "弈星纪元兽装工作室"
+    legal_entity: LocalizedText = "弈星纪元（上海）文化发展有限公司"
+    domain: Annotated[str, Field(min_length=1, max_length=120)] = "starium.cn"
+    support_email: Annotated[str, Field(min_length=3, max_length=160)] = "support@starium.cn"
+    service_hours: LocalizedText = "周一至周五 10:00–19:00（Asia/Shanghai），节假日另行说明"
+    response_sla: ResponseSla = Field(default_factory=ResponseSla)
+
+
 class Shipping(Policy):
     mode: Literal["flat", "free"] = "flat"
     flat_cents: Nonnegative = 1800
@@ -104,12 +136,12 @@ class Coupon(Policy):
 class AfterSale(Policy):
     window_days: Positive = 15
     types: list[Literal["refund_only", "return_refund", "repair", "exchange"]] = Field(default_factory=list)
-    note: str = ""
+    note: LocalizedText = ""
 
 
 class Invoice(Policy):
     types: list[Literal["personal", "business"]] = Field(default_factory=list)
-    note: str = ""
+    note: LocalizedText = ""
 
 
 class CrossBorder(Policy):
@@ -121,7 +153,7 @@ class CrossBorder(Policy):
 
     enabled: bool = False
     duty_percent: Annotated[int, Field(ge=0, le=100)] = 0
-    note: str = ""
+    note: LocalizedText = ""
 
 
 class CommercePolicy(Policy):
@@ -132,10 +164,10 @@ class CommercePolicy(Policy):
     after_sale: AfterSale = Field(default_factory=AfterSale)
     invoice: Invoice = Field(default_factory=Invoice)
     cross_border: CrossBorder = Field(default_factory=CrossBorder)
-    returns_reference: str = ""
-    cross_border_note: str = ""
+    returns_reference: LocalizedText = ""
+    cross_border_note: LocalizedText = ""
     invoice_enabled: bool = True
-    shipping_template_note: str = ""
+    shipping_template_note: LocalizedText = ""
 
 
 class SupportCalendar(Policy):
@@ -146,7 +178,7 @@ class SupportCalendar(Policy):
     workdays: list[Annotated[int, Field(ge=1, le=7)]] = Field(default_factory=lambda: [1, 2, 3, 4, 5])
     holidays: list[str] = Field(default_factory=list)
     extra_workdays: list[str] = Field(default_factory=list)
-    holiday_note: str = ""
+    holiday_note: LocalizedText = ""
 
     @model_validator(mode="after")
     def valid_calendar(self) -> "SupportCalendar":
@@ -169,6 +201,7 @@ class SupportCalendar(Policy):
 
 
 MODELS: dict[str, type[BaseModel]] = {
+    "brand.profile": BrandProfile,
     "commission.policy": CommissionPolicy,
     "loyalty.rules": LoyaltyPolicy,
     "platform.feature_flags": FeatureFlags,

@@ -9,6 +9,7 @@
  * - 余额一律以服务端 `/points/account` 为权威；前端不做加总。
  */
 
+import { type LocalizedText } from "@/shared/lib/i18n";
 import { api } from "@/shared/lib/http";
 
 export interface PointsAccount {
@@ -133,7 +134,8 @@ export interface PointsRedemptionQuote {
   max_ratio_percent: number;
   expiry_days: number;
   restore_on_refund: boolean;
-  ratio_note: string;
+  /** 说明文案可能是按语言给出的值：展示前必须经 `resolveText()`。 */
+  ratio_note: LocalizedText;
 }
 
 export async function fetchPointsRedemptionQuote(

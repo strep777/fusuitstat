@@ -9,6 +9,7 @@
  * - 错误分支只看 `ApiError.code`，不对 message 做逻辑判断。
  */
 
+import { type LocalizedText } from "@/shared/lib/i18n";
 import { api, newIdempotencyKey, type RequestOptions } from "@/shared/lib/http";
 
 export type CurrencyCode = "CNY" | "USD";
@@ -257,7 +258,8 @@ export interface PointsQuote {
   max_ratio_percent: number;
   expiry_days: number;
   restore_on_refund: boolean;
-  ratio_note: string;
+  /** 说明文案可能是按语言给出的值：展示前必须经 `resolveText()`。 */
+  ratio_note: LocalizedText;
 }
 
 export interface CheckoutPreview {
@@ -282,7 +284,8 @@ export interface CheckoutPreview {
   cross_border: boolean;
   duty_estimate_cents: number | null;
   duty_percent: number;
-  duty_note: string;
+  /** 说明文案可能是按语言给出的值：展示前必须经 `resolveText()`。 */
+  duty_note: LocalizedText;
   estimate_available: boolean;
   address_id: string;
 }
@@ -545,7 +548,7 @@ export interface OrderDetail extends OrderSummary {
   /** 跨境（C02/C24、N07 待补）：下单时冻结；预估不计入 total_cents。 */
   cross_border?: boolean;
   duty_estimate_cents?: number | null;
-  duty_note?: string;
+  duty_note?: LocalizedText;
 }
 
 export interface OrderListQuery {
@@ -698,8 +701,8 @@ export interface AfterSaleDetail extends AfterSaleSummary {
   return_shipment: AfterSaleReturnShipment | null;
   /** 需要客户补充的信息（NEEDS_INFO 时由客服填写）。 */
   needs_info: string | null;
-  /** 服务端依据配置给出的该类商品售后条件说明。 */
-  policy_note: string | null;
+  /** 服务端依据配置给出的该类商品售后条件说明（可能是按语言给出的值）。 */
+  policy_note: LocalizedText;
 }
 
 export interface AfterSalePage {

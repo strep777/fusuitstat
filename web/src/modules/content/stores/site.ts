@@ -13,8 +13,12 @@ import {
   type CommissionPolicy,
   type LoyaltyRules,
   type PublicSettings,
+  type ResolvedBrandProfile,
+  type ResolvedCommercePolicy,
   type SocialLink,
 } from "@/modules/content/api/content";
+import { resolveText } from "@/shared/lib/i18n";
+import { usePreferencesStore } from "@/shared/stores/preferences";
 
 export interface ScheduleSummary {
   id: string;
@@ -38,6 +42,7 @@ const FALLBACK_PROFILE: BrandProfile = {
 };
 
 export const useSiteStore = defineStore("site", () => {
+  const preferences = usePreferencesStore();
   const settings = ref<PublicSettings>({});
   const loaded = ref(false);
   const loading = ref(false);
@@ -45,7 +50,18 @@ export const useSiteStore = defineStore("site", () => {
   const commissionOpen = ref<boolean | null>(null);
   const scheduleSummary = ref<ScheduleSummary | null>(null);
 
-  const brand = computed<BrandProfile>(() => settings.value["brand.profile"] ?? FALLBACK_PROFILE);
+  /** 运营文案在这里**统一按当前语言解析**：模板只拿到一句话，不会渲染出 `[object Object]`。 */
+  const brand = computed<ResolvedBrandProfile>(() => {
+    const raw: BrandProfile = settings.value["brand.profile"] ?? FALLBACK_PROFILE;
+    return {
+      brand_name: resolveText(raw.brand_name, preferences.locale),
+      legal_entity: resolveText(raw.legal_entity, preferences.locale),
+      domain: raw.domain,
+      support_email: raw.support_email,
+      service_hours: resolveText(raw.service_hours, preferences.locale),
+      response_sla: raw.response_sla ?? { inquiry_workdays: 3, feedback_workdays: 7 },
+    };
+  });
   const socialLinks = computed<SocialLink[]>(() =>
     (settings.value["brand.social_links"] ?? []).filter((link) => link.url.trim().length > 0),
   );
@@ -72,15 +88,21 @@ export const useSiteStore = defineStore("site", () => {
         redemption_enabled: false,
       },
   );
-  const commercePolicy = computed<CommercePolicy>(
-    () =>
+  const commercePolicy = computed<ResolvedCommercePolicy>(() => {
+    const raw: CommercePolicy =
       settings.value["commerce.policy"] ?? {
         returns_reference: "参照淘宝 / 闲鱼平台规则执行",
         cross_border_note: "跨境订单的物流、关税与偏远地区附加费单独说明。",
         invoice_enabled: true,
         shipping_template_note: "运费模板由工作室配置。",
-      },
-  );
+      };
+    return {
+      returns_reference: resolveText(raw.returns_reference, preferences.locale),
+      cross_border_note: resolveText(raw.cross_border_note, preferences.locale),
+      invoice_enabled: raw.invoice_enabled !== false,
+      shipping_template_note: resolveText(raw.shipping_template_note, preferences.locale),
+    };
+  });
   const featureFlags = computed<Record<string, boolean>>(
     () => settings.value["platform.feature_flags"] ?? {},
   );

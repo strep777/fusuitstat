@@ -13621,6 +13621,23 @@
             ],
             "title": "Resolved At"
           },
+          "policy_note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Policy Note"
+          },
           "messages": {
             "items": {
               "$ref": "#/components/schemas/AfterSaleMessageDto"
@@ -14853,7 +14870,17 @@
             "default": 0
           },
           "duty_note": {
-            "type": "string",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "type": "object"
+              }
+            ],
             "title": "Duty Note",
             "default": ""
           },
@@ -19361,7 +19388,17 @@
             "title": "Duty Estimate Cents"
           },
           "duty_note": {
-            "type": "string",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "type": "object"
+              }
+            ],
             "title": "Duty Note",
             "default": ""
           }
@@ -20534,7 +20571,17 @@
             "default": true
           },
           "ratio_note": {
-            "type": "string",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "type": "object"
+              }
+            ],
             "title": "Ratio Note",
             "default": ""
           }
@@ -20666,7 +20713,17 @@
             "default": true
           },
           "ratio_note": {
-            "type": "string",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "type": "object"
+              }
+            ],
             "title": "Ratio Note",
             "default": ""
           }

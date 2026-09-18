@@ -1231,7 +1231,8 @@ def redemption_policy(session: Session) -> dict[str, Any]:
         "max_ratio_percent": max_ratio,
         "expiry_days": int(policy.get("redemption_expiry_days", 0)),
         "restore_on_refund": bool(policy.get("redemption_restore_on_refund", True)),
-        "ratio_note": str(policy.get("redemption_ratio_note", "")),
+        # 说明文案可能是「按语言给出的值」，原样带出由客户端解析，不在这里字符串化。
+        "ratio_note": policy.get("redemption_ratio_note", ""),
     }
 
 
@@ -1290,7 +1291,7 @@ def redemption_quote(
         "max_ratio_percent": int(policy["max_ratio_percent"]),
         "expiry_days": int(policy["expiry_days"]),
         "restore_on_refund": bool(policy["restore_on_refund"]),
-        "ratio_note": str(policy["ratio_note"]),
+        "ratio_note": policy.get("ratio_note", ""),
     }
 
 

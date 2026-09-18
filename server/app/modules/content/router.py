@@ -255,12 +255,23 @@ def home_aggregate(ctx: ContextDep) -> dict[str, Any]:
 
     brand = svc.setting_value(session, "brand.profile", {}) or {}
     return {
+        # 面向用户的文案同时给出简中与美式英文（C02/C24）：客户端按当前语言解析，
+        # 服务端不按请求语言裁剪，切换语言不需要重新取配置。
         "hero": {
             "brand_name": brand.get("brand_name", "弈星纪元兽装工作室"),
-            "tagline": "绒里有星，装配成纪",
-            "statement": "从设定到实装，一步一步做成可以穿在身上的角色。",
-            "primary_action": {"label": "查看委托指南", "to": "/commission/guide"},
-            "secondary_action": {"label": "浏览作品集", "to": "/works"},
+            "tagline": {"zh-CN": "绒里有星，装配成纪", "en-US": "Stars in the fur, eras in the making"},
+            "statement": {
+                "zh-CN": "从设定到实装，一步一步做成可以穿在身上的角色。",
+                "en-US": "From reference sheet to finished suit, one step at a time — a character you can wear.",
+            },
+            "primary_action": {
+                "label": {"zh-CN": "查看委托指南", "en-US": "Read the commission guide"},
+                "to": "/commission/guide",
+            },
+            "secondary_action": {
+                "label": {"zh-CN": "浏览作品集", "en-US": "Browse the works"},
+                "to": "/works",
+            },
         },
         "schedule": schedule_payload,
         "featured_works": {

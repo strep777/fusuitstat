@@ -27,7 +27,7 @@ from app.modules.contracts import (
     PendingActionsDto,
     ShipmentDto,
 )
-from app.modules.shared.schemas import Dto, StrictDto
+from app.modules.shared.schemas import Dto, LocalizedTextDto, StrictDto
 
 
 # ------------------------------------------------------------------ 购物车
@@ -118,7 +118,7 @@ class PointsQuoteDto(Dto):
     max_ratio_percent: int = 0
     expiry_days: int = 0
     restore_on_refund: bool = True
-    ratio_note: str = ""
+    ratio_note: LocalizedTextDto = ""
 
 
 class CheckoutPreviewDto(Dto):
@@ -142,7 +142,7 @@ class CheckoutPreviewDto(Dto):
     cross_border: bool = False
     duty_estimate_cents: int | None = None
     duty_percent: int = 0
-    duty_note: str = ""
+    duty_note: LocalizedTextDto = ""
     estimate_available: bool = False
 
 

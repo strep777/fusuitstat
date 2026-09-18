@@ -10,7 +10,7 @@ from typing import Annotated, Any, Literal
 
 from pydantic import Field, field_validator
 
-from app.modules.shared.schemas import Dto, Page, StrictDto
+from app.modules.shared.schemas import Dto, LocalizedTextDto, Page, StrictDto
 
 PointAppealStatus = Literal["SUBMITTED", "UNDER_REVIEW", "ACCEPTED", "REJECTED"]
 
@@ -48,7 +48,7 @@ class PointRedemptionQuote(Dto):
     max_ratio_percent: int
     expiry_days: int = 0
     restore_on_refund: bool = True
-    ratio_note: str = ""
+    ratio_note: LocalizedTextDto = ""
 
 
 class PointLedgerSource(Dto):

@@ -273,7 +273,7 @@ async function submitAppeal(): Promise<void> {
             {{ formatDateTime(feedback.response_due_at) }}（按客服工作日计算，节假日顺延）。
           </span>
         </p>
-        <p v-else-if="!isSettledStatus" class="mt-2 text-sm text-ink-muted">
+        <p v-else-if="isSettledStatus" class="mt-2 text-sm text-ink-muted">
           该反馈已有处理结论，首响时效不再计时。
         </p>
         <p class="mt-2 text-xs text-ink-faint">

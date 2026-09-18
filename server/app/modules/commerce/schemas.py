@@ -70,12 +70,17 @@ class CheckoutItemInput(StrictDto):
 
 
 class CheckoutPreviewInput(StrictDto):
-    """预览输入只允许 SKU、数量、地址与优惠选择。"""
+    """预览输入只允许 SKU、数量、地址与优惠/积分选择。
+
+    ``redeem_points`` 是「想用多少星绒币」这一**选择**，不是金额：
+    能用多少、抵多少钱一律由服务端按运营配置裁定（08/09 文档）。
+    """
 
     items: list[CheckoutItemInput] = Field(min_length=1, max_length=50)
     address_id: str = Field(min_length=1, max_length=48)
     coupon_code: str | None = Field(default=None, max_length=40)
     terms_version: str | None = Field(default=None, max_length=40)
+    redeem_points: int = Field(default=0, ge=0, le=100_000_000)
 
 
 class CheckoutLineDto(Dto):
@@ -94,6 +99,28 @@ class CheckoutLineDto(Dto):
     available: int = 0
 
 
+class PointsQuoteDto(Dto):
+    """积分抵扣报价（未使用积分时为 None）。数值全部由服务端裁定。"""
+
+    enabled: bool = True
+    points_name: str = "星绒币"
+    amount_cents: int = 0
+    available_points: int = 0
+    max_points: int = 0
+    max_cents: int = 0
+    requested_points: int = 0
+    applied_points: int = 0
+    applied_cents: int = 0
+    capped: bool = False
+    rounded_points: int = 0
+    min_points: int = 0
+    points_per_yuan: int = 0
+    max_ratio_percent: int = 0
+    expiry_days: int = 0
+    restore_on_refund: bool = True
+    ratio_note: str = ""
+
+
 class CheckoutPreviewDto(Dto):
     checkout_token: str
     expires_at: str | None = None
@@ -107,6 +134,10 @@ class CheckoutPreviewDto(Dto):
     # 优惠券关闭时为 None；启用后回传实际生效的券码与说明，前端不做本地推算。
     coupon_code: str | None = None
     coupon_note: str | None = None
+    # 积分抵扣（C15）：抵扣金额与实际用掉的积分；未使用或未开启时为 0 / None。
+    points_discount_cents: int = 0
+    points_redeemed: int = 0
+    points_quote: PointsQuoteDto | None = None
 
 
 class OrderCreateInput(StrictDto):
@@ -116,6 +147,8 @@ class OrderCreateInput(StrictDto):
     address_id: str = Field(min_length=1, max_length=48)
     terms_version: str = Field(min_length=1, max_length=40)
     accepted: bool
+    # 与预览一致：客户端只能提交「想用多少积分」，抵扣金额由服务端重算并核对。
+    redeem_points: int = Field(default=0, ge=0, le=100_000_000)
 
 
 class OrderCreatedDto(Dto):
@@ -126,6 +159,8 @@ class OrderCreatedDto(Dto):
     total_cents: int
     currency: str
     expires_at: str | None = None
+    points_discount_cents: int = 0
+    points_redeemed: int = 0
 
 
 class OrderCancelInput(StrictDto):

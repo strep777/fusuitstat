@@ -40,6 +40,7 @@ from app.modules.commerce.models import (
 from app.modules.content.ports import feature_flags, require_feature, setting_value
 from app.modules.contracts import CreatedOrder, OrderTotals
 from app.modules.identity import ports as identity_ports
+from app.modules.loyalty import ports as loyalty_ports
 from app.platform import audit
 from app.platform.db import affected_rows
 from app.platform.errors import AppError
@@ -185,12 +186,16 @@ def allocate_discount(subtotals: list[int], discount_cents: int) -> list[int]:
     return floors
 
 
-def _validate_amounts(goods_cents: int, discount_cents: int, shipping_cents: int) -> int:
-    if goods_cents < 0 or discount_cents < 0 or shipping_cents < 0:
+def _validate_amounts(
+    goods_cents: int, discount_cents: int, shipping_cents: int, points_discount_cents: int = 0
+) -> int:
+    if goods_cents < 0 or discount_cents < 0 or shipping_cents < 0 or points_discount_cents < 0:
         raise AppError("VALIDATION_ERROR", "金额不能为负。")
     if discount_cents > goods_cents:
         raise AppError("STATE_CONFLICT", "优惠金额超过商品金额，请联系客服核对。")
-    total = goods_cents - discount_cents + shipping_cents
+    if points_discount_cents > goods_cents - discount_cents:
+        raise AppError("STATE_CONFLICT", "积分抵扣超过应付商品金额，请联系客服核对。")
+    total = goods_cents - discount_cents - points_discount_cents + shipping_cents
     if total > MAX_TOTAL_CENTS:
         raise AppError("VALIDATION_ERROR", "单笔订单金额超出上限，请联系客服。")
     return total
@@ -258,6 +263,8 @@ def _apply_pricing(
     lines: list[dict[str, Any]],
     region_code: str,
     coupon_code: str | None,
+    user_id: str | None = None,
+    redeem_points: int = 0,
 ) -> dict[str, Any]:
     policy = commerce_policy(session)
     goods_cents, currency = _aggregate_lines(lines)
@@ -269,11 +276,27 @@ def _apply_pricing(
     shipping_cents = compute_shipping_cents(policy, goods_cents=goods_cents, region_code=region_code)
     if free_shipping_coupon(policy, coupon_code=coupon_code):
         shipping_cents = 0
-    total_cents = _validate_amounts(goods_cents, discount_cents, shipping_cents)
+    # 积分抵扣：只有明确要求使用时才查询积分模块，未开启兑换的部署完全不受影响。
+    # 抵扣基准是「券后商品金额」，运费不参与抵扣。
+    points_quote: dict[str, Any] | None = None
+    if int(redeem_points) > 0:
+        if not user_id:
+            raise AppError("VALIDATION_ERROR", "缺少用户信息，无法使用积分抵扣。")
+        points_quote = loyalty_ports.quote_order_redemption(
+            session,
+            user_id=user_id,
+            amount_cents=max(0, goods_cents - discount_cents),
+            points=int(redeem_points),
+        )
+    points_discount_cents = int(points_quote["applied_cents"]) if points_quote else 0
+    total_cents = _validate_amounts(goods_cents, discount_cents, shipping_cents, points_discount_cents)
     return {
         "lines": lines,
         "goods_cents": goods_cents,
         "discount_cents": discount_cents,
+        "points_discount_cents": points_discount_cents,
+        "points_redeemed": int(points_quote["applied_points"]) if points_quote else 0,
+        "points_quote": points_quote,
         "shipping_cents": shipping_cents,
         "total_cents": total_cents,
         "currency": currency,
@@ -370,6 +393,7 @@ def preview_checkout(
     address_id: str,
     coupon_code: str | None = None,
     terms_version: str | None = None,
+    redeem_points: int = 0,
 ) -> dict[str, Any]:
     """重算价格与运费，登记一次性结算令牌。客户端不得提交单价、金额或积分。"""
     address = _require_owned_address(session, user_id=user_id, address_id=address_id)
@@ -383,7 +407,12 @@ def preview_checkout(
 
     lines = [_line_for_sku(session, sku_id, quantity) for sku_id, quantity in merged.items()]
     priced = _apply_pricing(
-        session, lines=lines, region_code=address.region_code, coupon_code=coupon_code
+        session,
+        lines=lines,
+        region_code=address.region_code,
+        coupon_code=coupon_code,
+        user_id=user_id,
+        redeem_points=redeem_points,
     )
     for line in lines:
         if line["product_kind"] == "exclusive_character":
@@ -396,6 +425,8 @@ def preview_checkout(
         lines=lines,
         address_id=address_id,
         coupon_code=priced["coupon_code"],
+        redeem_points=priced["points_redeemed"],
+        points_discount_cents=priced["points_discount_cents"],
         goods_cents=priced["goods_cents"],
         discount_cents=priced["discount_cents"],
         shipping_cents=priced["shipping_cents"],
@@ -412,6 +443,9 @@ def preview_checkout(
         "lines": [_checkout_line(line) for line in lines],
         "goods_cents": priced["goods_cents"],
         "discount_cents": priced["discount_cents"],
+        "points_discount_cents": priced["points_discount_cents"],
+        "points_redeemed": priced["points_redeemed"],
+        "points_quote": priced["points_quote"],
         "shipping_cents": priced["shipping_cents"],
         "total_cents": priced["total_cents"],
         "currency": priced["currency"],
@@ -487,10 +521,13 @@ def create_order(
     terms_version: str,
     accepted: bool,
     idempotency_key: str,
+    redeem_points: int = 0,
 ) -> CreatedOrder:
     """现货下单：幂等登记 → 地址 → 令牌一次性消费 → 重算价格 → 预留 → 建单。
 
     以上步骤在同一事务内完成；任一步失败都不留下半成品订单。
+    积分抵扣（C15）也在这一个事务里冻结：可用额度不足会让整单回滚，不会出现
+    「订单已建、积分没冻住」的中间态。
     """
     if not accepted:
         raise AppError(
@@ -502,6 +539,7 @@ def create_order(
             "checkout_token_hash": hash_token(checkout_token or ""),
             "address_id": address_id,
             "terms_version": terms_version,
+            "redeem_points": int(redeem_points),
         }
     )
     replay = _register_idempotency(
@@ -547,6 +585,8 @@ def create_order(
         lines=fresh_lines,
         region_code=address.region_code,
         coupon_code=checkout.coupon_code,
+        user_id=user_id,
+        redeem_points=redeem_points,
     )
     if (
         priced["goods_cents"] != checkout.goods_cents
@@ -558,8 +598,19 @@ def create_order(
             "价格或运费已变化，请确认最新金额后重新下单。",
             fields={"total_cents": str(priced["total_cents"])},
         )
+    # 预览与建单之间积分余额或规则可能变化：以建单时服务端重算的结果为准，
+    # 与预览不一致就必须让用户重新确认，不能默默少抵或多扣。
+    if int(priced["points_discount_cents"]) != int(checkout.points_discount_cents):
+        raise AppError(
+            "PRICE_CHANGED",
+            "积分抵扣金额已变化，请重新结算确认。",
+            fields={"points_discount_cents": str(priced["points_discount_cents"])},
+        )
     total_cents = _validate_amounts(
-        priced["goods_cents"], priced["discount_cents"], priced["shipping_cents"]
+        priced["goods_cents"],
+        priced["discount_cents"],
+        priced["shipping_cents"],
+        priced["points_discount_cents"],
     )
 
     order = Order(
@@ -570,6 +621,8 @@ def create_order(
         currency=priced["currency"],
         goods_cents=priced["goods_cents"],
         discount_cents=priced["discount_cents"],
+        points_redeemed=int(priced["points_redeemed"]),
+        points_discount_cents=int(priced["points_discount_cents"]),
         shipping_cents=priced["shipping_cents"],
         total_cents=total_cents,
         checkout_session_id=checkout.id,
@@ -639,6 +692,17 @@ def create_order(
 
     _enforce_approval_requirements(session, user_id=user_id, lines=fresh_lines, items=items, order_id=order.id)
 
+    # 积分冻结与建单同一事务：可用额度不足时条件更新会失败并回滚整单，
+    # 不会留下「订单已建、积分未冻」或「库存已占、订单没成」的中间态。
+    if int(priced["points_redeemed"]) > 0:
+        loyalty_ports.reserve_order_redemption(
+            session,
+            user_id=user_id,
+            order_id=order.id,
+            points=int(priced["points_redeemed"]),
+            ttl_minutes=max(15, ORDER_TTL_MINUTES),
+        )
+
     for line, item in zip(fresh_lines, items, strict=True):
         catalog_ports.reserve(
             session,
@@ -689,6 +753,8 @@ def create_order(
             "total_cents": total_cents,
             "currency": priced["currency"],
             "kind": order.kind,
+            "points_redeemed": order.points_redeemed,
+            "points_discount_cents": order.points_discount_cents,
         },
     )
     enqueue(
@@ -708,6 +774,8 @@ def create_order(
             shipping_cents=order.shipping_cents,
             total_cents=order.total_cents,
             currency=order.currency,
+            points_discount_cents=order.points_discount_cents,
+            points_redeemed=order.points_redeemed,
         ),
         expires_at=order.expires_at,
     )
@@ -1030,6 +1098,8 @@ def _created_order_from_existing(
             shipping_cents=order.shipping_cents,
             total_cents=order.total_cents,
             currency=order.currency,
+            points_discount_cents=order.points_discount_cents,
+            points_redeemed=order.points_redeemed,
         ),
         expires_at=order.expires_at,
     )
@@ -1193,6 +1263,11 @@ def _finalize_cancellation(
     session: Session, *, order: Order, reason: str, released: list[str]
 ) -> dict[str, Any]:
     _release_character(session, order=order, reason=reason)
+    # 关闭订单：释放下单时冻结的积分（只改冻结额度，不动账面，因此不写账本）。
+    redeemed = 0
+    if int(order.points_redeemed) > 0:
+        redemption = loyalty_ports.release_order_redemption(session, order_id=order.id)
+        redeemed = int(redemption.get("points") or 0)
     audit.record(
         session,
         actor_type="customer",
@@ -1200,7 +1275,7 @@ def _finalize_cancellation(
         action="order.cancel",
         resource_type="order",
         resource_id=order.id,
-        after={"status": order.status, "released_reservations": released},
+        after={"status": order.status, "released_reservations": released, "released_points": redeemed},
         reason=reason,
     )
     enqueue(
@@ -1209,7 +1284,12 @@ def _finalize_cancellation(
         aggregate_id=order.id,
         payload={"order_no": order.order_no, "status": order.status, "reason": reason},
     )
-    return {"order_id": order.id, "status": order.status, "released_reservations": released}
+    return {
+        "order_id": order.id,
+        "status": order.status,
+        "released_reservations": released,
+        "released_points": redeemed,
+    }
 
 
 def expire_due_orders(session: Session, *, now: int | None = None, limit: int = 20) -> int:
@@ -1352,6 +1432,11 @@ def on_installment_paid(session: Session, *, order_id: str, installment_id: str)
         catalog_ports.consume(session, reservation_id=reservation.id, reason="payment_confirmed")
         consumed.append(reservation.id)
     result["consumed_reservations"] = consumed
+    # 支付确认：把下单时冻结的积分真正扣掉（幂等，没有冻结时是空操作）。
+    if int(order.points_redeemed) > 0:
+        redemption = loyalty_ports.consume_order_redemption(session, order_id=order.id)
+        result["points_redeemed"] = int(redemption.get("points") or 0)
+        result["points_consumed"] = bool(redemption.get("consumed"))
     result["adopted_character_id"] = _adopt_character(session, order=order)
 
     order.status = _next_paid_status(session, order=order)
@@ -1458,6 +1543,28 @@ def on_refund_succeeded(
     order = repo.get_order(session, order_id=order_id)
     assert order is not None
 
+    # 现金退款按原订单分摊返还积分（09 文档第 73 条）：目标 = 已用积分 × 累计退款 / 应付总额。
+    # 用「目标值」而不是「本次增量」交给积分模块，重复投递与分批退款都不会重复返还。
+    restored_total = int(order.points_restored)
+    if int(order.points_redeemed) > 0 and int(order.total_cents) > 0:
+        target = int(order.points_redeemed) * int(order.refunded_cents) // int(order.total_cents)
+        restored = loyalty_ports.restore_order_redemption(
+            session,
+            order_id=order.id,
+            target_points=target,
+            reason=f"退款 {refund_id} 成功，按原订单分摊返还",
+        )
+        restored_total = int(restored.get("restored_total") or 0)
+        if restored_total != int(order.points_restored):
+            affected_rows(session.execute(
+                sa.update(Order)
+                .where(Order.id == order.id)
+                .values(points_restored=restored_total, version=Order.version + 1, updated_at=now_ms())
+            ))
+            session.expire(order)
+            order = repo.get_order(session, order_id=order_id)
+            assert order is not None
+
     # 售后记录同步退款结果；退款本身不等于回库。
     for after_sale in repo.list_after_sales_for_order(session, order_id=order.id):
         if after_sale.status in ("OPEN", "NEEDS_INFO", "APPROVED", "RETURNING"):
@@ -1480,6 +1587,7 @@ def on_refund_succeeded(
             "shipping_cents": shipping_cents,
             "refunded_cents": order.refunded_cents,
             "restocked": False,
+            "points_restored": restored_total,
         },
         reason="退款成功；库存是否回补由检验结论与运营审核决定",
     )
@@ -2210,6 +2318,7 @@ def order_summary_payload(session: Session, order: Order) -> dict[str, Any]:
         "currency": order.currency,
         "goods_cents": order.goods_cents,
         "discount_cents": order.discount_cents,
+        "points_discount_cents": order.points_discount_cents,
         "shipping_cents": order.shipping_cents,
         "total_cents": order.total_cents,
         "paid_cents": order.paid_cents,
@@ -2249,6 +2358,9 @@ def order_detail_payload(session: Session, order: Order) -> dict[str, Any]:
         "currency": order.currency,
         "goods_cents": order.goods_cents,
         "discount_cents": order.discount_cents,
+        "points_discount_cents": order.points_discount_cents,
+        "points_redeemed": order.points_redeemed,
+        "points_restored": order.points_restored,
         "shipping_cents": order.shipping_cents,
         "total_cents": order.total_cents,
         "paid_cents": summary["paid_cents"],

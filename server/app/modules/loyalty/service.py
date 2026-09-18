@@ -26,6 +26,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any
 
+import sqlalchemy as sa
 from sqlalchemy.orm import Session
 
 from app.modules.content.ports import loyalty_policy
@@ -1428,6 +1429,144 @@ def _reservation_view(row: Any) -> dict[str, Any]:
         "points": int(row.points),
         "state": row.state,
         "expires_at": iso(row.expires_at),
+    }
+
+
+# ------------------------------------------------------------------ 订单抵扣（C15）
+def order_redemption_id(order_id: str) -> str:
+    """订单抵扣的冻结标识：一单一冻结，天然幂等（重复建单不会重复冻结）。"""
+    return f"order:{order_id}"
+
+
+def order_redemption_view(session: Session, *, order_id: str) -> dict[str, Any]:
+    """本单的积分冻结视图；没有冻结时如实返回 ``state="NONE"`` 而不是报错。"""
+    row = repo.get_reservation(session, redemption_id=order_redemption_id(order_id))
+    if row is None:
+        return {"redemption_id": order_redemption_id(order_id), "points": 0, "state": "NONE",
+                "expires_at": None}
+    return _reservation_view(row)
+
+
+def reserve_order_redemption(
+    session: Session, *, user_id: str, order_id: str, points: int, ttl_minutes: int = 15
+) -> dict[str, Any]:
+    """下单时冻结积分（与建单同一事务）。可用额度不足由条件更新拦下并回滚整单。"""
+    return reserve_points(
+        session,
+        user_id=user_id,
+        redemption_id=order_redemption_id(order_id),
+        points=points,
+        ttl_minutes=ttl_minutes,
+    )
+
+
+def release_order_redemption(session: Session, *, order_id: str) -> dict[str, Any]:
+    """关闭订单时释放冻结。只改冻结额度、不动账面，因此不写账本；没有冻结时是空操作。"""
+    row = repo.get_reservation(session, redemption_id=order_redemption_id(order_id))
+    if row is None:
+        return {"redemption_id": order_redemption_id(order_id), "points": 0, "state": "NONE",
+                "expires_at": None, "released": False}
+    released = row.state == "HELD"
+    view = release_reservation(session, redemption_id=order_redemption_id(order_id))
+    return {**view, "released": released}
+
+
+def consume_order_redemption(session: Session, *, order_id: str) -> dict[str, Any]:
+    """支付确认后消费冻结：账面扣减并发 REDEMPTION 流水；没有冻结时是空操作。"""
+    row = repo.get_reservation(session, redemption_id=order_redemption_id(order_id))
+    if row is None:
+        return {"redemption_id": order_redemption_id(order_id), "points": 0, "state": "NONE",
+                "expires_at": None, "consumed": False}
+    consumed = row.state == "HELD"
+    view = consume_reservation(session, redemption_id=order_redemption_id(order_id))
+    return {**view, "consumed": consumed}
+
+
+def restored_points_for_order(session: Session, *, order_id: str) -> int:
+    """本单已通过退款返还的积分（REDEMPTION_RELEASE 流水之和）。"""
+    return int(
+        session.scalar(
+            sa.select(sa.func.coalesce(sa.func.sum(PointLedger.delta), 0)).where(
+                PointLedger.source_type == "redemption",
+                PointLedger.source_id == order_redemption_id(order_id),
+                PointLedger.entry_type == "REDEMPTION_RELEASE",
+            )
+        )
+        or 0
+    )
+
+
+def restore_order_redemption(
+    session: Session, *, order_id: str, target_points: int, reason: str
+) -> dict[str, Any]:
+    """退款按原订单分摊返还积分。
+
+    采用「目标值」语义：调用方给出**累计应返还**的积分数，本函数只补差额，
+    因此重复投递、乱序退款、分批退款都不会重复返还（09 文档第 73 条）。
+    """
+    account = None
+    row = repo.get_reservation(session, redemption_id=order_redemption_id(order_id))
+    if row is None:
+        return {"order_id": order_id, "restored_total": 0, "restored_now": 0, "state": "NONE"}
+    already = restored_points_for_order(session, order_id=order_id)
+    if not bool(_policy(session).get("redemption_restore_on_refund", True)):
+        # 退款恢复细则（N04）由运营配置：关掉时只记录，不返还积分。
+        return {
+            "order_id": order_id,
+            "restored_total": already,
+            "restored_now": 0,
+            "state": row.state,
+            "skipped": "RESTORE_DISABLED",
+        }
+    target = max(0, min(int(target_points), int(row.points)))
+    delta = target - already
+    if delta <= 0:
+        return {
+            "order_id": order_id,
+            "restored_total": already,
+            "restored_now": 0,
+            "state": row.state,
+        }
+    account = repo.get_account_by_id(session, account_id=row.account_id)
+    if account is None:  # pragma: no cover - 外键保证存在
+        raise AppError("RESOURCE_NOT_FOUND")
+    moment = now_ms()
+    revision = int(
+        session.scalar(
+            sa.select(sa.func.count())
+            .select_from(PointLedger)
+            .where(
+                PointLedger.source_type == "redemption",
+                PointLedger.source_id == order_redemption_id(order_id),
+                PointLedger.entry_type == "REDEMPTION_RELEASE",
+            )
+        )
+        or 0
+    ) + 1
+    wrote = repo.append_ledger(
+        session,
+        id=new_id("ledger"),
+        account_id=account.id,
+        user_id=account.user_id,
+        delta=delta,
+        entry_type="REDEMPTION_RELEASE",
+        source_type="redemption",
+        source_id=order_redemption_id(order_id),
+        source_revision=revision,
+        rule_version=current_rule_version(session),
+        reversal_of=None,
+        description=f"退款返还：返还 {delta} 分（累计 {target} 分）",
+        label="退款返还",
+        created_at=moment,
+    )
+    if wrote:
+        repo.add_balance(session, account_id=account.id, delta=delta)
+    return {
+        "order_id": order_id,
+        "restored_total": target if wrote else already,
+        "restored_now": delta if wrote else 0,
+        "state": row.state,
+        "reason": reason,
     }
 
 

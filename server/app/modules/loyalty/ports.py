@@ -71,11 +71,66 @@ def order_snapshot(session: Session, order_id: str) -> dict[str, Any]:
     return order_reward_snapshot(session, order_id)
 
 
+# ------------------------------------------------------------------ 出站端口：订单抵扣（C15）
+def quote_order_redemption(
+    session: Session, *, user_id: str, amount_cents: int, points: int
+) -> dict[str, Any]:
+    """结算前报价：服务端裁定可用上限与抵扣金额；未配置规则时抛 ``FEATURE_DISABLED``。"""
+    return service.redemption_quote(
+        session, user_id=user_id, amount_cents=amount_cents, points=points
+    )
+
+
+def order_redemption_view(session: Session, *, order_id: str) -> dict[str, Any]:
+    """本单积分冻结视图（``state="NONE"`` 表示没有冻结）。"""
+    return service.order_redemption_view(session, order_id=order_id)
+
+
+def reserve_order_redemption(
+    session: Session, *, user_id: str, order_id: str, points: int, ttl_minutes: int
+) -> dict[str, Any]:
+    """下单时冻结积分（调用方事务内）；可用额度不足抛 ``POINTS_INSUFFICIENT``。"""
+    return service.reserve_order_redemption(
+        session, user_id=user_id, order_id=order_id, points=points, ttl_minutes=ttl_minutes
+    )
+
+
+def consume_order_redemption(session: Session, *, order_id: str) -> dict[str, Any]:
+    """支付确认后消费冻结（幂等；没有冻结时是空操作）。"""
+    return service.consume_order_redemption(session, order_id=order_id)
+
+
+def release_order_redemption(session: Session, *, order_id: str) -> dict[str, Any]:
+    """关闭订单时释放冻结（幂等；没有冻结时是空操作）。"""
+    return service.release_order_redemption(session, order_id=order_id)
+
+
+def restore_order_redemption(
+    session: Session, *, order_id: str, target_points: int, reason: str
+) -> dict[str, Any]:
+    """退款返还：按「累计应返还」目标值补差额，重复调用不重复返还。"""
+    return service.restore_order_redemption(
+        session, order_id=order_id, target_points=target_points, reason=reason
+    )
+
+
+def restored_points_for_order(session: Session, *, order_id: str) -> int:
+    """本单已返还的积分（对账与幂等基准）。"""
+    return service.restored_points_for_order(session, order_id=order_id)
+
+
 __all__ = [
     "account_view",
     "apply_adjustment",
+    "consume_order_redemption",
+    "order_redemption_view",
     "order_snapshot",
     "post_due_awards",
+    "quote_order_redemption",
     "recompute_award",
+    "release_order_redemption",
+    "reserve_order_redemption",
+    "restore_order_redemption",
+    "restored_points_for_order",
     "reverse_award",
 ]

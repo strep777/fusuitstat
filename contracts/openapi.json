@@ -14474,6 +14474,26 @@
               }
             ],
             "title": "Coupon Note"
+          },
+          "points_discount_cents": {
+            "type": "integer",
+            "title": "Points Discount Cents",
+            "default": 0
+          },
+          "points_redeemed": {
+            "type": "integer",
+            "title": "Points Redeemed",
+            "default": 0
+          },
+          "points_quote": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PointsQuoteDto"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "type": "object",
@@ -14528,6 +14548,13 @@
               }
             ],
             "title": "Terms Version"
+          },
+          "redeem_points": {
+            "type": "integer",
+            "maximum": 100000000.0,
+            "minimum": 0.0,
+            "title": "Redeem Points",
+            "default": 0
           }
         },
         "additionalProperties": false,
@@ -14537,7 +14564,7 @@
           "address_id"
         ],
         "title": "CheckoutPreviewInput",
-        "description": "预览输入只允许 SKU、数量、地址与优惠选择。"
+        "description": "预览输入只允许 SKU、数量、地址与优惠/积分选择。\n\n``redeem_points`` 是「想用多少星绒币」这一**选择**，不是金额：\n能用多少、抵多少钱一律由服务端按运营配置裁定（08/09 文档）。"
       },
       "ClosureRequest": {
         "properties": {
@@ -18295,6 +18322,13 @@
           "accepted": {
             "type": "boolean",
             "title": "Accepted"
+          },
+          "redeem_points": {
+            "type": "integer",
+            "maximum": 100000000.0,
+            "minimum": 0.0,
+            "title": "Redeem Points",
+            "default": 0
           }
         },
         "additionalProperties": false,
@@ -18351,6 +18385,16 @@
               }
             ],
             "title": "Expires At"
+          },
+          "points_discount_cents": {
+            "type": "integer",
+            "title": "Points Discount Cents",
+            "default": 0
+          },
+          "points_redeemed": {
+            "type": "integer",
+            "title": "Points Redeemed",
+            "default": 0
           }
         },
         "type": "object",
@@ -18392,6 +18436,11 @@
           "discount_cents": {
             "type": "integer",
             "title": "Discount Cents"
+          },
+          "points_discount_cents": {
+            "type": "integer",
+            "title": "Points Discount Cents",
+            "default": 0
           },
           "shipping_cents": {
             "type": "integer",
@@ -18479,6 +18528,16 @@
               }
             ],
             "title": "Paid At"
+          },
+          "points_redeemed": {
+            "type": "integer",
+            "title": "Points Redeemed",
+            "default": 0
+          },
+          "points_restored": {
+            "type": "integer",
+            "title": "Points Restored",
+            "default": 0
           },
           "shipped_at": {
             "anyOf": [
@@ -18735,6 +18794,11 @@
           "discount_cents": {
             "type": "integer",
             "title": "Discount Cents"
+          },
+          "points_discount_cents": {
+            "type": "integer",
+            "title": "Points Discount Cents",
+            "default": 0
           },
           "shipping_cents": {
             "type": "integer",
@@ -19812,6 +19876,98 @@
         "type": "object",
         "title": "PointsBadge",
         "description": "账户总览用的星绒币摘要。权威数值来自积分账户，前端不自行估算。"
+      },
+      "PointsQuoteDto": {
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled",
+            "default": true
+          },
+          "points_name": {
+            "type": "string",
+            "title": "Points Name",
+            "default": "星绒币"
+          },
+          "amount_cents": {
+            "type": "integer",
+            "title": "Amount Cents",
+            "default": 0
+          },
+          "available_points": {
+            "type": "integer",
+            "title": "Available Points",
+            "default": 0
+          },
+          "max_points": {
+            "type": "integer",
+            "title": "Max Points",
+            "default": 0
+          },
+          "max_cents": {
+            "type": "integer",
+            "title": "Max Cents",
+            "default": 0
+          },
+          "requested_points": {
+            "type": "integer",
+            "title": "Requested Points",
+            "default": 0
+          },
+          "applied_points": {
+            "type": "integer",
+            "title": "Applied Points",
+            "default": 0
+          },
+          "applied_cents": {
+            "type": "integer",
+            "title": "Applied Cents",
+            "default": 0
+          },
+          "capped": {
+            "type": "boolean",
+            "title": "Capped",
+            "default": false
+          },
+          "rounded_points": {
+            "type": "integer",
+            "title": "Rounded Points",
+            "default": 0
+          },
+          "min_points": {
+            "type": "integer",
+            "title": "Min Points",
+            "default": 0
+          },
+          "points_per_yuan": {
+            "type": "integer",
+            "title": "Points Per Yuan",
+            "default": 0
+          },
+          "max_ratio_percent": {
+            "type": "integer",
+            "title": "Max Ratio Percent",
+            "default": 0
+          },
+          "expiry_days": {
+            "type": "integer",
+            "title": "Expiry Days",
+            "default": 0
+          },
+          "restore_on_refund": {
+            "type": "boolean",
+            "title": "Restore On Refund",
+            "default": true
+          },
+          "ratio_note": {
+            "type": "string",
+            "title": "Ratio Note",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "title": "PointsQuoteDto",
+        "description": "积分抵扣报价（未使用积分时为 None）。数值全部由服务端裁定。"
       },
       "ProductApproval": {
         "properties": {

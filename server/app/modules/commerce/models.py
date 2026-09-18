@@ -85,6 +85,8 @@ class CheckoutSession(PkMixin, TimestampMixin, Base):
     lines: Mapped[list[Any] | None] = mapped_column(sa.JSON)
     address_id: Mapped[str] = mapped_column(sa.String(48), nullable=False)
     coupon_code: Mapped[str | None] = mapped_column(sa.String(40))
+    redeem_points: Mapped[int] = mapped_column(sa.Integer, nullable=False, default=0)
+    points_discount_cents: Mapped[int] = mapped_column(sa.Integer, nullable=False, default=0)
     goods_cents: Mapped[int] = mapped_column(sa.Integer, nullable=False, default=0)
     discount_cents: Mapped[int] = mapped_column(sa.Integer, nullable=False, default=0)
     shipping_cents: Mapped[int] = mapped_column(sa.Integer, nullable=False, default=0)
@@ -119,6 +121,11 @@ class Order(PkMixin, TimestampMixin, VersionMixin, Base):
     currency: Mapped[str] = mapped_column(sa.String(3), nullable=False, default="CNY")
     goods_cents: Mapped[int] = mapped_column(sa.Integer, nullable=False, default=0)
     discount_cents: Mapped[int] = mapped_column(sa.Integer, nullable=False, default=0)
+    # 积分抵扣（C15，默认关闭）：冻结/消费的积分与它抵掉的钱分开记账，
+    # 便于退款按原订单分摊返还与对账（09 文档第 73 条）。
+    points_redeemed: Mapped[int] = mapped_column(sa.Integer, nullable=False, default=0)
+    points_discount_cents: Mapped[int] = mapped_column(sa.Integer, nullable=False, default=0)
+    points_restored: Mapped[int] = mapped_column(sa.Integer, nullable=False, default=0)
     shipping_cents: Mapped[int] = mapped_column(sa.Integer, nullable=False, default=0)
     total_cents: Mapped[int] = mapped_column(sa.Integer, nullable=False, default=0)
     paid_cents: Mapped[int] = mapped_column(sa.Integer, nullable=False, default=0)
@@ -166,7 +173,16 @@ class Order(PkMixin, TimestampMixin, VersionMixin, Base):
         ),
         sa.CheckConstraint("discount_cents <= goods_cents", name="ck_orders_discount_le_goods"),
         sa.CheckConstraint(
-            "total_cents = goods_cents - discount_cents + shipping_cents",
+            "points_discount_cents >= 0 AND points_redeemed >= 0 AND points_restored >= 0",
+            name="ck_orders_points_amounts",
+        ),
+        sa.CheckConstraint(
+            "points_discount_cents <= goods_cents - discount_cents",
+            name="ck_orders_points_le_goods",
+        ),
+        # 08 文档的金额公式加上积分抵扣项：积分抵扣与优惠一样直接减少应付金额。
+        sa.CheckConstraint(
+            "total_cents = goods_cents - discount_cents - points_discount_cents + shipping_cents",
             name="ck_orders_total_formula",
         ),
         sa.Index("ix_orders_user_status", "user_id", "status", "created_at"),

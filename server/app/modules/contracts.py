@@ -129,6 +129,9 @@ class OrderTotals:
     shipping_cents: int
     total_cents: int
     currency: str
+    # 积分抵扣（C15，默认 0）。与优惠分开，便于退款按原订单分摊返还。
+    points_discount_cents: int = 0
+    points_redeemed: int = 0
 
 
 @dataclass(frozen=True)
@@ -363,6 +366,7 @@ class OrderSummaryDto(Dto):
     currency: str
     goods_cents: int
     discount_cents: int
+    points_discount_cents: int = 0
     shipping_cents: int
     total_cents: int
     paid_cents: int = 0
@@ -379,6 +383,9 @@ class OrderDetailDto(OrderSummaryDto):
     terms_version: str = ""
     terms_accepted_at: str | None = None
     paid_at: str | None = None
+    # 积分抵扣明细（C15）：用了多少、抵了多少、退款已返还多少。
+    points_redeemed: int = 0
+    points_restored: int = 0
     shipped_at: str | None = None
     completed_at: str | None = None
     cancelled_at: str | None = None

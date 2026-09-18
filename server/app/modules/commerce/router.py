@@ -96,6 +96,7 @@ def checkout_preview(
         address_id=payload.address_id,
         coupon_code=payload.coupon_code,
         terms_version=payload.terms_version,
+        redeem_points=payload.redeem_points,
     )
     applied_coupon = result.get("coupon_code")
     result.setdefault(
@@ -126,6 +127,7 @@ def create_order(
         terms_version=payload.terms_version,
         accepted=payload.accepted,
         idempotency_key=idempotency_key,
+        redeem_points=payload.redeem_points,
     )
     return OrderCreatedDto(
         order_id=created.order_id,
@@ -135,6 +137,8 @@ def create_order(
         total_cents=created.totals.total_cents,
         currency=created.totals.currency,
         expires_at=iso(created.expires_at),
+        points_discount_cents=created.totals.points_discount_cents,
+        points_redeemed=created.totals.points_redeemed,
     )
 
 

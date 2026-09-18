@@ -161,6 +161,9 @@ def settings(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Iterator[Any]:
     monkeypatch.setenv("APP_ENV", "test")
     monkeypatch.setenv("PUBLIC_ORIGIN", BASE_ORIGIN)
     monkeypatch.setenv("SQLITE_SYNCHRONOUS", "NORMAL")
+    # 电子签沙箱通道：与支付沙箱同口径——本地联调通道，生产配置校验直接拒绝。
+    monkeypatch.setenv("ESIGN_PROVIDER", "sandbox")
+    monkeypatch.setenv("ESIGN_WEBHOOK_SECRET", "esign-webhook-test-0123456789")
     if _file_database_usable(tmp_path):
         monkeypatch.setenv("DATA_DIR", str(tmp_path))
         monkeypatch.delenv("DATABASE_URL", raising=False)

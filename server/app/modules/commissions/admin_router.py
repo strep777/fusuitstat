@@ -22,6 +22,7 @@ from app.modules.commissions import repository as repo
 from app.modules.commissions import service as svc
 from app.modules.commissions.models import STAGE_STATUSES, CommissionProject
 from app.modules.commissions.schemas import (
+    ContractVoidInput,
     InquirySupplementInput,
     QuotePublishInput,
     ScheduleRoundInput,
@@ -842,6 +843,58 @@ def decide_change(
     else:
         raise AppError("VALIDATION_ERROR", fields={"decision": "只能是 APPROVED 或 REJECTED"})
     return svc.change_dto(change).model_dump()
+
+
+@admin_router.post(
+    "/commission-projects/{project_id}/contract/send",
+    response_model=dict,
+    dependencies=[Depends(require_permission("production.write"))],
+)
+def resend_contract(
+    project_id: str,
+    ctx: ContextDep,
+    _csrf: CsrfDep,
+    principal: PrincipalDep,
+) -> dict[str, Any]:
+    """重发合同签署（C07）：渠道故障或凭据补齐后由运营手动重发。
+
+    重发**复用同一签署任务**，不会产生第二份合同；渠道未接入时如实返回未发送原因。
+    """
+    from app.modules.commissions import esign_service
+
+    project = _authorized_project(ctx, project_id)
+    envelope = esign_service.envelope_for_project(ctx.session, project_id=project.id)
+    if envelope is None:
+        raise AppError("RESOURCE_NOT_FOUND", "该制作单没有合同签署任务。")
+    if envelope.status == "SIGNED":
+        return esign_service.envelope_payload(ctx.session, envelope)
+    esign_service.send_contract(ctx.session, envelope=envelope, actor_id=principal.id)
+    return esign_service.envelope_payload(ctx.session, envelope)
+
+
+@admin_router.post(
+    "/commission-projects/{project_id}/contract/void",
+    response_model=dict,
+    dependencies=[Depends(require_permission("production.write"))],
+)
+def void_contract(
+    project_id: str,
+    payload: ContractVoidInput,
+    ctx: ContextDep,
+    _csrf: CsrfDep,
+    principal: PrincipalDep,
+) -> dict[str, Any]:
+    """作废未签署的合同任务（报价撤回、客户取消）；已签署的合同不可作废。"""
+    from app.modules.commissions import esign_service
+
+    project = _authorized_project(ctx, project_id)
+    envelope = esign_service.envelope_for_project(ctx.session, project_id=project.id)
+    if envelope is None:
+        raise AppError("RESOURCE_NOT_FOUND", "该制作单没有合同签署任务。")
+    esign_service.void_envelope(
+        ctx.session, envelope=envelope, reason=payload.reason, actor_id=principal.id
+    )
+    return esign_service.envelope_payload(ctx.session, envelope)
 
 
 def _parse_moment(value: str | None) -> int | None:

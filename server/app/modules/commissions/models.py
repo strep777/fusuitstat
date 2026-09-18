@@ -123,6 +123,10 @@ class Inquiry(PkMixin, TimestampMixin, VersionMixin, Base):
     rights_declaration: Mapped[int] = mapped_column(sa.Integer, nullable=False, default=0)
     # C19：未成年付费委托需监护人同意与额外签署的监护人条款。
     guardian_required: Mapped[int] = mapped_column(sa.Integer, nullable=False, default=0)
+    # 监护人联系信息：合同签署需要监护人作为第二个签署人，缺失时拒绝发起签署而不是猜。
+    guardian_name: Mapped[str | None] = mapped_column(sa.String(60))
+    guardian_email: Mapped[str | None] = mapped_column(sa.String(160))
+    guardian_relation: Mapped[str | None] = mapped_column(sa.String(20))
     current_revision: Mapped[int] = mapped_column(sa.Integer, nullable=False, default=0)
     # 工作人员已读到的版本：客户其后修改只追加版本，不覆盖已见内容。
     staff_seen_revision: Mapped[int] = mapped_column(sa.Integer, nullable=False, default=0)
@@ -525,12 +529,77 @@ class ChangeRequest(PkMixin, TimestampMixin, VersionMixin, Base):
     )
 
 
+class ContractEnvelope(PkMixin, TimestampMixin, VersionMixin, Base):
+    """合同电子签签署任务（C07/C19）。
+
+    一行一次签署任务：合同快照摘要 + 签署人（含监护人）+ 平台文档号 + 签署状态。
+    **签署结论只认平台**（已验签回调或服务端查单），本表不根据"点了链接"推断已签。
+    """
+
+    __tablename__ = "contract_envelopes"
+    id_kind = "envelope"
+
+    quote_id: Mapped[str] = mapped_column(
+        sa.ForeignKey("quotes.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    inquiry_id: Mapped[str | None] = mapped_column(sa.String(48), index=True)
+    order_id: Mapped[str | None] = mapped_column(sa.String(48), index=True)
+    project_id: Mapped[str | None] = mapped_column(sa.String(48), index=True)
+    user_id: Mapped[str] = mapped_column(
+        sa.ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    provider: Mapped[str] = mapped_column(sa.String(30), nullable=False, default="disabled")
+    #: 平台侧文档号；未发送时为空。
+    provider_document_id: Mapped[str | None] = mapped_column(sa.String(120), index=True)
+    status: Mapped[str] = mapped_column(sa.String(20), nullable=False, default="PENDING_SEND")
+    subject: Mapped[str] = mapped_column(sa.String(200), nullable=False, default="")
+    #: 合同快照摘要：签署的到底是哪一版，可核对且不随报价改版漂移。
+    snapshot_digest: Mapped[str] = mapped_column(sa.String(64), nullable=False, default="")
+    signers: Mapped[list[Any] | None] = mapped_column(sa.JSON)
+    guardian_required: Mapped[int] = mapped_column(sa.Integer, nullable=False, default=0)
+    sign_url: Mapped[str | None] = mapped_column(sa.String(500))
+    expires_at: Mapped[int | None] = mapped_column(sa.BigInteger)
+    sent_at: Mapped[int | None] = mapped_column(sa.BigInteger)
+    completed_at: Mapped[int | None] = mapped_column(sa.BigInteger)
+    decline_reason: Mapped[str | None] = mapped_column(sa.String(300))
+    void_reason: Mapped[str | None] = mapped_column(sa.String(300))
+    #: 签署完成文件的留证：相对路径 + 摘要（文件本身按私密附件策略存放）。
+    document_path: Mapped[str | None] = mapped_column(sa.String(300))
+    document_sha256: Mapped[str | None] = mapped_column(sa.String(64))
+    #: 已验签回调的原始摘要（原文单独落盘，库里只留摘要）。
+    last_event_digest: Mapped[str | None] = mapped_column(sa.String(64))
+    attempts: Mapped[int] = mapped_column(sa.Integer, nullable=False, default=0)
+    failure_reason: Mapped[str | None] = mapped_column(sa.String(300))
+
+    __table_args__ = (
+        sa.CheckConstraint(
+            _enum_check(
+                "status",
+                (
+                    "PENDING_SEND",
+                    "SENT",
+                    "PARTIALLY_SIGNED",
+                    "SIGNED",
+                    "DECLINED",
+                    "EXPIRED",
+                    "VOID",
+                ),
+            ),
+            name="ck_contract_envelopes_status",
+        ),
+        sa.CheckConstraint("guardian_required IN (0,1)", name="ck_contract_envelopes_guardian"),
+        sa.CheckConstraint("attempts >= 0", name="ck_contract_envelopes_attempts"),
+        sa.Index("ix_contract_envelopes_quote_status", "quote_id", "status"),
+    )
+
+
 __all__ = [
     "APPLICATION_STATUSES",
     "CHANGE_SCOPES",
     "CHANGE_STATUSES",
     "ChangeRequest",
     "CommissionProject",
+    "ContractEnvelope",
     "INQUIRY_STATUSES",
     "Inquiry",
     "InquiryRevision",

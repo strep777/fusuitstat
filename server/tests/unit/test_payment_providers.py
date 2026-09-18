@@ -222,6 +222,12 @@ def test_production_requires_channel_credentials() -> None:
         "storage_backend": "s3",
         "smtp_host": "mail.test",
         "payment_providers": "stripe",
+        # C07：商业上线必须接入真实电子签渠道（沙箱/未配置都会被生产校验拒绝）。
+        "esign_provider": "fadada",
+        "esign_app_id": "esign-app-1",
+        "esign_app_secret": "esign-secret-1",
+        "esign_webhook_secret": "esign-webhook-1",
+        "esign_api_base": "https://openapi.example-esign.com",
     }
     with pytest.raises(ValueError) as error:
         Settings(**base)  # type: ignore[arg-type]

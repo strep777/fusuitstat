@@ -10,9 +10,10 @@
 
 from __future__ import annotations
 
-from typing import Annotated
+from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, Header, Query, Response
+from fastapi import APIRouter, Depends, Header, Query, Request, Response
+from fastapi.responses import JSONResponse
 
 from app.api.dependencies import (
     ContextDep,
@@ -21,6 +22,7 @@ from app.api.dependencies import (
     PrincipalDep,
     enforce_write_guard,
 )
+from app.modules.commissions import esign_service
 from app.modules.commissions import repository as repo
 from app.modules.commissions import service as svc
 from app.modules.commissions.admin_router import admin_router
@@ -57,6 +59,14 @@ from app.platform.ids import iso
 public_router = APIRouter(tags=["commissions"], dependencies=[Depends(enforce_write_guard)])
 
 IdempotencyHeader = Annotated[str | None, Header(alias="Idempotency-Key", max_length=120)]
+
+
+async def _raw_body(request: Request) -> bytes:
+    """回调原始字节：验签与留证都必须基于**未经解析**的原文。"""
+    return await request.body()
+
+
+RawBodyDep = Annotated[bytes, Depends(_raw_body)]
 
 
 # ------------------------------------------------------------------ 询价
@@ -194,6 +204,78 @@ def accept_quote(
         idempotency_key=idempotency_key,
     )
     return svc.accept_response_dto(order, project, quote)
+
+
+# ------------------------------------------------------------------ 电子签（C07/C19）
+@public_router.get("/inquiries/{inquiry_id}/contract", response_model=dict)
+def inquiry_contract(
+    inquiry_id: str,
+    ctx: ContextDep,
+    user_id: CustomerIdDep,
+) -> dict[str, Any]:
+    """本人询价对应合同的签署状态（含各签署人与待签角色）。
+
+    只返回**话术与状态**，不返回渠道凭据；未接入电子签渠道时如实说明 `provider_configured=false`。
+    """
+    inquiry = repo.get_inquiry(ctx.session, inquiry_id=inquiry_id, user_id=user_id)
+    if inquiry is None:
+        raise AppError("RESOURCE_NOT_FOUND")
+    envelope = esign_service.latest_envelope_for_inquiry(ctx.session, inquiry_id=inquiry.id)
+    if envelope is None:
+        return {
+            "available": False,
+            "reason": "NO_ENVELOPE",
+            "note": "该询价尚无合同签署任务（报价接受后自动发起）。",
+        }
+    payload = esign_service.envelope_payload(ctx.session, envelope)
+    payload["available"] = True
+    return payload
+
+
+@public_router.post("/contract-envelopes/{envelope_id}/refresh", response_model=dict)
+def refresh_contract(
+    envelope_id: str,
+    ctx: ContextDep,
+    _csrf: CsrfDep,
+    user_id: CustomerIdDep,
+) -> dict[str, Any]:
+    """主动向电子签平台查单并刷新状态（成功只认平台，不认页面回调）。"""
+    envelope = esign_service.get_envelope_for_user(
+        ctx.session, envelope_id=envelope_id, user_id=user_id
+    )
+    if envelope is None:
+        raise AppError("RESOURCE_NOT_FOUND")
+    esign_service.refresh_envelope(ctx.session, envelope=envelope)
+    return esign_service.envelope_payload(ctx.session, envelope)
+
+
+@public_router.post("/esign-notifications/{provider}", include_in_schema=True)
+def esign_notification(
+    provider: str,
+    request: Request,
+    ctx: ContextDep,
+    raw_body: RawBodyDep,
+) -> Response:
+    """电子签平台回调：验签通过才落状态；原始字节留证，未验签一律 403。
+
+    与支付回调同一口径：**签署完成只认平台**（已验签回调或服务端查单），
+    页面上的"我已签署"按钮不产生任何状态变化。
+    """
+    digest, _path = esign_service.persist_esign_event(raw_body)
+    result = esign_service.apply_esign_notification(
+        ctx.session,
+        headers=dict(request.headers),
+        raw_body=raw_body,
+        provider=provider,
+    )
+    ctx.session.commit()
+    accepted = bool(result.get("accepted"))
+    status_code = 200 if accepted else (404 if result.get("status") == "PROVIDER_DISABLED" else 403)
+    return JSONResponse(
+        {"received": accepted, "status": result.get("status"), "reason": result.get("reason")},
+        status_code=status_code,
+        headers={"X-Esign-Status": str(result.get("status") or ""), "X-Esign-Digest": digest},
+    )
 
 
 # ------------------------------------------------------------------ 档期（公开）

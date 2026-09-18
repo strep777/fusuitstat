@@ -7,7 +7,7 @@
 
 from __future__ import annotations
 
-from typing import Annotated, Literal
+from typing import Annotated, Any, Literal
 
 from pydantic import Field
 
@@ -39,6 +39,10 @@ class InquiryCreate(StrictDto):
     contact_preference: str | None = Field(default=None, max_length=80)
     rights_declaration: bool = False
     guardian_required: bool = False
+    # C19：未成年委托必须登记监护人联系信息，合同签署需要监护人作为第二个签署人。
+    guardian_name: str | None = Field(default=None, max_length=60)
+    guardian_email: str | None = Field(default=None, max_length=160)
+    guardian_relation: str | None = Field(default=None, max_length=20)
     # C28「服务先申请再报价」：引用本人已通过审批的服务申请；其他类型或未通过的申请由服务端拒绝。
     application_id: str | None = Field(default=None, max_length=48)
     # 草稿重放时前端可能带上已保存的草稿版本号；创建时忽略，编辑走 PATCH。
@@ -61,6 +65,9 @@ class InquiryPatch(VersionedInput):
     contact_preference: str | None = Field(default=None, max_length=80)
     rights_declaration: bool | None = None
     guardian_required: bool | None = None
+    guardian_name: str | None = Field(default=None, max_length=60)
+    guardian_email: str | None = Field(default=None, max_length=160)
+    guardian_relation: str | None = Field(default=None, max_length=20)
 
 
 class InquirySupplementInput(VersionedInput):
@@ -138,6 +145,12 @@ class ReassessmentInput(StrictDto):
 
     version: int = Field(ge=1)
     reason: str = Field(min_length=2, max_length=300)
+
+
+class ContractVoidInput(StrictDto):
+    """作废合同签署任务（C07）：必须写明原因，且已签署的合同不允许作废。"""
+
+    reason: Annotated[str, Field(min_length=5, max_length=300)]
 
 
 class ChangeDecisionInput(StrictDto):
@@ -379,6 +392,8 @@ class CommissionProjectOut(Dto):
     stages: list[ProductionStageOut] = Field(default_factory=list)
     measurements: list[MeasurementOut] = Field(default_factory=list)
     change_requests: list[ChangeRequestOut] = Field(default_factory=list)
+    # C07/C19：合同签署状态（含签署人与待签角色）；未接入电子签渠道时如实标注。
+    contract: dict[str, Any] = Field(default_factory=dict)
 
 
 class InquirySubmitResponse(Dto):
@@ -399,6 +414,7 @@ QuotePublishInput.model_rebuild()
 __all__ = [
     "ChangeRequestOut",
     "CommissionProjectOut",
+    "ContractVoidInput",
     "InquiryCreate",
     "InquiryDetail",
     "InquiryPatch",

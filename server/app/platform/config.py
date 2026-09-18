@@ -127,6 +127,18 @@ class Settings(BaseSettings):
     stripe_api_version: str = "2024-06-20"
     installment_payment_ttl_minutes: int = 30
 
+    # ---- 电子签（C07：合同全部电子签，网站内通过邮件发送合同链接完成签署）----
+    #: ``disabled`` = 未配置（不发送、不假装已签）；``sandbox`` = 本地联调通道（生产禁止）；
+    #: 其余为真实厂商名，必须同时给出该厂商的凭据，否则拒绝启动。
+    esign_provider: str = "disabled"
+    esign_api_base: str = ""
+    esign_app_id: str = ""
+    esign_app_secret: str = ""
+    #: 回调验签密钥（由电子签平台为回调地址签发）。
+    esign_webhook_secret: str = ""
+    #: 签署链接有效期（小时）：超时未签完的合同按过期处理，避免无限期挂起。
+    esign_link_ttl_hours: int = 72
+
     # ---- 存储 ----
     storage_backend: Literal["local", "s3"] = "local"
     storage_public_prefix: str = "public"
@@ -204,6 +216,7 @@ class Settings(BaseSettings):
             if set(self._provider_list()).intersection(SANDBOX_PROVIDERS):
                 problems.append("PAYMENT_PROVIDERS 不允许包含 mock 或 sandbox")
             problems.extend(self._payment_provider_problems())
+            problems.extend(self._esign_provider_problems())
             if self.storage_backend == "local":
                 problems.append("STORAGE_BACKEND=local 不允许生产（须对象存储 + CDN）")
             if not self.smtp_host:
@@ -278,6 +291,26 @@ class Settings(BaseSettings):
             problems.append("PAYMENT_PROVIDERS 含 alipay 时需要 ALIPAY_APP_ID/ALIPAY_PUBLIC_KEY")
         if "paypal" in enabled and not (self.paypal_client_id and self.paypal_webhook_id):
             problems.append("PAYMENT_PROVIDERS 含 paypal 时需要 PAYPAL_CLIENT_ID/PAYPAL_WEBHOOK_ID")
+        return problems
+
+    def _esign_provider_problems(self) -> list[str]:
+        """电子签渠道（C07）：商业上线必须是真的电子签服务，不能是"未配置"或沙箱。"""
+        problems: list[str] = []
+        name = self.esign_provider.strip().lower()
+        if name in ("", "disabled"):
+            problems.append(
+                "ESIGN_PROVIDER 未配置：C07 要求合同全部电子签，未接入电子签渠道不允许商业上线"
+            )
+            return problems
+        if name in SANDBOX_PROVIDERS:
+            problems.append("ESIGN_PROVIDER 不允许使用沙箱/模拟通道（签署状态必须来自真实平台）")
+            return problems
+        if not self.esign_app_id or not self.esign_app_secret:
+            problems.append(f"ESIGN_PROVIDER={name} 需要 ESIGN_APP_ID/ESIGN_APP_SECRET")
+        if not self.esign_webhook_secret:
+            problems.append(f"ESIGN_PROVIDER={name} 需要 ESIGN_WEBHOOK_SECRET（回调验签）")
+        if not self.esign_api_base.startswith("https://"):
+            problems.append(f"ESIGN_PROVIDER={name} 需要 HTTPS 的 ESIGN_API_BASE")
         return problems
 
     @property

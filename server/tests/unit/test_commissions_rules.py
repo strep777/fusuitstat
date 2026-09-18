@@ -1302,14 +1302,69 @@ def test_change_acceptance_records_outbox_when_commerce_port_missing(db: Any) ->
 
 
 # ------------------------------------------------------------------ 制作单推进
+class EsignSandboxOverride:
+    """把电子签渠道换成沙箱实例的上下文管理器（签署回调走真实验签路径）。"""
+
+    def __init__(self) -> None:
+        from app.adapters.esign.sandbox import SandboxEsignGateway
+        from app.platform.config import Settings
+
+        self.gateway = SandboxEsignGateway(
+            Settings(
+                _env_file=None,
+                app_env="test",
+                public_origin="http://127.0.0.1:5173",
+                esign_provider="sandbox",
+                esign_webhook_secret="esign-webhook-test-0123456789",
+            )  # type: ignore[arg-type]
+        )
+
+    def __enter__(self) -> Any:
+        from app.adapters.esign import set_esign_gateway_override
+
+        set_esign_gateway_override(self.gateway)
+        return self.gateway
+
+    def __exit__(self, *_exc: object) -> None:
+        from app.adapters.esign import reset_esign_gateway, set_esign_gateway_override
+
+        set_esign_gateway_override(None)
+        reset_esign_gateway()
+
+
+def sign_contract_for_test(db: Any, *, project_id: str, gateway: Any) -> None:
+    """把该制作单的合同签署任务标记为已签署（C07 开工门禁的测试前置）。
+
+    通过**真实回调路径**完成：渠道签发 → 平台回调 → 验签 → 状态机，不直接改数据库字段。
+    """
+    from app.modules.commissions import esign_service
+
+    envelope = esign_service.envelope_for_project(db, project_id=project_id)
+    if envelope is None:
+        return
+    roles = [str(item["role"]) for item in (envelope.signers or [])]
+    headers, body = gateway.sign_notification(document_no=envelope.id, signed_roles=roles)
+    result = esign_service.apply_esign_notification(
+        db, headers=headers, raw_body=body, provider="sandbox"
+    )
+    assert result["accepted"] and result["status"] == "SIGNED", result
+    # 必须提交：签署状态是后续断言的前置条件，不能随后续 rollback 一起回滚。
+    db.commit()
+
+
 def test_project_advance_requires_sequential_and_settled_balance(db: Any, commerce: CommerceStub) -> None:
     user_id = make_user(db)
     series_id = make_series(db)
     asset_id = make_asset(db, user_id)
     db.commit()
-    order, project = accepted_project(
-        db, commerce=commerce, user_id=user_id, series_id=series_id, asset_id=asset_id
-    )
+    # C07：接受报价后会自动登记合同签署任务；本用例关注状态机与尾款，先把合同签掉。
+    # 沙箱渠道要在**接受报价之前**装上：签署任务由当时的渠道实例签发，事后换渠道实例
+    # 会得到 unknown_document（这本身就是"回调必须对应真实签署任务"的保护）。
+    with EsignSandboxOverride() as gateway:
+        order, project = accepted_project(
+            db, commerce=commerce, user_id=user_id, series_id=series_id, asset_id=asset_id
+        )
+        sign_contract_for_test(db, project_id=project.id, gateway=gateway)
 
     with pytest.raises(AppError) as skip:
         svc.advance_project_stage(db, project_id=project.id, to_status="PRODUCING", actor_id=STAFF_ID)

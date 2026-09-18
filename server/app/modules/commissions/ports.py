@@ -339,8 +339,10 @@ def count_open_inquiries_for_user(session: Session, *, user_id: str) -> int:
 
 __all__ = [
     "accept_quote",
+    "assert_contract_signed",
     "commission_policy",
     "commit_slot_on_prepayment",
+    "contract_status_for_project",
     "count_inquiries_needs_info",
     "count_open_inquiries_for_user",
     "count_quotes_awaiting_decision",
@@ -427,6 +429,20 @@ def remind_overdue_inquiries(session: Session, *, limit: int = 50) -> dict[str, 
     from app.modules.commissions import service as commission_service
 
     return commission_service.remind_overdue_inquiries(session, limit=limit)
+
+
+def assert_contract_signed(session: Session, *, project_id: str) -> None:
+    """C07/C19 合同门禁：制作开工前必须有已签署的合同（跨模块调用只经端口）。"""
+    from app.modules.commissions import esign_service
+
+    esign_service.assert_contract_signed(session, project_id=project_id)
+
+
+def contract_status_for_project(session: Session, *, project_id: str) -> dict[str, Any]:
+    """制作单的合同签署状态（运营与客户看到同一口径）。"""
+    from app.modules.commissions import esign_service
+
+    return esign_service.contract_status_for_project(session, project_id=project_id)
 
 
 def purge_stale_drafts(session: Session, *, before_ms: int, limit: int = 50) -> int:

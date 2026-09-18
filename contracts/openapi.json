@@ -3300,6 +3300,153 @@
         }
       }
     },
+    "/api/v1/inquiries/{inquiry_id}/contract": {
+      "get": {
+        "tags": [
+          "commissions"
+        ],
+        "summary": "Inquiry Contract",
+        "description": "本人询价对应合同的签署状态（含各签署人与待签角色）。\n\n只返回**话术与状态**，不返回渠道凭据；未接入电子签渠道时如实说明 `provider_configured=false`。",
+        "operationId": "inquiry_contract_api_v1_inquiries__inquiry_id__contract_get",
+        "parameters": [
+          {
+            "name": "inquiry_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Inquiry Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Inquiry Contract Api V1 Inquiries  Inquiry Id  Contract Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/contract-envelopes/{envelope_id}/refresh": {
+      "post": {
+        "tags": [
+          "commissions"
+        ],
+        "summary": "Refresh Contract",
+        "description": "主动向电子签平台查单并刷新状态（成功只认平台，不认页面回调）。",
+        "operationId": "refresh_contract_api_v1_contract_envelopes__envelope_id__refresh_post",
+        "parameters": [
+          {
+            "name": "envelope_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Envelope Id"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Refresh Contract Api V1 Contract Envelopes  Envelope Id  Refresh Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/esign-notifications/{provider}": {
+      "post": {
+        "tags": [
+          "commissions"
+        ],
+        "summary": "Esign Notification",
+        "description": "电子签平台回调：验签通过才落状态；原始字节留证，未验签一律 403。\n\n与支付回调同一口径：**签署完成只认平台**（已验签回调或服务端查单），\n页面上的\"我已签署\"按钮不产生任何状态变化。",
+        "operationId": "esign_notification_api_v1_esign_notifications__provider__post",
+        "parameters": [
+          {
+            "name": "provider",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Provider"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/schedule-rounds": {
       "get": {
         "tags": [
@@ -10398,6 +10545,140 @@
         }
       }
     },
+    "/api/v1/admin/commission-projects/{project_id}/contract/send": {
+      "post": {
+        "tags": [
+          "admin",
+          "admin-commissions"
+        ],
+        "summary": "Resend Contract",
+        "description": "重发合同签署（C07）：渠道故障或凭据补齐后由运营手动重发。\n\n重发**复用同一签署任务**，不会产生第二份合同；渠道未接入时如实返回未发送原因。",
+        "operationId": "resend_contract_api_v1_admin_commission_projects__project_id__contract_send_post",
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Project Id"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Resend Contract Api V1 Admin Commission Projects  Project Id  Contract Send Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/commission-projects/{project_id}/contract/void": {
+      "post": {
+        "tags": [
+          "admin",
+          "admin-commissions"
+        ],
+        "summary": "Void Contract",
+        "description": "作废未签署的合同任务（报价撤回、客户取消）；已签署的合同不可作废。",
+        "operationId": "void_contract_api_v1_admin_commission_projects__project_id__contract_void_post",
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Project Id"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ContractVoidInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Void Contract Api V1 Admin Commission Projects  Project Id  Contract Void Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/admin/orders": {
       "get": {
         "tags": [
@@ -15214,6 +15495,11 @@
             },
             "type": "array",
             "title": "Change Requests"
+          },
+          "contract": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Contract"
           }
         },
         "type": "object",
@@ -16171,6 +16457,23 @@
           "version"
         ],
         "title": "ContentUpdateInput"
+      },
+      "ContractVoidInput": {
+        "properties": {
+          "reason": {
+            "type": "string",
+            "maxLength": 300,
+            "minLength": 5,
+            "title": "Reason"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "reason"
+        ],
+        "title": "ContractVoidInput",
+        "description": "作废合同签署任务（C07）：必须写明原因，且已签署的合同不允许作废。"
       },
       "CsrfResponse": {
         "properties": {
@@ -17368,6 +17671,42 @@
             "title": "Guardian Required",
             "default": false
           },
+          "guardian_name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 60
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Guardian Name"
+          },
+          "guardian_email": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 160
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Guardian Email"
+          },
+          "guardian_relation": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 20
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Guardian Relation"
+          },
           "application_id": {
             "anyOf": [
               {
@@ -17848,6 +18187,42 @@
               }
             ],
             "title": "Guardian Required"
+          },
+          "guardian_name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 60
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Guardian Name"
+          },
+          "guardian_email": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 160
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Guardian Email"
+          },
+          "guardian_relation": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 20
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Guardian Relation"
           }
         },
         "additionalProperties": false,

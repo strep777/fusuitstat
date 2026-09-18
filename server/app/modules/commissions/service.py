@@ -252,7 +252,31 @@ def _revision_payload(inquiry: Inquiry) -> dict[str, Any]:
         "contact_preference": inquiry.contact_preference,
         "rights_declaration": bool(inquiry.rights_declaration),
         "guardian_required": bool(inquiry.guardian_required),
+        # C19：监护人联系信息（邮箱对外只回传脱敏形式，签署链接由渠道直接发给监护人）。
+        "guardian_name": inquiry.guardian_name,
+        "guardian_email_masked": _mask_email(inquiry.guardian_email),
+        "guardian_relation": inquiry.guardian_relation,
     }
+
+
+def _mask_email(value: str | None) -> str | None:
+    """邮箱脱敏（``a***@example.com``）：界面需要显示"发给了谁"，但不需要完整地址。"""
+    text = (value or "").strip()
+    if not text or "@" not in text:
+        return None
+    local, _, domain = text.partition("@")
+    head = local[:1] if local else ""
+    return f"{head}***@{domain}"
+
+
+def _customer_display_name(session: Session, user_id: str) -> str:
+    """客户展示名（签署人姓名）：来自身份模块的昵称，缺省用中性称呼而不是手机号。"""
+    from app.modules.identity import ports as identity_ports
+
+    user = identity_ports.get_user(session, user_id=user_id)
+    if user is None:
+        return "客户"
+    return identity_ports.display_name(user)
 
 
 def _append_revision(
@@ -363,6 +387,9 @@ def create_inquiry(
         contact_preference=payload.contact_preference,
         rights_declaration=1 if payload.rights_declaration else 0,
         guardian_required=1 if payload.guardian_required else 0,
+        guardian_name=(payload.guardian_name or "").strip() or None,
+        guardian_email=(payload.guardian_email or "").strip() or None,
+        guardian_relation=(payload.guardian_relation or "").strip() or None,
         application_id=application_id,
     )
     session.add(inquiry)
@@ -452,6 +479,12 @@ def update_inquiry(
         inquiry.rights_declaration = 1 if patch.rights_declaration else 0
     if patch.guardian_required is not None:
         inquiry.guardian_required = 1 if patch.guardian_required else 0
+    if patch.guardian_name is not None:
+        inquiry.guardian_name = patch.guardian_name.strip() or None
+    if patch.guardian_email is not None:
+        inquiry.guardian_email = patch.guardian_email.strip() or None
+    if patch.guardian_relation is not None:
+        inquiry.guardian_relation = patch.guardian_relation.strip() or None
     inquiry.version += 1
     inquiry.updated_at = now_ms()
 
@@ -1181,6 +1214,27 @@ def accept_quote_for_user(
     snapshot["slot_reservation_id"] = reservation.id if reservation else None
     quote.contract_snapshot = snapshot
     session.flush()
+
+    # C07/C19：合同签署任务与接受报价**同一事务**登记（留痕），渠道调用放在这里立刻执行；
+    # 渠道不可用时任务停在 PENDING_SEND 并记录原因，不由运营"以为已发出去"。
+    from app.modules.commissions import esign_service
+    from app.modules.identity import ports as identity_ports
+
+    customer_email = identity_ports.verified_email(session, user_id) or ""
+    customer_name = _customer_display_name(session, user_id)
+    envelope = esign_service.create_envelope(
+        session,
+        quote=quote,
+        inquiry=inquiry,
+        user_id=user_id,
+        customer_name=customer_name,
+        customer_email=customer_email,
+        order_id=order.order_id,
+        project_id=project.id,
+    )
+    esign_service.send_contract(session, envelope=envelope)
+    snapshot["contract_envelope_id"] = envelope.id
+    snapshot["contract_status"] = envelope.status
 
     _remember_idempotent(
         session,
@@ -1948,6 +2002,12 @@ def advance_project_stage(
     ):
         # 尾款未结清不能发货（07 文档）。
         raise AppError("STATE_CONFLICT", "尾款尚未结清，不能发货。")
+    if to_status == "MEASUREMENT_PENDING":
+        # C07/C19：合同未签署完成不能开工（有签署任务时才算门禁；渠道未接入的情形
+        # 在项目载荷里如实报告 contract_not_requested，并在生产配置校验处拦截上线）。
+        from app.modules.commissions import esign_service
+
+        esign_service.assert_contract_signed(session, project_id=project.id)
 
     moment = now_ms()
     before = {"status": project.status}
@@ -2765,6 +2825,8 @@ def change_dto(row: ChangeRequest) -> ChangeRequestOut:
 
 
 def project_dto(session: Session, project: CommissionProject, *, include_private: bool) -> CommissionProjectOut:
+    from app.modules.commissions import esign_service
+
     stages = [stage_dto(row) for row in repo.list_stages(session, project_id=project.id)]
     measurements = [
         measurement_dto(row, include_payload=include_private)
@@ -2795,6 +2857,8 @@ def project_dto(session: Session, project: CommissionProject, *, include_private
         stages=stages,
         measurements=measurements,
         change_requests=changes,
+        # C07/C19：合同签署状态与制作单一起返回，运营与客户看到同一口径。
+        contract=esign_service.contract_status_for_project(session, project_id=project.id),
     )
 
 

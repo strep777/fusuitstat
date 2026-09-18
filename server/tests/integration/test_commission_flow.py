@@ -880,17 +880,56 @@ def test_stage_change_and_change_acceptance_over_http(client: Any, db: Any) -> N
     assert repeat.json()["version"] == body["version"]
 
 
-def test_shipping_blocked_until_balance_settled(client: Any, db: Any, payments_stub: dict[str, Any]) -> None:
-    actor = login(db)
-    series_id = make_series(db)
-    asset_id = make_asset(db, actor.user_id)
-    inquiry_id = create_submitted_inquiry(client, db, actor, series_id, asset_id)
-    quote = publish_quote(db, inquiry_id=inquiry_id, total_cents=400000)
-    accepted = client.post(
-        f"{BASE}/quotes/{quote.id}/accept", json=accept_payload(quote), headers=actor.headers()
+def _esign_settings() -> Any:
+    """电子签沙箱渠道的配置（仅测试用；生产配置校验拒绝沙箱渠道）。"""
+    from app.platform.config import Settings
+
+    return Settings(
+        _env_file=None,
+        app_env="test",
+        public_origin=ORIGIN,
+        esign_provider="sandbox",
+        esign_webhook_secret="esign-webhook-test-0123456789",
     )
-    assert accepted.status_code == 201
-    project_id = accepted.json()["project_id"]
+
+
+def test_shipping_blocked_until_balance_settled(client: Any, db: Any, payments_stub: dict[str, Any]) -> None:
+    from app.adapters.esign import reset_esign_gateway, set_esign_gateway_override
+    from app.adapters.esign.sandbox import SandboxEsignGateway
+    from app.modules.commissions import esign_service
+
+    # C07：签署任务由**接受报价时的渠道实例**签发，因此沙箱渠道要在接受之前装上。
+    sandbox = SandboxEsignGateway(_esign_settings())
+    set_esign_gateway_override(sandbox)
+    try:
+        actor = login(db)
+        series_id = make_series(db)
+        asset_id = make_asset(db, actor.user_id)
+        inquiry_id = create_submitted_inquiry(client, db, actor, series_id, asset_id)
+        quote = publish_quote(db, inquiry_id=inquiry_id, total_cents=400000)
+        accepted = client.post(
+            f"{BASE}/quotes/{quote.id}/accept", json=accept_payload(quote), headers=actor.headers()
+        )
+        assert accepted.status_code == 201
+        project_id = accepted.json()["project_id"]
+
+        # 合同签完才能开工（尾款门禁才是本用例的关注点）
+        envelope = esign_service.envelope_for_project(db, project_id=project_id)
+        assert envelope is not None
+        headers, body = sandbox.sign_notification(
+            document_no=envelope.id,
+            signed_roles=[str(item["role"]) for item in (envelope.signers or [])],
+        )
+        assert (
+            esign_service.apply_esign_notification(
+                db, headers=headers, raw_body=body, provider="sandbox"
+            )["status"]
+            == "SIGNED"
+        )
+        db.commit()
+    finally:
+        set_esign_gateway_override(None)
+        reset_esign_gateway()
 
     for status in ("MEASUREMENT_PENDING", "DESIGN_CONFIRMING", "MATERIALS_READY", "PRODUCING",
                    "CUSTOMER_REVIEW", "READY_TO_SHIP"):

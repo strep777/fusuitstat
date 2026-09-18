@@ -8,9 +8,16 @@ import { RouterLink, useRoute } from "vue-router";
 
 import { useAuthStore } from "@/modules/identity/stores/auth";
 import { useSiteStore } from "@/modules/content/stores/site";
+import { useI18n } from "@/shared/lib/i18n";
 import { BrandMark, PointsIcon } from "@/shared/ui/BrandMark";
 import { AppButton } from "@/shared/ui/base";
 import { usePreferencesStore } from "@/shared/stores/preferences";
+
+const route = useRoute();
+const auth = useAuthStore();
+const site = useSiteStore();
+const preferences = usePreferencesStore();
+const { t, locale, setLocale } = useI18n();
 
 interface NavItem {
   label: string;
@@ -19,20 +26,19 @@ interface NavItem {
   feature?: string;
 }
 
-const route = useRoute();
-const auth = useAuthStore();
-const site = useSiteStore();
-const preferences = usePreferencesStore();
+/** 语言切换只在后台启用 `en_locale` 后出现：未上线的语言不输出假入口（C02/C24）。 */
+const englishAvailable = computed(() => site.featureEnabled("en_locale"));
+const nextLocale = computed(() => (locale.value === "en-US" ? "zh-CN" : "en-US"));
 
 const navItems = computed<NavItem[]>(() => {
   const items: NavItem[] = [
-    { label: "作品", to: "/works" },
-    { label: "系列", to: "/fursuits" },
-    { label: "委托", to: "/commission/guide" },
-    { label: "角色", to: "/characters" },
-    { label: "商城", to: "/shop" },
-    { label: "公告", to: "/news" },
-    { label: "关于", to: "/about" },
+    { label: t("nav.works"), to: "/works" },
+    { label: t("nav.series"), to: "/fursuits" },
+    { label: t("nav.commission"), to: "/commission/guide" },
+    { label: t("nav.characters"), to: "/characters" },
+    { label: t("nav.shop"), to: "/shop" },
+    { label: t("nav.news"), to: "/news" },
+    { label: t("nav.about"), to: "/about" },
   ];
   return items.filter((item) => !item.feature || site.featureEnabled(item.feature));
 });
@@ -71,8 +77,8 @@ watch(
 );
 
 const commissionLabel = computed(() => {
-  if (site.commissionOpen === null) return "查看档期";
-  return site.commissionOpen ? "委托开放中" : "委托暂未开放";
+  if (site.commissionOpen === null) return t("nav.scheduleUnknown");
+  return site.commissionOpen ? t("nav.scheduleOpen") : t("nav.scheduleClosed");
 });
 </script>
 
@@ -86,15 +92,17 @@ const commissionLabel = computed(() => {
     "
   >
     <div class="container-page flex h-16 items-center gap-4 sm:h-20">
-      <RouterLink to="/" class="flex items-center gap-3" aria-label="弈星纪元兽装工作室首页">
+      <RouterLink to="/" class="flex items-center gap-3" :aria-label="t('nav.brandHome')">
         <BrandMark :size="40" variant="dark" decorative class="shrink-0" />
         <span class="flex flex-col leading-tight">
-          <span class="font-display text-base font-semibold tracking-tight sm:text-lg">弈星纪元</span>
-          <span class="hidden text-[11px] text-ink-faint sm:block">STARIUM FURSUIT STUDIO</span>
+          <span class="font-display text-base font-semibold tracking-tight sm:text-lg">
+            {{ t("common.brandShort") }}
+          </span>
+          <span class="hidden text-[11px] text-ink-faint sm:block">{{ t("common.brandEnglish") }}</span>
         </span>
       </RouterLink>
 
-      <nav class="ml-4 hidden items-center gap-1 lg:flex" aria-label="主导航">
+      <nav class="ml-4 hidden items-center gap-1 lg:flex" :aria-label="t('nav.mainLabel')">
         <RouterLink
           v-for="item in navItems"
           :key="item.to"
@@ -119,10 +127,22 @@ const commissionLabel = computed(() => {
           {{ commissionLabel }}
         </RouterLink>
 
+        <!-- 语言切换：仅在后台启用 en_locale 后出现（未上线语言不输出假入口） -->
+        <button
+          v-if="englishAvailable"
+          type="button"
+          lang="en-US"
+          class="hidden size-11 items-center justify-center rounded-sm border border-line text-xs font-medium text-ink-muted transition-colors hover:border-amber hover:text-amber-strong sm:inline-flex"
+          :aria-label="`${t('common.language')}：${nextLocale === 'en-US' ? t('common.languageEn') : t('common.languageZh')}`"
+          @click="setLocale(nextLocale)"
+        >
+          <span aria-hidden="true">{{ nextLocale === "en-US" ? "EN" : "中" }}</span>
+        </button>
+
         <button
           type="button"
           class="inline-flex size-11 items-center justify-center rounded-sm border border-line text-ink-muted transition-colors hover:border-amber hover:text-amber-strong"
-          :aria-label="preferences.theme === 'dark' ? '切换到浅色主题' : '切换到深色主题'"
+          :aria-label="preferences.theme === 'dark' ? t('nav.themeToLight') : t('nav.themeToDark')"
           :aria-pressed="preferences.theme === 'dark'"
           @click="preferences.toggleTheme()"
         >
@@ -134,7 +154,7 @@ const commissionLabel = computed(() => {
           to="/account"
           class="hidden items-center gap-2 rounded-sm border border-line px-3 py-2 text-sm text-ink-soft transition-colors hover:border-amber sm:inline-flex"
         >
-          <PointsIcon :size="18" :label="`${auth.displayName}，${auth.unread} 条未读通知`" />
+          <PointsIcon :size="18" :label="`${auth.displayName}${t('nav.unread', { count: auth.unread })}`" />
           <span class="max-w-[8rem] truncate">{{ auth.displayName }}</span>
           <span
             v-if="auth.unread > 0"
@@ -145,7 +165,7 @@ const commissionLabel = computed(() => {
           </span>
         </RouterLink>
         <AppButton v-else to="/login" variant="secondary" size="sm" class="hidden sm:inline-flex">
-          登录
+          {{ t("nav.login") }}
         </AppButton>
 
         <button
@@ -154,7 +174,7 @@ const commissionLabel = computed(() => {
           class="inline-flex size-11 items-center justify-center rounded-sm border border-line text-ink-soft lg:hidden"
           :aria-expanded="menuOpen"
           aria-controls="site-mobile-menu"
-          aria-label="打开导航菜单"
+          :aria-label="menuOpen ? t('nav.closeMenu') : t('nav.openMenu')"
           @click="menuOpen = !menuOpen"
         >
           <span aria-hidden="true">{{ menuOpen ? "✕" : "☰" }}</span>
@@ -167,7 +187,7 @@ const commissionLabel = computed(() => {
       id="site-mobile-menu"
       class="border-t border-line bg-surface lg:hidden"
     >
-      <nav class="container-page grid gap-1 py-4" aria-label="移动导航">
+      <nav class="container-page grid gap-1 py-4" :aria-label="t('nav.mobileLabel')">
         <RouterLink
           v-for="item in navItems"
           :key="item.to"
@@ -182,14 +202,22 @@ const commissionLabel = computed(() => {
           to="/account"
           class="rounded-sm px-3 py-3 text-base text-ink-soft hover:bg-surface-muted"
         >
-          我的账户
+          {{ t("nav.account") }}
         </RouterLink>
         <RouterLink v-else to="/login" class="rounded-sm px-3 py-3 text-base text-ink-soft hover:bg-surface-muted">
-          手机号登录
+          {{ t("nav.loginMobile") }}
         </RouterLink>
         <RouterLink to="/contact" class="rounded-sm px-3 py-3 text-base text-ink-soft hover:bg-surface-muted">
-          联系与反馈
+          {{ t("nav.contact") }}
         </RouterLink>
+        <button
+          v-if="englishAvailable"
+          type="button"
+          class="rounded-sm px-3 py-3 text-left text-base text-ink-soft hover:bg-surface-muted"
+          @click="setLocale(nextLocale)"
+        >
+          {{ nextLocale === "en-US" ? t("common.languageEn") : t("common.languageZh") }}
+        </button>
       </nav>
     </div>
   </header>

@@ -7,36 +7,38 @@ import { computed } from "vue";
 import { RouterLink } from "vue-router";
 
 import { useSiteStore } from "@/modules/content/stores/site";
+import { useI18n } from "@/shared/lib/i18n";
 import { usePreferencesStore } from "@/shared/stores/preferences";
 import { BrandMark } from "@/shared/ui/BrandMark";
 
 const site = useSiteStore();
 const preferences = usePreferencesStore();
+const { t } = useI18n();
 
 const year = new Date().getFullYear();
 
-const legalLinks = [
-  { label: "用户服务协议", to: "/legal/terms" },
-  { label: "隐私政策", to: "/legal/privacy" },
-  { label: "取消与退换规则", to: "/legal/returns" },
-  { label: "星绒币规则", to: "/legal/points" },
-];
+const legalLinks = computed(() => [
+  { label: t("footer.terms"), to: "/legal/terms" },
+  { label: t("footer.privacy"), to: "/legal/privacy" },
+  { label: t("footer.returns"), to: "/legal/returns" },
+  { label: t("footer.points"), to: "/legal/points" },
+]);
 
-const helpLinks = [
-  { label: "委托指南", to: "/commission/guide" },
-  { label: "档期与名额", to: "/commission/schedules" },
-  { label: "合同示例", to: "/commission/contract" },
-  { label: "常见问题", to: "/faq" },
-  { label: "养护与清洁", to: "/care" },
-];
+const helpLinks = computed(() => [
+  { label: t("footer.guide"), to: "/commission/guide" },
+  { label: t("footer.schedules"), to: "/commission/schedules" },
+  { label: t("footer.contract"), to: "/commission/contract" },
+  { label: t("footer.faq"), to: "/faq" },
+  { label: t("footer.care"), to: "/care" },
+]);
 
-const browseLinks = [
-  { label: "作品集", to: "/works" },
-  { label: "系列规格", to: "/fursuits" },
-  { label: "角色领养", to: "/characters" },
-  { label: "商城", to: "/shop" },
-  { label: "公告", to: "/news" },
-];
+const browseLinks = computed(() => [
+  { label: t("footer.works"), to: "/works" },
+  { label: t("footer.series"), to: "/fursuits" },
+  { label: t("footer.characters"), to: "/characters" },
+  { label: t("footer.shop"), to: "/shop" },
+  { label: t("footer.news"), to: "/news" },
+]);
 
 const safeSocial = computed(() =>
   site.socialLinks.filter((link) => /^https:\/\//i.test(link.url.trim())),
@@ -52,19 +54,19 @@ const safeSocial = computed(() =>
             <BrandMark :size="48" variant="light" decorative />
             <div>
               <p class="font-display text-lg">{{ site.brand.brand_name }}</p>
-              <p class="text-xs text-canvas/60">绒里有星，装配成纪</p>
+              <p class="text-xs text-canvas/60">{{ t("common.brandTagline") }}</p>
             </div>
           </div>
           <p class="mt-5 max-w-sm text-sm leading-relaxed text-canvas/70">
-            手工制作的全装、半装、单头与配件定制工作室。委托先询价、再报价、签合同后进入排期，全程可在账户内查看进度。
+            {{ t("footer.intro") }}
           </p>
           <dl class="mt-6 space-y-2 text-sm text-canvas/70">
             <div class="flex gap-2">
-              <dt class="shrink-0 text-canvas/50">经营主体</dt>
+              <dt class="shrink-0 text-canvas/50">{{ t("footer.legalEntity") }}</dt>
               <dd>{{ site.brand.legal_entity }}</dd>
             </div>
             <div class="flex gap-2">
-              <dt class="shrink-0 text-canvas/50">客服邮箱</dt>
+              <dt class="shrink-0 text-canvas/50">{{ t("footer.supportEmail") }}</dt>
               <dd>
                 <a class="link-underline" :href="`mailto:${site.brand.support_email}`">
                   {{ site.brand.support_email }}
@@ -72,21 +74,25 @@ const safeSocial = computed(() =>
               </dd>
             </div>
             <div class="flex gap-2">
-              <dt class="shrink-0 text-canvas/50">工作时段</dt>
+              <dt class="shrink-0 text-canvas/50">{{ t("footer.serviceHours") }}</dt>
               <dd>{{ site.brand.service_hours }}</dd>
             </div>
             <div class="flex gap-2">
-              <dt class="shrink-0 text-canvas/50">人工响应</dt>
+              <dt class="shrink-0 text-canvas/50">{{ t("footer.responseSla") }}</dt>
               <dd>
-                询价 {{ site.brand.response_sla.inquiry_workdays }} 个工作日、反馈
-                {{ site.brand.response_sla.feedback_workdays }} 个工作日首响
+                {{
+                  t("footer.responseSlaValue", {
+                    inquiry: site.brand.response_sla.inquiry_workdays,
+                    feedback: site.brand.response_sla.feedback_workdays,
+                  })
+                }}
               </dd>
             </div>
           </dl>
         </div>
 
-        <nav aria-label="浏览">
-          <h2 class="eyebrow text-canvas/50">浏览</h2>
+        <nav :aria-label="t('footer.browse')">
+          <h2 class="eyebrow text-canvas/50">{{ t("footer.browse") }}</h2>
           <ul class="mt-4 space-y-2 text-sm">
             <li v-for="link in browseLinks" :key="link.to">
               <RouterLink class="text-canvas/75 transition-colors hover:text-amber-ink" :to="link.to">
@@ -96,8 +102,8 @@ const safeSocial = computed(() =>
           </ul>
         </nav>
 
-        <nav aria-label="委托与帮助">
-          <h2 class="eyebrow text-canvas/50">委托与帮助</h2>
+        <nav :aria-label="t('footer.help')">
+          <h2 class="eyebrow text-canvas/50">{{ t("footer.help") }}</h2>
           <ul class="mt-4 space-y-2 text-sm">
             <li v-for="link in helpLinks" :key="link.to">
               <RouterLink class="text-canvas/75 transition-colors hover:text-amber-ink" :to="link.to">
@@ -108,7 +114,7 @@ const safeSocial = computed(() =>
         </nav>
 
         <div>
-          <h2 class="eyebrow text-canvas/50">规则与联系</h2>
+          <h2 class="eyebrow text-canvas/50">{{ t("footer.legal") }}</h2>
           <ul class="mt-4 space-y-2 text-sm">
             <li v-for="link in legalLinks" :key="link.to">
               <RouterLink class="text-canvas/75 transition-colors hover:text-amber-ink" :to="link.to">
@@ -117,18 +123,18 @@ const safeSocial = computed(() =>
             </li>
             <li>
               <RouterLink class="text-canvas/75 transition-colors hover:text-amber-ink" to="/contact">
-                联系与反馈
+                {{ t("footer.contact") }}
               </RouterLink>
             </li>
             <li>
               <RouterLink class="text-canvas/75 transition-colors hover:text-amber-ink" to="/feedback/new">
-                提交问题或建议
+                {{ t("footer.feedback") }}
               </RouterLink>
             </li>
           </ul>
 
           <div v-if="safeSocial.length" class="mt-6">
-            <h2 class="eyebrow text-canvas/50">社交渠道</h2>
+            <h2 class="eyebrow text-canvas/50">{{ t("footer.social") }}</h2>
             <ul class="mt-3 flex flex-wrap gap-2 text-xs">
               <li v-for="link in safeSocial" :key="link.code">
                 <a
@@ -157,19 +163,19 @@ const safeSocial = computed(() =>
               :checked="preferences.reducedMotion"
               @change="preferences.setReducedMotion(($event.target as HTMLInputElement).checked)"
             />
-            减弱动效
+            {{ t("footer.reduceMotion") }}
           </label>
           <button
             type="button"
             class="link-underline"
             @click="preferences.setTheme(preferences.theme === 'dark' ? 'light' : 'dark')"
           >
-            {{ preferences.theme === "dark" ? "切换浅色主题" : "切换深色主题" }}
+            {{ preferences.theme === "dark" ? t("footer.themeToLight") : t("footer.themeToDark") }}
           </button>
         </div>
       </div>
       <p v-if="site.error" class="mt-4 text-xs text-wine-soft" role="status">
-        站点配置未能从服务端加载，当前显示的是文档基线值。部分运营信息可能不是最新。
+        {{ t("footer.configFallback") }}
       </p>
     </div>
   </footer>

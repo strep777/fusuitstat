@@ -10,10 +10,12 @@ import SiteFooter from "@/app/components/SiteFooter.vue";
 import SiteHeader from "@/app/components/SiteHeader.vue";
 import { useAuthStore } from "@/modules/identity/stores/auth";
 import { useSiteStore } from "@/modules/content/stores/site";
+import { useI18n } from "@/shared/lib/i18n";
 
 const route = useRoute();
 const site = useSiteStore();
 const auth = useAuthStore();
+const { t } = useI18n();
 
 const isPlainLayout = computed(() => route.meta.layout === "plain");
 
@@ -23,7 +25,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <a class="skip-link" href="#main-content">跳到主要内容</a>
+  <a class="skip-link" href="#main-content">{{ t("common.skipToContent") }}</a>
   <SiteHeader v-if="!isPlainLayout" />
   <main id="main-content" class="min-h-[60vh]">
     <RouterView v-slot="{ Component }">

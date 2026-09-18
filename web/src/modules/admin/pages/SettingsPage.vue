@@ -4,6 +4,10 @@
  *
  * 硬约束（10/11 文档）：**不展示任何密钥**。密钥类配置即使存在于服务端，也不会下发到后台界面；
  * 修改设置需要版本号（乐观锁）与理由，冲突时提示刷新后重新提交。
+ *
+ * 结构化配置（如 `commerce.policy` 的运费、售后、发票与跨境块）在服务端是嵌套对象，
+ * 因此本页必须能按 JSON 编辑它：只支持标量会让这些政策**根本改不了**，
+ * 而政策和定价一样是服务端裁定的唯一来源。
  */
 import { computed, onMounted, ref } from "vue";
 
@@ -65,6 +69,12 @@ const columns: TableColumn[] = [
   { key: "updated_by", label: "更新人", width: "120px", hideOnMobile: true },
 ];
 
+/** 结构化配置在表格里以紧凑 JSON 呈现，避免渲染成 `[object Object]`。 */
+function valueText(value: unknown): string {
+  if (typeof value === "object" && value !== null) return JSON.stringify(value);
+  return text(value);
+}
+
 const editTarget = ref<SettingRecord | null>(null);
 const editValue = ref("");
 const editReason = ref("");
@@ -75,9 +85,34 @@ const conflictNotice = ref("");
 
 const isBooleanValue = computed(() => typeof editTarget.value?.value === "boolean" || /^(true|false)$/i.test(editValue.value.trim()));
 
+/** 对象/数组配置按 JSON 编辑；服务端仍会做字段级校验（例如 duty_percent 只能是 0–100）。 */
+const isJsonValue = computed(() => {
+  if (typeof editTarget.value?.value === "object" && editTarget.value?.value !== null) return true;
+  const raw = editValue.value.trim();
+  return raw.startsWith("{") || raw.startsWith("[");
+});
+
+/** JSON 编辑框的实时语法提示：不合法时禁止提交，避免把字符串写进对象配置。 */
+const jsonError = computed(() => {
+  if (!isJsonValue.value) return "";
+  const raw = editValue.value.trim();
+  if (!raw) return "请填写 JSON 配置值。";
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    if (typeof parsed !== "object" || parsed === null) return "该配置是结构化对象，请填写 { … } 或 [ … ]。";
+    return "";
+  } catch {
+    return "JSON 语法有误，请修正后再提交。";
+  }
+});
+
 function openEdit(row: SettingRecord): void {
   editTarget.value = row;
-  editValue.value = row.value === null || row.value === undefined ? "" : String(row.value);
+  if (typeof row.value === "object" && row.value !== null) {
+    editValue.value = JSON.stringify(row.value, null, 2);
+  } else {
+    editValue.value = row.value === null || row.value === undefined ? "" : String(row.value);
+  }
   editReason.value = "";
   editError.value = "";
   conflictNotice.value = "";
@@ -88,6 +123,10 @@ function requestEditConfirm(): void {
     editError.value = "请填写新的配置值；如果要停用某项能力，请用功能开关明确关闭。";
     return;
   }
+  if (jsonError.value) {
+    editError.value = jsonError.value;
+    return;
+  }
   if (editReason.value.trim().length < 6) {
     editError.value = "请填写至少 6 个字的变更理由，例如「按 2026 春季价目表调整预付款比例」。";
     return;
@@ -96,12 +135,21 @@ function requestEditConfirm(): void {
   editConfirmOpen.value = true;
 }
 
-function normalizedValue(): string | number | boolean {
+function normalizedValue(): string | number | boolean | Record<string, unknown> | unknown[] {
+  if (isJsonValue.value) return JSON.parse(editValue.value.trim()) as Record<string, unknown> | unknown[];
   const raw = editValue.value.trim();
   if (/^(true|false)$/i.test(raw)) return raw.toLowerCase() === "true";
   if (/^-?\d+$/.test(raw)) return Number(raw);
   return raw;
 }
+
+/** 结构化配置的变更摘要只做长度裁剪，便于在确认框里人眼核对。 */
+const changeSummary = computed(() => {
+  const before = valueText(editTarget.value?.value);
+  const after = isJsonValue.value ? editValue.value.trim().replace(/\s+/g, " ") : editValue.value;
+  const cut = (value: string) => (value.length > 220 ? `${value.slice(0, 220)}…` : value);
+  return `${cut(before)} → ${cut(after)}`;
+});
 
 async function submitEdit(): Promise<void> {
   const row = editTarget.value;
@@ -186,6 +234,9 @@ onMounted(state.load);
         <span v-if="typeof row.value === 'boolean'">
           <StatusBadge :tone="row.value ? 'jade' : 'neutral'" :label="row.value ? '已启用' : '未启用'" />
         </span>
+        <span v-else-if="typeof row.value === 'object' && row.value !== null" class="block max-h-24 overflow-auto break-all font-mono text-xs">
+          {{ valueText(row.value) }}
+        </span>
         <span v-else class="break-all">{{ text(row.value) }}</span>
       </template>
       <template #cell-updated_at="{ row }">
@@ -202,7 +253,7 @@ onMounted(state.load);
         <FieldList
           class="mt-4"
           :items="[
-            { label: '当前值', value: text(editTarget.value) },
+            { label: '当前值', value: valueText(editTarget.value) },
             { label: '当前版本', value: text(editTarget.version) },
             { label: '最近更新人', value: text(editTarget.updated_by) },
             { label: '最近更新时间', value: formatDateTime(editTarget.updated_at) },
@@ -221,9 +272,25 @@ onMounted(state.load);
               <option value="false">false（关闭）</option>
             </select>
           </FieldRow>
+          <FieldRow
+            v-else-if="isJsonValue"
+            label="新值（JSON）"
+            required
+            for="setting-value-json"
+            hint="结构化配置按 JSON 保存。服务端仍会做字段级校验（例如运费不能为负、比例不能超过 100），不合法时整次修改都会被拒绝并保留原值"
+          >
+            <textarea
+              id="setting-value-json"
+              v-model="editValue"
+              rows="12"
+              spellcheck="false"
+              class="field-base resize-y font-mono text-xs"
+            />
+          </FieldRow>
           <FieldRow v-else label="新值" required for="setting-value" hint="纯数字会按数值保存；true / false 会按开关保存">
             <input id="setting-value" v-model="editValue" type="text" class="field-base font-mono" />
           </FieldRow>
+          <p v-if="isJsonValue && jsonError" class="text-xs text-wine" role="alert">{{ jsonError }}</p>
           <FieldRow label="变更理由" required for="setting-reason" hint="例如：按 2026 春季价目表调整预付款比例">
             <textarea id="setting-reason" v-model="editReason" rows="3" class="field-base resize-y" />
           </FieldRow>
@@ -231,7 +298,7 @@ onMounted(state.load);
             {{ editError }}
           </p>
           <div class="flex flex-wrap gap-3">
-            <AppButton @click="requestEditConfirm">提交修改</AppButton>
+            <AppButton :disabled="!!jsonError" :disabled-reason="jsonError" @click="requestEditConfirm">提交修改</AppButton>
             <AppButton variant="quiet" @click="editTarget = null">取消</AppButton>
           </div>
         </div>
@@ -246,7 +313,7 @@ onMounted(state.load);
             <ul class="mt-2 space-y-1 text-sm">
               <li v-for="item in group.items" :key="item.key" class="flex items-baseline justify-between gap-3">
                 <span class="font-mono text-xs">{{ item.key }}</span>
-                <span class="shrink-0 text-xs text-ink-muted">{{ text(item.value) }}</span>
+                <span class="shrink-0 break-all text-right text-xs text-ink-muted">{{ valueText(item.value) }}</span>
               </li>
             </ul>
           </div>
@@ -259,7 +326,7 @@ onMounted(state.load);
       v-model="editConfirmOpen"
       title="修改经营设置"
       :target="editTarget ? `配置项 ${editTarget.key}` : ''"
-      :change="`${text(editTarget?.value)} → ${editValue}`"
+      :change="changeSummary"
       :amount="`版本 ${text(editTarget?.version)} → ${Number(editTarget?.version ?? 0) + 1}`"
       consequence="设置会同时影响前台展示与服务端校验（价格比例、有效期、开关等）。功能开关关闭后入口隐藏且后端拒绝，不存在绕过方式。"
       confirm-label="确认保存设置"

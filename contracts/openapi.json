@@ -10814,6 +10814,233 @@
         }
       }
     },
+    "/api/v1/admin/invoices": {
+      "get": {
+        "tags": [
+          "admin",
+          "admin-commerce"
+        ],
+        "summary": "Admin List Invoices",
+        "description": "发票队列：待签发的排在最前；抬头与税号只对有权限的运营可见。",
+        "operationId": "admin_list_invoices_api_v1_admin_invoices_get",
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 20
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "name": "order_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 48
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Order Id"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Admin List Invoices Api V1 Admin Invoices Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/invoices/{invoice_id}/issue": {
+      "post": {
+        "tags": [
+          "admin",
+          "admin-commerce"
+        ],
+        "summary": "Admin Issue Invoice",
+        "description": "签发发票并通知客户（同一笔交易不能开两张票）。",
+        "operationId": "admin_issue_invoice_api_v1_admin_invoices__invoice_id__issue_post",
+        "parameters": [
+          {
+            "name": "invoice_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Invoice Id"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InvoiceIssueInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Admin Issue Invoice Api V1 Admin Invoices  Invoice Id  Issue Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/invoices/{invoice_id}/void": {
+      "post": {
+        "tags": [
+          "admin",
+          "admin-commerce"
+        ],
+        "summary": "Admin Void Invoice",
+        "description": "无法开票时作废申请并写明原因，客户能看到进度而不是一直停在「已提交」。",
+        "operationId": "admin_void_invoice_api_v1_admin_invoices__invoice_id__void_post",
+        "parameters": [
+          {
+            "name": "invoice_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Invoice Id"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InvoiceVoidInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Admin Void Invoice Api V1 Admin Invoices  Invoice Id  Void Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/admin/payments": {
       "get": {
         "tags": [
@@ -14603,6 +14830,37 @@
                 "type": "null"
               }
             ]
+          },
+          "cross_border": {
+            "type": "boolean",
+            "title": "Cross Border",
+            "default": false
+          },
+          "duty_estimate_cents": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duty Estimate Cents"
+          },
+          "duty_percent": {
+            "type": "integer",
+            "title": "Duty Percent",
+            "default": 0
+          },
+          "duty_note": {
+            "type": "string",
+            "title": "Duty Note",
+            "default": ""
+          },
+          "estimate_available": {
+            "type": "boolean",
+            "title": "Estimate Available",
+            "default": false
           }
         },
         "type": "object",
@@ -17862,6 +18120,35 @@
         ],
         "title": "InvoiceDto"
       },
+      "InvoiceIssueInput": {
+        "properties": {
+          "reference": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 3,
+            "title": "Reference"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "reference"
+        ],
+        "title": "InvoiceIssueInput",
+        "description": "签发发票：发票号/开票凭证编号必填，便于客户与财务核对。"
+      },
       "InvoiceRequestInput": {
         "properties": {
           "type": {
@@ -17919,6 +18206,22 @@
           "title"
         ],
         "title": "InvoiceRequestInput"
+      },
+      "InvoiceVoidInput": {
+        "properties": {
+          "reason": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 2,
+            "title": "Reason"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "reason"
+        ],
+        "title": "InvoiceVoidInput"
       },
       "JobActionInput": {
         "properties": {
@@ -19040,6 +19343,27 @@
             "additionalProperties": true,
             "type": "object",
             "title": "Policy Snapshot"
+          },
+          "cross_border": {
+            "type": "boolean",
+            "title": "Cross Border",
+            "default": false
+          },
+          "duty_estimate_cents": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duty Estimate Cents"
+          },
+          "duty_note": {
+            "type": "string",
+            "title": "Duty Note",
+            "default": ""
           }
         },
         "type": "object",

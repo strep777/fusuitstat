@@ -737,3 +737,73 @@ describe("结算页的星绒币抵扣", () => {
     expect(callsTo("/checkout/preview", "POST").length).toBe(before);
   });
 });
+
+/* ------------------------------------------------------------------
+   跨境配送与关税预估（C02/C24、C17；N07 首版比例待运营配置）
+   ------------------------------------------------------------------ */
+
+const CROSS_BORDER_NOTE = "跨境订单的关税与进口税费由清关时按目的地法规确定，本站不预估、不代收。";
+
+describe("结算页的跨境关税预估", () => {
+  it("境内地址不出现跨境提示，也不显示 TAX 估算", async () => {
+    const { wrapper } = await mountCheckout({
+      preview: () =>
+        jsonResponse({
+          ...PREVIEW,
+          cross_border: false,
+          duty_estimate_cents: null,
+          duty_percent: 0,
+          duty_note: "",
+          estimate_available: false,
+        }),
+    });
+
+    expect(wrapper.text()).not.toContain("跨境配送与关税");
+    expect(wrapper.text()).not.toContain("关税与进口税费");
+  });
+
+  it("未配置比例时不给金额，写明以清关为准且不计入应付合计", async () => {
+    const { wrapper } = await mountCheckout({
+      preview: () =>
+        jsonResponse({
+          ...PREVIEW,
+          cross_border: true,
+          duty_estimate_cents: null,
+          duty_percent: 0,
+          duty_note: CROSS_BORDER_NOTE,
+          estimate_available: false,
+        }),
+    });
+
+    expect(wrapper.text()).toContain("跨境配送与关税");
+    expect(wrapper.text()).toContain("该收货地址在中国大陆以外");
+    expect(wrapper.text()).toContain("暂无预估金额");
+    expect(wrapper.text()).toContain("以清关时海关核定为准");
+    expect(wrapper.text()).toContain("不计入上方应付合计");
+    expect(wrapper.text()).toContain(CROSS_BORDER_NOTE);
+    // 不能把「没有预估」渲染成 0 元关税
+    expect(wrapper.text()).not.toContain("按 0% 预估");
+  });
+
+  it("配置比例后展示预估金额，但应付合计仍不含预估", async () => {
+    const { wrapper } = await mountCheckout({
+      preview: () =>
+        jsonResponse({
+          ...PREVIEW,
+          cross_border: true,
+          duty_estimate_cents: 3980,
+          duty_percent: 10,
+          duty_note: CROSS_BORDER_NOTE,
+          estimate_available: true,
+        }),
+    });
+
+    expect(wrapper.text()).toContain("关税与进口税费预估");
+    expect(wrapper.text()).toContain("¥39.80");
+    expect(wrapper.text()).toContain("按 10% 预估");
+    expect(wrapper.text()).toContain("预估金额不计入上方应付合计");
+    // 合计依旧等于服务端给出的 total_cents（199.00），没有把预估加进去
+    expect(wrapper.text()).toContain("¥199.00");
+    expect(wrapper.text()).not.toContain("¥238.80");
+  });
+});

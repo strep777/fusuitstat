@@ -1335,6 +1335,16 @@ def apply_refund_outcome(
             refund_id=refund.id,
             goods_cents=sums["goods"],
             shipping_cents=sums["shipping"],
+            # 按行分摊（08 文档：部分退款分配到商品行、运费及已用优惠）——
+            # 商务模块据此更新每一行的已退款金额，不再只有订单级汇总。
+            items=[
+                {
+                    "kind": row.kind,
+                    "order_item_id": row.order_item_id,
+                    "amount_cents": row.amount_cents,
+                }
+                for row in repo.list_refund_items(session, refund.id)
+            ],
         )
         audit.record(
             session,

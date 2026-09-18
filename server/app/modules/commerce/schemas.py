@@ -138,6 +138,12 @@ class CheckoutPreviewDto(Dto):
     points_discount_cents: int = 0
     points_redeemed: int = 0
     points_quote: PointsQuoteDto | None = None
+    # 跨境（C02/C24、N07 待补）：是否跨境、关税/税费**预估**（不进应付合计）与说明。
+    cross_border: bool = False
+    duty_estimate_cents: int | None = None
+    duty_percent: int = 0
+    duty_note: str = ""
+    estimate_available: bool = False
 
 
 class OrderCreateInput(StrictDto):

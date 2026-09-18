@@ -79,7 +79,17 @@ DEFAULT_POLICY: dict[str, Any] = {
         "types": ["personal", "business"],
         "note": "抬头与税号仅用于开票，按最小化原则加密保存。",
     },
+    # 跨境（C02/C24 双区；N07 的跨境物流、关税与偏远地区首版值待补）：
+    # 默认**不预估**关税与税费——读到配置前不编造比例，页面必须写「以清关为准」。
+    "cross_border": {
+        "enabled": False,
+        "duty_percent": 0,
+        "note": "跨境订单的关税与进口税费由清关时按目的地法规确定，本站不预估、不代收。",
+    },
 }
+
+#: 中国大陆的配送区域前缀；其余视为跨境（双区首发）。
+DOMESTIC_REGION_PREFIX = "CN"
 
 MAX_TOTAL_CENTS = 100_000_000_00  # 单笔订单上限，防超大金额（08 文档）
 
@@ -96,7 +106,33 @@ def commerce_policy(session: Session) -> dict[str, Any]:
     policy["coupons_enabled"] = feature_flags(session)["coupons"]
     policy["after_sale"] = {**DEFAULT_POLICY["after_sale"], **(stored.get("after_sale") or {})}
     policy["invoice"] = {**DEFAULT_POLICY["invoice"], **(stored.get("invoice") or {})}
+    policy["cross_border"] = {**DEFAULT_POLICY["cross_border"], **(stored.get("cross_border") or {})}
     return policy
+
+
+def cross_border_estimate(
+    policy: dict[str, Any], *, goods_cents: int, region_code: str
+) -> dict[str, Any]:
+    """跨境可见性：是否跨境、关税/税费**预估**与说明（08/C17，N07 待补）。
+
+    - 只按运营配置的比例给出预估，**不计入应付合计**（关税通常由收件人清关时缴纳）；
+    - 未配置比例时 `duty_estimate_cents` 为 ``None``，页面必须说明「以清关为准」而不是显示 0。
+    """
+    cross = policy.get("cross_border") or {}
+    enabled = bool(cross.get("enabled", False))
+    code = (region_code or "").upper()
+    is_cross_border = bool(code) and not code.startswith(DOMESTIC_REGION_PREFIX)
+    percent = int(cross.get("duty_percent", 0) or 0)
+    estimate = None
+    if enabled and is_cross_border and percent > 0 and goods_cents > 0:
+        estimate = goods_cents * percent // 100
+    return {
+        "cross_border": is_cross_border,
+        "duty_estimate_cents": estimate,
+        "duty_percent": percent,
+        "duty_note": str(cross.get("note") or ""),
+        "estimate_available": estimate is not None,
+    }
 
 
 def compute_shipping_cents(
@@ -290,6 +326,12 @@ def _apply_pricing(
         )
     points_discount_cents = int(points_quote["applied_cents"]) if points_quote else 0
     total_cents = _validate_amounts(goods_cents, discount_cents, shipping_cents, points_discount_cents)
+    # 跨境预估（只展示，不进应付合计）：关税与进口税费由清关确定。
+    cross = cross_border_estimate(
+        policy,
+        goods_cents=max(0, goods_cents - discount_cents - points_discount_cents),
+        region_code=region_code,
+    )
     return {
         "lines": lines,
         "goods_cents": goods_cents,
@@ -302,6 +344,7 @@ def _apply_pricing(
         "currency": currency,
         "coupon_code": applied_code,
         "policy": policy,
+        **cross,
     }
 
 
@@ -450,6 +493,13 @@ def preview_checkout(
         "total_cents": priced["total_cents"],
         "currency": priced["currency"],
         "address_id": address_id,
+        # 跨境（C02/C24、N07 待补）：只作展示，不进 total_cents；
+        # 下单时会用同一政策重算并冻结在订单快照里，因此结算会话不额外落库。
+        "cross_border": priced["cross_border"],
+        "duty_estimate_cents": priced["duty_estimate_cents"],
+        "duty_percent": priced["duty_percent"],
+        "duty_note": priced["duty_note"],
+        "estimate_available": priced["estimate_available"],
     }
 
 
@@ -636,9 +686,19 @@ def create_order(
             "shipping": priced["policy"]["shipping"],
             "after_sale": priced["policy"]["after_sale"],
             "invoice": priced["policy"]["invoice"],
+            "cross_border": priced["policy"]["cross_border"],
             "currency": priced["currency"],
         },
-        snapshot={"region_code": address.region_code, "province": address.province, "city": address.city},
+        snapshot={
+            "region_code": address.region_code,
+            "province": address.province,
+            "city": address.city,
+            # 跨境判定与关税预估在下单时冻结：之后改配置不改历史订单的说法（08/N07）。
+            "cross_border": bool(priced["cross_border"]),
+            "duty_estimate_cents": priced["duty_estimate_cents"],
+            "duty_percent": int(priced["duty_percent"]),
+            "duty_note": str(priced["duty_note"]) if priced["cross_border"] else "",
+        },
     )
     session.add(order)
     session.flush()
@@ -1499,10 +1559,73 @@ def _adopt_character(session: Session, *, order: Order) -> str | None:
 
 
 # ------------------------------------------------------------------ 退款成功
+def allocate_refund_to_items(
+    items: list[Any], refund_cents: int, *, preferred_item_id: str | None = None
+) -> dict[str, int]:
+    """把一笔商品退款分摊到订单行（08 文档第 91 条）。
+
+    - 指定行（售后单指向某一行）时优先记到该行，记满后剩余按比例分给其他行；
+    - 每行不得超过其「剩余可退」= ``cash_goods_cents - refunded_goods_cents``；
+    - 其余行用最大余数法分摊，保证各行之和**恰好等于**可分摊的退款金额
+      （除非所有行都已退满）。
+    """
+    capacities: dict[str, int] = {}
+    ids: list[str] = []
+    for item in items:
+        item_id = str(item.id)
+        ids.append(item_id)
+        capacity = max(0, int(item.cash_goods_cents) - int(item.refunded_goods_cents))
+        capacities[item_id] = capacity
+    allocation: dict[str, int] = {item_id: 0 for item_id in ids}
+    if not capacities:
+        return allocation
+    target = max(0, min(int(refund_cents), sum(capacities.values())))
+    if target == 0:
+        return allocation
+    capacities = {item_id: capacity for item_id, capacity in capacities.items() if capacity > 0}
+    if not capacities:
+        return allocation
+
+    if preferred_item_id and preferred_item_id in capacities:
+        take = min(target, capacities[preferred_item_id])
+        allocation[preferred_item_id] = take
+        target -= take
+        capacities[preferred_item_id] -= take
+        if capacities[preferred_item_id] == 0:
+            del capacities[preferred_item_id]
+    if target == 0 or not capacities:
+        return allocation
+
+    total = sum(capacities.values())
+    exact = {item_id: target * capacity / total for item_id, capacity in capacities.items()}
+    assigned = 0
+    for item_id in sorted(capacities):
+        give = min(int(exact[item_id]), capacities[item_id])
+        allocation[item_id] += give
+        assigned += give
+    remainder = target - assigned
+    for item_id in sorted(capacities, key=lambda key: (-(exact[key] - int(exact[key])), key)):
+        if remainder <= 0:
+            break
+        room = capacities[item_id] - allocation[item_id]
+        if room <= 0:
+            continue
+        give = min(room, remainder)
+        allocation[item_id] += give
+        remainder -= give
+    return allocation
+
+
 def on_refund_succeeded(
-    session: Session, *, order_id: str, refund_id: str, goods_cents: int, shipping_cents: int
+    session: Session,
+    *,
+    order_id: str,
+    refund_id: str,
+    goods_cents: int,
+    shipping_cents: int,
+    items: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
-    """退款成功：只更新汇总与 outbox，不自动补库存（08 文档第 5 条）。"""
+    """退款成功：更新汇总、按行分摊与 outbox，不自动补库存（08 文档第 5 条）。"""
     order = repo.get_order(session, order_id=order_id)
     if order is None:
         raise AppError("RESOURCE_NOT_FOUND")
@@ -1523,6 +1646,7 @@ def on_refund_succeeded(
             "refunded_goods_cents": order.refunded_goods_cents,
             "refunded_shipping_cents": order.refunded_shipping_cents,
             "restocked_quantity": 0,
+            "line_allocation": {},
         }
 
     updated = affected_rows(session.execute(
@@ -1542,6 +1666,27 @@ def on_refund_succeeded(
     session.expire(order)
     order = repo.get_order(session, order_id=order_id)
     assert order is not None
+
+    # 按行分摊（08 文档第 91 条）：优先记到售后指向的行，其余按剩余实付比例分摊；
+    # 每行不得超过自己的剩余可退，分摊之和等于本次商品退款（除非各行业已退满）。
+    line_allocation: dict[str, int] = {}
+    if goods_cents > 0:
+        order_items = repo.list_items(session, order_id=order.id)
+        preferred = None
+        for after_sale in repo.list_after_sales_for_order(session, order_id=order.id):
+            candidate = getattr(after_sale, "order_item_id", None)
+            if candidate and any(str(item.id) == str(candidate) for item in order_items):
+                preferred = str(candidate)
+                break
+        line_allocation = allocate_refund_to_items(
+            order_items, goods_cents, preferred_item_id=preferred
+        )
+        for item in order_items:
+            given = int(line_allocation.get(str(item.id), 0))
+            if given > 0:
+                item.refunded_goods_cents = int(item.refunded_goods_cents) + given
+                item.updated_at = now_ms()
+        session.flush()
 
     # 现金退款按原订单分摊返还积分（09 文档第 73 条）：目标 = 已用积分 × 累计退款 / 应付总额。
     # 用「目标值」而不是「本次增量」交给积分模块，重复投递与分批退款都不会重复返还。
@@ -1588,6 +1733,7 @@ def on_refund_succeeded(
             "refunded_cents": order.refunded_cents,
             "restocked": False,
             "points_restored": restored_total,
+            "line_allocation": line_allocation,
         },
         reason="退款成功；库存是否回补由检验结论与运营审核决定",
     )
@@ -1612,6 +1758,7 @@ def on_refund_succeeded(
         "refunded_goods_cents": order.refunded_goods_cents,
         "refunded_shipping_cents": order.refunded_shipping_cents,
         "restocked_quantity": 0,
+        "line_allocation": line_allocation,
     }
 
 
@@ -2248,8 +2395,14 @@ def request_invoice(
     order = repo.get_order(session, order_id=order_id, user_id=user_id)
     if order is None:
         raise AppError("RESOURCE_NOT_FOUND")
-    policy = commerce_policy(session)["invoice"]
-    if type_ not in tuple(policy.get("types", ("personal", "business"))):
+    policy = commerce_policy(session)
+    # 开票开关与类型都在 `commerce.policy` 这一层被校验：开关是顶层 `invoice_enabled`
+    # （`CommercePolicy.invoice_enabled`），类型在 `invoice.types`。开关与配置同源，
+    # 后台关掉后接口必须拒绝，不存在绕过路径（08/06 文档）。
+    if not bool(policy.get("invoice_enabled", True)):
+        raise AppError("FEATURE_DISABLED", "该店铺当前未开放开票申请。")
+    invoice_policy = policy["invoice"]
+    if type_ not in tuple(invoice_policy.get("types", ("personal", "business"))):
         raise AppError("VALIDATION_ERROR", "暂不支持该发票类型。", fields={"type": "不支持"})
     if order.status in ("PENDING_PAYMENT", "CANCELLED"):
         raise AppError("STATE_CONFLICT", "订单付款后才能申请开票。")
@@ -2301,6 +2454,125 @@ def invoice_title_data(invoice: Invoice) -> dict[str, Any]:
     return parsed if isinstance(parsed, dict) else {}
 
 
+def issue_invoice(
+    session: Session,
+    *,
+    invoice_id: str,
+    reference: str,
+    actor_id: str | None,
+    note: str | None = None,
+) -> Invoice:
+    """签发发票：登记发票号并通知客户（08/03 文档）。
+
+    只接受 `PENDING` 的申请；重复签发返回 ``STATE_CONFLICT``，避免同一笔交易开出两张票。
+    通知只带发票号与金额，不带税号等抬头信息。
+    """
+    from app.modules.notifications.ports import NotificationRequest
+    from app.modules.notifications.ports import notify as enqueue_notification
+
+    row = repo.get_invoice(session, invoice_id=invoice_id)
+    if row is None:
+        raise AppError("RESOURCE_NOT_FOUND")
+    clean = (reference or "").strip()
+    if len(clean) < 3:
+        raise AppError(
+            "VALIDATION_ERROR", "请填写发票号或开票凭证编号。", fields={"reference": "必填"}
+        )
+    if row.status == "ISSUED":
+        raise AppError("STATE_CONFLICT", "该发票已签发，不能重复签发。")
+    if row.status == "VOID":
+        raise AppError("STATE_CONFLICT", "该申请已作废，请重新提交开票申请。")
+
+    moment = now_ms()
+    row.status = "ISSUED"
+    row.invoice_reference = clean[:80]
+    row.issued_at = moment
+    if note:
+        row.note = note.strip()[:200]
+    session.flush()
+    audit.record(
+        session,
+        actor_type="staff",
+        actor_id=actor_id,
+        action="invoice.issue",
+        resource_type="invoice",
+        resource_id=row.id,
+        before={"status": "PENDING"},
+        after={"status": row.status, "invoice_reference": row.invoice_reference},
+        reason=note,
+    )
+    enqueue_notification(
+        session,
+        NotificationRequest(
+            event_id=f"invoice-issued-{row.id}",
+            event_type="order.invoice_issued",
+            user_id=row.user_id,
+            title="发票已开具",
+            body=(
+                f"订单 {row.order_id} 的发票已开具，发票号 {row.invoice_reference}，"
+                f"金额 {row.amount_cents / 100:.2f} {row.currency}。"
+            ),
+            link_path=f"/account/orders/{row.order_id}",
+            category="transaction",
+            channels=("email",),
+            payload={"invoice_id": row.id, "reference": row.invoice_reference},
+        ),
+    )
+    return row
+
+
+def fail_invoice(
+    session: Session, *, invoice_id: str, reason: str, actor_id: str | None
+) -> Invoice:
+    """作废/标记开票失败：必须写明原因，客户能看到进度而不是一直停在「已提交」。"""
+    row = repo.get_invoice(session, invoice_id=invoice_id)
+    if row is None:
+        raise AppError("RESOURCE_NOT_FOUND")
+    if row.status == "ISSUED":
+        raise AppError("STATE_CONFLICT", "已签发的发票不能作废，请走红冲流程并联系财务。")
+    clean = (reason or "").strip()
+    if len(clean) < 2:
+        raise AppError("VALIDATION_ERROR", "请说明无法开票的原因。", fields={"reason": "必填"})
+    row.status = "VOID"
+    row.note = clean[:200]
+    session.flush()
+    audit.record(
+        session,
+        actor_type="staff",
+        actor_id=actor_id,
+        action="invoice.void",
+        resource_type="invoice",
+        resource_id=row.id,
+        before={"status": "PENDING"},
+        after={"status": row.status},
+        reason=clean,
+    )
+    return row
+
+
+def invoice_admin_payload(session: Session, row: Invoice) -> dict[str, Any]:
+    """后台发票视图：含抬头数据（有权限的运营可见）与订单号。"""
+    order = repo.get_order(session, order_id=row.order_id)
+    title_data = invoice_title_data(row)
+    return {
+        "id": row.id,
+        "order_id": row.order_id,
+        "order_no": order.order_no if order else None,
+        "user_id": row.user_id,
+        "type": row.type,
+        "status": row.status,
+        "amount_cents": row.amount_cents,
+        "currency": row.currency,
+        "title": title_data.get("title"),
+        "tax_no": title_data.get("tax_no"),
+        "email": title_data.get("email"),
+        "invoice_reference": row.invoice_reference,
+        "note": row.note,
+        "requested_at": iso(row.requested_at),
+        "issued_at": iso(row.issued_at),
+    }
+
+
 def _json_dumps(payload: dict[str, Any]) -> str:
     import json
 
@@ -2336,6 +2608,7 @@ def order_detail_payload(session: Session, order: Order) -> dict[str, Any]:
     installments = repo.list_installments(session, order_id=order.id)
     summary = _payment_summary(session, order_id=order.id)
     address = effective_delivery_address(session, order_id=order.id)
+    order_snapshot = order.snapshot or {}
     invoices = [
         {
             "id": row.id,
@@ -2453,8 +2726,12 @@ def order_detail_payload(session: Session, order: Order) -> dict[str, Any]:
             }
             for row in repo.list_after_sales_for_order(session, order_id=order.id)
         ],
-        "snapshot": order.snapshot or {},
+        "snapshot": order_snapshot,
         "policy_snapshot": order.policy_snapshot or {},
+        # 跨境（C02/C24、N07 待补）：下单时冻结的判定与关税预估；未跨境时为空。
+        "cross_border": bool(order_snapshot.get("cross_border", False)),
+        "duty_estimate_cents": order_snapshot.get("duty_estimate_cents"),
+        "duty_note": str(order_snapshot.get("duty_note") or ""),
     }
 
 

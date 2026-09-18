@@ -1,4 +1,4 @@
-﻿<script setup lang="ts">
+<script setup lang="ts">
 /**
  * 订单详情。
  *
@@ -678,7 +678,22 @@ function statusLabel(status: OrderStatus): string {
                   定制商品的特殊退货条件不消除质量瑕疵责任；具体条件以订单条款与站点发布的规则文本为准。
                 </dd>
               </div>
-              <div v-if="site.commercePolicy.cross_border_note" class="flex flex-wrap gap-2">
+              <div v-if="order.cross_border" class="flex flex-wrap gap-2">
+                <dt class="text-ink-faint">跨境订单</dt>
+                <dd>
+                  下单时按跨境处理；关税与进口税费
+                  <template v-if="order.duty_estimate_cents !== null && order.duty_estimate_cents !== undefined">
+                    预估 <span class="tabular-nums">{{ money(order.duty_estimate_cents, order.currency) }}</span>，
+                    不计入本单应付金额，
+                  </template>
+                  以清关时海关核定为准。
+                </dd>
+              </div>
+              <div v-if="order.duty_note" class="flex flex-wrap gap-2">
+                <dt class="text-ink-faint">跨境说明</dt>
+                <dd>{{ order.duty_note }}</dd>
+              </div>
+              <div v-else-if="site.commercePolicy.cross_border_note" class="flex flex-wrap gap-2">
                 <dt class="text-ink-faint">跨境说明</dt>
                 <dd>{{ site.commercePolicy.cross_border_note }}</dd>
               </div>

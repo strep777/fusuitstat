@@ -221,4 +221,79 @@ def decide_after_sale(
     return commerce_svc.after_sale_payload(ctx.session, row)
 
 
+class InvoiceIssueInput(StrictDto):
+    """签发发票：发票号/开票凭证编号必填，便于客户与财务核对。"""
+
+    reference: Annotated[str, Field(min_length=3, max_length=80)]
+    note: Annotated[str | None, Field(max_length=200)] = None
+
+
+class InvoiceVoidInput(StrictDto):
+    reason: Annotated[str, Field(min_length=2, max_length=200)]
+
+
+@admin_router.get(
+    "/invoices",
+    response_model=dict,
+    dependencies=[Depends(require_permission("invoice.manage"))],
+)
+def admin_list_invoices(
+    ctx: ContextDep,
+    status: Annotated[str | None, Query(max_length=20)] = None,
+    order_id: Annotated[str | None, Query(max_length=48)] = None,
+    limit: Annotated[int, Query(ge=1, le=200)] = 50,
+) -> dict[str, Any]:
+    """发票队列：待签发的排在最前；抬头与税号只对有权限的运营可见。"""
+    rows, total = commerce_repo.list_invoices_admin(
+        ctx.session, status=status, order_id=order_id, limit=limit
+    )
+    return {
+        "items": [commerce_svc.invoice_admin_payload(ctx.session, row) for row in rows],
+        "total": total,
+        "limit": limit,
+    }
+
+
+@admin_router.post(
+    "/invoices/{invoice_id}/issue",
+    response_model=dict,
+    dependencies=[Depends(require_permission("invoice.manage"))],
+)
+def admin_issue_invoice(
+    invoice_id: str,
+    payload: InvoiceIssueInput,
+    ctx: ContextDep,
+    _csrf: CsrfDep,
+    principal: PrincipalDep,
+) -> dict[str, Any]:
+    """签发发票并通知客户（同一笔交易不能开两张票）。"""
+    row = commerce_svc.issue_invoice(
+        ctx.session,
+        invoice_id=invoice_id,
+        reference=payload.reference,
+        actor_id=principal.id,
+        note=payload.note,
+    )
+    return commerce_svc.invoice_admin_payload(ctx.session, row)
+
+
+@admin_router.post(
+    "/invoices/{invoice_id}/void",
+    response_model=dict,
+    dependencies=[Depends(require_permission("invoice.manage"))],
+)
+def admin_void_invoice(
+    invoice_id: str,
+    payload: InvoiceVoidInput,
+    ctx: ContextDep,
+    _csrf: CsrfDep,
+    principal: PrincipalDep,
+) -> dict[str, Any]:
+    """无法开票时作废申请并写明原因，客户能看到进度而不是一直停在「已提交」。"""
+    row = commerce_svc.fail_invoice(
+        ctx.session, invoice_id=invoice_id, reason=payload.reason, actor_id=principal.id
+    )
+    return commerce_svc.invoice_admin_payload(ctx.session, row)
+
+
 __all__ = ["admin_router", "ORDER_STATUSES"]

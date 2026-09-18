@@ -409,8 +409,8 @@ export interface RoleRecord extends Dict {
 
 export interface SettingRecord extends Dict {
   key: string;
-  /** 一律以字符串承载；后台不展示任何密钥类配置。 */
-  value?: string | number | boolean | null;
+  /** 标量或结构化配置（如 `commerce.policy` 的运费/售后/发票/跨境块）；后台不展示任何密钥类配置。 */
+  value?: string | number | boolean | Record<string, unknown> | unknown[] | null;
   version?: number | null;
   updated_at?: string | null;
   updated_by?: string | null;
@@ -689,8 +689,15 @@ export const adminApi = {
 
   /* --- 设置 --- */
   settings: () => api.get<AdminList<SettingRecord>>("/admin/settings"),
-  updateSetting: (key: string, input: { value: string | number | boolean; version: number; reason: string }) =>
-    api.patch<SettingRecord>(`/admin/settings/${encodeURIComponent(key)}`, input),
+  updateSetting: (
+    key: string,
+    input: {
+      /** 结构化配置（如 `commerce.policy`）按 JSON 对象提交，服务端做字段级校验。 */
+      value: string | number | boolean | Record<string, unknown> | unknown[];
+      version: number;
+      reason: string;
+    },
+  ) => api.patch<SettingRecord>(`/admin/settings/${encodeURIComponent(key)}`, input),
 
   /* --- 审计与任务 --- */
   auditLogs: (query?: ListQuery) => api.get<AdminList<AuditLogRecord>>("/admin/audit-logs", { query }),

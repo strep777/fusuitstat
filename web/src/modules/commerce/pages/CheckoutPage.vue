@@ -178,6 +178,23 @@ const addressRequirement = computed(() => {
   };
 });
 
+/* 跨境（C02/C24、C17；N07 首版比例待运营配置）
+ * 是否跨境、预估多少一律由服务端判定：前端不按地区自己算税率。
+ * 未配置比例时**不显示金额**，只说「以清关为准」——0 元会被误读成免关税。
+ */
+const crossBorderNotice = computed(() => {
+  const current = preview.value;
+  if (!current || !current.cross_border) return null;
+  const hasEstimate = current.estimate_available && current.duty_estimate_cents !== null;
+  return {
+    note: current.duty_note || addressRequirement.value.crossBorder,
+    estimateText: hasEstimate
+      ? `${formatMoneyExact(current.duty_estimate_cents ?? 0, currency.value)}（按 ${current.duty_percent}% 预估）`
+      : "",
+    hasEstimate,
+  };
+});
+
 /** 定制与现货的售后条件分别呈现；文案来自站点配置，不硬编码条款 */
 const fulfillmentTypes = computed(() => {
   const types = new Set(cartLines.value.map((line) => line.fulfillment_type));
@@ -959,6 +976,31 @@ function markDirty(): void {
             label="结算预览剩余时间"
             expired-hint="结算预览已过期，提交时会重新校验并可能返回新的价格。"
           />
+        </SurfaceCard>
+
+        <!-- 跨境：预估金额单列，并明确不计入应付合计 -->
+        <SurfaceCard v-if="crossBorderNotice">
+          <h3 class="font-display text-base">跨境配送与关税</h3>
+          <dl class="mt-3 space-y-2 text-xs text-ink-muted">
+            <div class="flex flex-wrap gap-2">
+              <dt class="text-ink-faint">配送范围</dt>
+              <dd>该收货地址在中国大陆以外，按跨境订单处理。</dd>
+            </div>
+            <div v-if="crossBorderNotice.hasEstimate" class="flex flex-wrap gap-2">
+              <dt class="text-ink-faint">关税与进口税费预估</dt>
+              <dd class="tabular-nums">{{ crossBorderNotice.estimateText }}</dd>
+            </div>
+            <div v-else class="flex flex-wrap gap-2">
+              <dt class="text-ink-faint">关税与进口税费</dt>
+              <dd>暂无预估金额：运营尚未配置预估比例，实际金额以清关时海关核定为准。</dd>
+            </div>
+          </dl>
+          <p v-if="crossBorderNotice.note" class="mt-3 text-xs text-ink-faint">
+            {{ crossBorderNotice.note }}
+          </p>
+          <p class="mt-2 text-xs text-ink-muted">
+            预估金额不计入上方应付合计，也不由本站代收；实际关税、进口税费与偏远地区附加费由承运方或海关在清关时收取。
+          </p>
         </SurfaceCard>
 
         <p v-if="submitError" class="rounded-sm bg-wine-soft px-3 py-2 text-sm text-wine" role="alert">

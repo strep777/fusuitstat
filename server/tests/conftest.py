@@ -820,6 +820,7 @@ class FakeCommerce:
         refund_id: str,
         goods_cents: int,
         shipping_cents: int,
+        items: list[dict[str, Any]] | None = None,
     ) -> dict[str, Any]:
         _ = session
         self.refund_calls.append(
@@ -828,9 +829,15 @@ class FakeCommerce:
                 "refund_id": refund_id,
                 "goods_cents": goods_cents,
                 "shipping_cents": shipping_cents,
+                # 按行分摊：与真实端口一致，便于断言「部分退款分配到商品行」。
+                "items": items or [],
             }
         )
-        return {"points_recomputed": True, "goods_cents": goods_cents, "shipping_cents": shipping_cents}
+        return {
+            "points_recomputed": True,
+            "goods_cents": goods_cents,
+            "shipping_cents": shipping_cents,
+        }
 
 
 @pytest.fixture()

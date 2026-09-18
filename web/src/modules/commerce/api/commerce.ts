@@ -278,6 +278,12 @@ export interface CheckoutPreview {
   points_discount_cents: number;
   points_redeemed: number;
   points_quote: PointsQuote | null;
+  /** 跨境（C02/C24）：服务端判定；预估**不计入** total_cents，必须标注「以清关为准」。 */
+  cross_border: boolean;
+  duty_estimate_cents: number | null;
+  duty_percent: number;
+  duty_note: string;
+  estimate_available: boolean;
   address_id: string;
 }
 
@@ -319,6 +325,11 @@ interface ServerCheckoutPreview {
   points_discount_cents?: number;
   points_redeemed?: number;
   points_quote?: PointsQuote | null;
+  cross_border?: boolean;
+  duty_estimate_cents?: number | null;
+  duty_percent?: number;
+  duty_note?: string;
+  estimate_available?: boolean;
 }
 
 function checkoutPreviewOf(preview: ServerCheckoutPreview): CheckoutPreview {
@@ -354,6 +365,12 @@ function checkoutPreviewOf(preview: ServerCheckoutPreview): CheckoutPreview {
     points_discount_cents: preview.points_discount_cents ?? 0,
     points_redeemed: preview.points_redeemed ?? 0,
     points_quote: preview.points_quote ?? null,
+    // 未配置跨境比例时服务端返回 null：界面不得把 null 当成 0 元关税。
+    cross_border: preview.cross_border ?? false,
+    duty_estimate_cents: preview.duty_estimate_cents ?? null,
+    duty_percent: preview.duty_percent ?? 0,
+    duty_note: preview.duty_note ?? "",
+    estimate_available: preview.estimate_available ?? false,
     address_id: preview.address_id,
   };
 }
@@ -525,6 +542,10 @@ export interface OrderDetail extends OrderSummary {
   /** 合同/制作信息入口；现货为 null。 */
   commission_project_id: string | null;
   notes: string | null;
+  /** 跨境（C02/C24、N07 待补）：下单时冻结；预估不计入 total_cents。 */
+  cross_border?: boolean;
+  duty_estimate_cents?: number | null;
+  duty_note?: string;
 }
 
 export interface OrderListQuery {

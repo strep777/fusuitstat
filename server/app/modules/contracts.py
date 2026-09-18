@@ -401,6 +401,11 @@ class OrderDetailDto(OrderSummaryDto):
     after_sales: list[AfterSaleDto] = Field(default_factory=list)
     snapshot: dict[str, Any] = Field(default_factory=dict)
     policy_snapshot: dict[str, Any] = Field(default_factory=dict)
+    # 跨境（C02/C24、N07 待补）：下单时冻结的是否跨境、关税预估与说明；
+    # 预估**不计入** total_cents，页脚必须写明「以清关为准」。
+    cross_border: bool = False
+    duty_estimate_cents: int | None = None
+    duty_note: str = ""
 
 
 class PendingActionsDto(Dto):

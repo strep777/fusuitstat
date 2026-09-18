@@ -151,9 +151,19 @@ def on_installment_paid(session: Session, *, order_id: str, installment_id: str)
 
 
 def on_refund_succeeded(
-    session: Session, *, order_id: str, refund_id: str, goods_cents: int, shipping_cents: int
+    session: Session,
+    *,
+    order_id: str,
+    refund_id: str,
+    goods_cents: int,
+    shipping_cents: int,
+    items: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
-    """退款成功后的商务侧调整（净额重算、积分目标重算）。"""
+    """退款成功后的商务侧调整（净额重算、按行分摊、积分目标重算）。
+
+    ``items`` 是退款分摊明细（``kind``/``order_item_id``/``amount_cents``），
+    由商务模块按行更新「该行已退款」，实现 08 文档的逐行分摊要求。
+    """
     result = _call(
         "on_refund_succeeded",
         session,
@@ -161,6 +171,7 @@ def on_refund_succeeded(
         refund_id=refund_id,
         goods_cents=goods_cents,
         shipping_cents=shipping_cents,
+        items=items or [],
     )
     return dict(result or {})
 

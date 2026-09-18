@@ -112,6 +112,18 @@ class Invoice(Policy):
     note: str = ""
 
 
+class CrossBorder(Policy):
+    """跨境展示与关税预估（C02/C24、C17；N07 的首版比例待运营补）。
+
+    默认 ``enabled=False``、``duty_percent=0``：没有配置比例时服务端不预估关税，
+    也不能把默认值当成已核准的税率（08/功能确认清单：以清关为准）。
+    """
+
+    enabled: bool = False
+    duty_percent: Annotated[int, Field(ge=0, le=100)] = 0
+    note: str = ""
+
+
 class CommercePolicy(Policy):
     currency: Literal["CNY", "USD"] = "CNY"
     default_terms_version: str = "shop-1"
@@ -119,6 +131,7 @@ class CommercePolicy(Policy):
     coupons: dict[str, Coupon] = Field(default_factory=dict)
     after_sale: AfterSale = Field(default_factory=AfterSale)
     invoice: Invoice = Field(default_factory=Invoice)
+    cross_border: CrossBorder = Field(default_factory=CrossBorder)
     returns_reference: str = ""
     cross_border_note: str = ""
     invoice_enabled: bool = True

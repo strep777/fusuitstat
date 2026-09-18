@@ -29,6 +29,13 @@ def test_production_rejects_all_sandbox_aliases(provider):
     ("platform.feature_flags", {"coupons": "false"}),
     ("commerce.policy", {"shipping": {"flat_cents": -1}}),
     ("commerce.policy", {"coupons": {"X": {"type": "percent", "value": 101}}}),
+    # 跨境（C02/C24、C17）：比例只能是 0–100，开关只能是布尔，字段名写错必须整次拒绝。
+    ("commerce.policy", {"cross_border": {"duty_percent": 101}}),
+    ("commerce.policy", {"cross_border": {"duty_percent": -1}}),
+    ("commerce.policy", {"cross_border": {"enabled": "true"}}),
+    ("commerce.policy", {"cross_border": {"duty_rate": 10}}),
+    # 开票开关是顶层 `invoice_enabled`；写进 `invoice` 块必须被拒绝（否则开关读不到、形同虚设）。
+    ("commerce.policy", {"invoice": {"invoice_enabled": False}}),
 ])
 def test_invalid_setting_does_not_mutate_row(db, key, patch):
     from app.modules.content.repository import get_setting

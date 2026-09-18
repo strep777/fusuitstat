@@ -282,6 +282,32 @@ def get_invoice(session: Session, *, invoice_id: str, user_id: str | None = None
     return invoice
 
 
+def list_invoices_admin(
+    session: Session, *, status: str | None = None, order_id: str | None = None, limit: int = 50
+) -> tuple[list[Invoice], int]:
+    """后台发票队列：默认已申请待签发的排在最前（运营按队列处理）。"""
+    conditions = []
+    if status:
+        conditions.append(Invoice.status == status)
+    if order_id:
+        conditions.append(Invoice.order_id == order_id)
+    total = int(
+        session.scalar(sa.select(sa.func.count()).select_from(Invoice).where(*conditions)) or 0
+    )
+    rows = list(
+        session.scalars(
+            sa.select(Invoice)
+            .where(*conditions)
+            .order_by(
+                sa.case((Invoice.status == "PENDING", 0), else_=1),
+                Invoice.requested_at.desc(),
+            )
+            .limit(max(1, min(limit, 200)))
+        )
+    )
+    return rows, total
+
+
 # ------------------------------------------------------------------ 售后
 def get_after_sale(session: Session, *, after_sale_id: str, user_id: str | None = None) -> AfterSale | None:
     row = session.get(AfterSale, after_sale_id)

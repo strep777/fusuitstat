@@ -27,7 +27,11 @@ import {
 import MoneySummary from "@/modules/commerce/components/MoneySummary.vue";
 import PaymentCountdown from "@/modules/commerce/components/PaymentCountdown.vue";
 import { useSiteStore } from "@/modules/content/stores/site";
-import { formatDateTime, formatMoneyExact } from "@/shared/lib/format";
+import {
+  fetchPointsRedemptionQuote,
+  type PointsRedemptionQuote,
+} from "@/modules/loyalty/api/loyalty";
+import { formatDateTime, formatMoneyExact, formatPoints } from "@/shared/lib/format";
 import { ApiError, newIdempotencyKey } from "@/shared/lib/http";
 import { useToast } from "@/shared/lib/toast";
 import {
@@ -95,13 +99,64 @@ const termsVersion = computed(() => site.commissionPolicy.terms_version);
 const currency = computed(() => preview.value?.currency ?? "CNY");
 const items = computed(() => cartLines.value.map((line) => ({ sku_id: line.sku_id, quantity: line.quantity })));
 
+/* ------------------------------------------------------------------ 星绒币抵扣（C15）
+ * 规则与开关都来自服务端配置：未开启、或规则没配全时**不出现入口**（09 文档：
+ * 不能宣传未上线的兑换权益）。能用多少、抵多少钱一律由服务端在预览里裁定，前端只提交选择。
+ */
+const redeemPoints = ref(0);
+const pointsInput = ref("");
+/** 未使用积分时的独立报价：只为展示「本单最多可用」，金额仍由服务端给出。 */
+const pointsBaseQuote = ref<PointsRedemptionQuote | null>(null);
+const pointsBackendDisabled = ref(false);
+const pointsRulesReady = computed(() => {
+  const rules = site.loyaltyRules;
+  return (
+    rules.redemption_enabled === true &&
+    (rules.redemption_points_per_yuan ?? 0) > 0 &&
+    (rules.redemption_min_points ?? 0) > 0 &&
+    (rules.redemption_max_ratio_percent ?? 0) > 0
+  );
+});
+const pointsAvailable = computed(
+  () =>
+    !pointsBackendDisabled.value &&
+    site.featureEnabled("points_redemption") &&
+    pointsRulesReady.value,
+);
+const pointsQuote = computed(() => preview.value?.points_quote ?? pointsBaseQuote.value);
+const pointsInputError = computed(() => {
+  const raw = pointsInput.value.trim();
+  if (raw === "") return "";
+  if (!/^\d+$/.test(raw)) return "只能填写整数星绒币数量。";
+  const value = Number(raw);
+  const min = pointsQuote.value?.min_points ?? site.loyaltyRules.redemption_min_points ?? 0;
+  if (value > 0 && value < min) return `单笔至少使用 ${min} ${site.loyaltyRules.points_name}。`;
+  return "";
+});
+
+async function applyPointsRedeem(): Promise<void> {
+  if (pointsInputError.value) return;
+  const value = pointsInput.value.trim() === "" ? 0 : Number(pointsInput.value.trim());
+  redeemPoints.value = value;
+  accepted.value = false;
+  await refreshPreview();
+}
+
+async function clearPointsRedeem(): Promise<void> {
+  pointsInput.value = "";
+  redeemPoints.value = 0;
+  accepted.value = false;
+  await refreshPreview();
+}
+
 const canSubmit = computed(
   () =>
     preview.value !== null &&
     selectedAddressId.value !== "" &&
     accepted.value &&
     !submitting.value &&
-    preview.value.lines.length > 0,
+    preview.value.lines.length > 0 &&
+    pointsInputError.value === "",
 );
 
 const submitBlockedReason = computed(() => {
@@ -109,6 +164,7 @@ const submitBlockedReason = computed(() => {
   if (!preview.value) return previewLoading.value ? "正在获取结算预览。" : "需要先取得服务端结算预览。";
   if (preview.value.lines.length === 0) return "购物车中没有可结算的商品。";
   if (selectedAddressId.value === "") return "请先选择收货地址。";
+  if (pointsInputError.value) return pointsInputError.value;
   if (!accepted.value) return "请勾选并接受订单条款后再提交。";
   return "";
 });
@@ -187,8 +243,10 @@ async function refreshPreview(): Promise<CheckoutPreview | null> {
     const next = await previewCheckout({
       items: items.value,
       address_id: selectedAddressId.value,
+      redeem_points: redeemPoints.value,
     });
     preview.value = next;
+    void refreshPointsBaseQuote(next);
     return next;
   } catch (caught) {
     preview.value = null;
@@ -204,6 +262,32 @@ async function refreshPreview(): Promise<CheckoutPreview | null> {
     return null;
   } finally {
     previewLoading.value = false;
+  }
+}
+
+/**
+ * 未使用积分时单独取一次报价，用来展示「本单最多可用」。
+ * 服务端回 `FEATURE_DISABLED` 说明规则或开关并未真正就绪——此时把入口收起来，
+ * 而不是继续展示一个按站点配置猜出来的上限。
+ */
+async function refreshPointsBaseQuote(next: CheckoutPreview): Promise<void> {
+  if (!pointsRulesReady.value || !site.featureEnabled("points_redemption")) {
+    pointsBaseQuote.value = null;
+    return;
+  }
+  const amount = Math.max(0, next.goods_cents - next.discount_cents);
+  if (amount <= 0) {
+    pointsBaseQuote.value = null;
+    return;
+  }
+  try {
+    pointsBaseQuote.value = await fetchPointsRedemptionQuote(amount, 0);
+    pointsBackendDisabled.value = false;
+  } catch (caught) {
+    pointsBaseQuote.value = null;
+    if (caught instanceof ApiError && caught.code === "FEATURE_DISABLED") {
+      pointsBackendDisabled.value = true;
+    }
   }
 }
 
@@ -267,6 +351,8 @@ async function submit(): Promise<void> {
       address_id: selectedAddressId.value,
       terms_version: termsVersion.value,
       accepted: true,
+      // 与预览一致的服务端裁定用量；不一致时后端返回 PRICE_CHANGED 让用户重新确认。
+      redeem_points: preview.value.points_redeemed,
       idempotencyKey: key,
     });
     toast.success("订单已创建", `订单号 ${result.order_no}，请在到期前完成付款。`);
@@ -458,7 +544,7 @@ function markDirty(): void {
       :level="1"
       eyebrow="Checkout"
       title="确认订单并结算"
-      description="应付金额、运费与优惠都由服务端计算。这里只提交商品、数量与收货地址，不提交单价、金额或积分。"
+      description="应付金额、运费、优惠与积分抵扣都由服务端计算。这里只提交商品、数量、收货地址与「想用多少星绒币」这一选择，不提交单价或金额。"
     />
 
     <div v-if="loading" class="mt-8">
@@ -744,6 +830,77 @@ function markDirty(): void {
           <p v-else class="mt-4 text-sm text-ink-muted">请选择收货地址以获取服务端结算预览。</p>
         </SurfaceCard>
 
+        <!-- 星绒币抵扣（C15）：未开启或规则未配置时整块不出现 -->
+        <SurfaceCard v-if="pointsAvailable && preview">
+          <h2 class="font-display text-lg">{{ site.loyaltyRules.points_name }}抵扣</h2>
+          <p class="mt-3 text-sm text-ink-muted">
+            兑换率与抵扣上限由运营配置，这里只提交“想用多少”，能用多少、抵多少钱由服务端计算。
+          </p>
+          <dl class="mt-4 space-y-2 text-xs text-ink-muted">
+            <div class="flex flex-wrap gap-2">
+              <dt class="text-ink-faint">兑换率</dt>
+              <dd class="tabular-nums">
+                每 1 元需要 {{ site.loyaltyRules.redemption_points_per_yuan }} {{ site.loyaltyRules.points_name }}
+              </dd>
+            </div>
+            <div class="flex flex-wrap gap-2">
+              <dt class="text-ink-faint">单笔最低</dt>
+              <dd class="tabular-nums">{{ site.loyaltyRules.redemption_min_points }} {{ site.loyaltyRules.points_name }}</dd>
+            </div>
+            <div class="flex flex-wrap gap-2">
+              <dt class="text-ink-faint">抵扣上限</dt>
+              <dd class="tabular-nums">商品金额的 {{ site.loyaltyRules.redemption_max_ratio_percent }}%</dd>
+            </div>
+            <div v-if="(site.loyaltyRules.redemption_expiry_days ?? 0) > 0" class="flex flex-wrap gap-2">
+              <dt class="text-ink-faint">有效期</dt>
+              <dd class="tabular-nums">{{ site.loyaltyRules.redemption_expiry_days }} 天</dd>
+            </div>
+            <div class="flex flex-wrap gap-2">
+              <dt class="text-ink-faint">退款时</dt>
+              <dd>{{ site.loyaltyRules.redemption_restore_on_refund === false ? "已用积分不返还（按规则执行）" : "按原订单分摊返还已用积分" }}</dd>
+            </div>
+          </dl>
+
+          <div class="mt-4 flex flex-wrap items-end gap-3">
+            <label class="text-sm" for="checkout-redeem-points">
+              <span class="text-ink-faint">使用数量</span>
+              <input
+                id="checkout-redeem-points"
+                v-model="pointsInput"
+                type="text"
+                inputmode="numeric"
+                autocomplete="off"
+                class="mt-1 w-32 rounded-sm border border-line bg-surface px-3 py-2 text-sm tabular-nums"
+                :placeholder="pointsQuote ? String(pointsQuote.max_points) : ''"
+                :aria-describedby="pointsInputError ? 'checkout-redeem-error' : undefined"
+              />
+            </label>
+            <AppButton size="sm" :disabled="!!pointsInputError" @click="applyPointsRedeem()">
+              使用{{ site.loyaltyRules.points_name }}
+            </AppButton>
+            <AppButton v-if="redeemPoints > 0" size="sm" variant="quiet" @click="clearPointsRedeem()">
+              不使用
+            </AppButton>
+          </div>
+          <p v-if="pointsInputError" id="checkout-redeem-error" class="mt-2 text-xs text-wine" role="alert">
+            {{ pointsInputError }}
+          </p>
+          <p v-else-if="pointsQuote" class="mt-2 text-xs text-ink-muted">
+            可用 {{ formatPoints(pointsQuote.available_points) }}，本单最多可用
+            <span class="tabular-nums">{{ formatPoints(pointsQuote.max_points) }}</span>（抵
+            <span class="tabular-nums">{{ formatMoneyExact(pointsQuote.max_cents, currency) }}</span>）。
+            <template v-if="pointsQuote.applied_points > 0">
+              已按 <span class="tabular-nums">{{ formatPoints(pointsQuote.applied_points) }}</span> {{ site.loyaltyRules.points_name }} 抵扣
+              <span class="tabular-nums">{{ formatMoneyExact(pointsQuote.applied_cents, currency) }}</span>。
+            </template>
+            <template v-if="pointsQuote.capped">请求数量超过上限或余额，已按最大可用量计算。</template>
+            <template v-else-if="pointsQuote.rounded_points > 0">
+              折算后只需 <span class="tabular-nums">{{ formatPoints(pointsQuote.applied_points) }}</span>，零头不会扣除。
+            </template>
+          </p>
+          <p v-if="pointsQuote?.ratio_note" class="mt-1 text-xs text-ink-faint">{{ pointsQuote.ratio_note }}</p>
+        </SurfaceCard>
+
         <!-- 订单条款 -->
         <SurfaceCard>
           <h2 class="font-display text-lg">订单条款</h2>
@@ -780,6 +937,9 @@ function markDirty(): void {
           v-if="preview"
           :goods-cents="preview.goods_cents"
           :discount-cents="preview.discount_cents"
+          :points-discount-cents="preview.points_discount_cents"
+          :points-redeemed="preview.points_redeemed"
+          :points-name="site.loyaltyRules.points_name"
           :shipping-cents="preview.shipping_cents"
           :total-cents="preview.total_cents"
           :currency="currency"

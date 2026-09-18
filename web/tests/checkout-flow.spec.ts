@@ -212,6 +212,10 @@ interface MockOptions {
   paymentAttemptView?: () => Response;
   /** 创建支付尝试（POST /installments/:id/payment-attempts）的响应 */
   createAttempt?: () => Response;
+  /** 站点公开配置（`/content/settings`）的额外键，例如 `loyalty.rules` 与功能开关 */
+  settings?: Record<string, unknown>;
+  /** 结算预览（POST /checkout/preview）的响应，可按请求体返回不同报价 */
+  preview?: (body: Record<string, unknown> | null) => Response;
 }
 
 function installFetchMock(options: MockOptions = {}): void {
@@ -229,7 +233,10 @@ function installFetchMock(options: MockOptions = {}): void {
       return jsonResponse({ csrf_token: "csrf-test", expires_in: 1800 });
     }
     if (url.includes("/content/settings")) {
-      return jsonResponse({ "commission.policy": { terms_version: "commission-1" } });
+      return jsonResponse({
+        "commission.policy": { terms_version: "commission-1" },
+        ...(options.settings ?? {}),
+      });
     }
     if (url.includes("/me/addresses")) {
       // 06 文档：地址列表返回数组本身，不是分页对象。
@@ -239,7 +246,36 @@ function installFetchMock(options: MockOptions = {}): void {
       return jsonResponse(CART);
     }
     if (url.includes("/checkout/preview")) {
-      return jsonResponse(PREVIEW);
+      return options.preview ? options.preview(body) : jsonResponse(PREVIEW);
+    }
+    if (url.includes("/points/redemption-quote")) {
+      const amount = Number(new URL(url, "http://localhost").searchParams.get("amount_cents") ?? 0);
+      const requested = Number(new URL(url, "http://localhost").searchParams.get("points") ?? 0);
+      const enabled = options.settings?.["loyalty.rules"] !== undefined;
+      if (!enabled) {
+        return errorResponse(403, "FEATURE_DISABLED", "积分兑换尚未开放。");
+      }
+      const maxPoints = Math.min(3000, Math.floor((amount * 20) / 100));
+      const applied = Math.min(requested, maxPoints);
+      return jsonResponse({
+        enabled: true,
+        points_name: "星绒币",
+        amount_cents: amount,
+        available_points: 3000,
+        max_points: maxPoints,
+        max_cents: maxPoints,
+        requested_points: requested,
+        applied_points: applied,
+        applied_cents: applied,
+        capped: applied < requested,
+        rounded_points: 0,
+        min_points: 50,
+        points_per_yuan: 100,
+        max_ratio_percent: 20,
+        expiry_days: 0,
+        restore_on_refund: true,
+        ratio_note: "兑换率与上限由运营配置。",
+      });
     }
     if (url.endsWith("/orders") && method === "POST") {
       return options.createOrder ? options.createOrder() : jsonResponse(ORDER_RESPONSE, 201);
@@ -407,15 +443,18 @@ describe("结算页：价格变化必须确认后才下单", () => {
     // 3. 必须重新勾选条款再次确认，此时提交被禁用并说明原因
     expect(findButton(wrapper, "提交订单").attributes("disabled")).toBeDefined();
     expect(wrapper.text()).toContain("请勾选并接受订单条款后再提交");
-    // 4. 客户端只提交 checkout_token/address_id/terms_version/accepted，不提交单价、金额或积分
+    // 4. 客户端只提交 checkout_token/address_id/terms_version/accepted 与积分「选择」，
+    //    不提交单价、金额或抵扣结果（08/09 文档：金额由服务端裁定）
     const created = callsTo("/orders", "POST")[0]!;
     expect(created.body).toEqual({
       checkout_token: "ct_1",
       address_id: "addr_1",
       terms_version: "commission-1",
       accepted: true,
+      redeem_points: 0,
     });
     expect(JSON.stringify(created.body)).not.toContain("cents");
+    expect(created.body?.["points_discount_cents"]).toBeUndefined();
 
     // 5. 再次确认后下单成功
     await wrapper.find('input[type="checkbox"]').setValue(true);
@@ -573,5 +612,128 @@ describe("支付轮询退避序列", () => {
       expect(sequence[index]!).toBeLessThanOrEqual(PAYMENT_POLL_MAX_MS);
     }
     expect(sequence[sequence.length - 1]).toBe(PAYMENT_POLL_MAX_MS);
+  });
+});
+
+/* ------------------------------------------------------------------
+   星绒币抵扣（C15 / R19c）
+   ------------------------------------------------------------------ */
+
+const REDEMPTION_SETTINGS = {
+  "loyalty.rules": {
+    points_name: "星绒币",
+    denominator_yuan: 5,
+    release_delay_days: 7,
+    shipping_excluded: true,
+    feedback_rewards: { minor: 5, normal: 20, major: 50 },
+    feedback_daily_reward_limit: 1,
+    redemption_enabled: true,
+    redemption_points_per_yuan: 100,
+    redemption_min_points: 50,
+    redemption_max_ratio_percent: 20,
+    redemption_expiry_days: 0,
+    redemption_restore_on_refund: true,
+  },
+  "platform.feature_flags": { points_redemption: true },
+};
+
+function previewWithPoints(body: Record<string, unknown> | null): Response {
+  const requested = Number(body?.["redeem_points"] ?? 0);
+  if (requested <= 0) {
+    return jsonResponse({ ...PREVIEW, points_discount_cents: 0, points_redeemed: 0, points_quote: null });
+  }
+  // 与独立报价接口同一口径：可用 3000，金额 199.00 × 20% = 3980 分 → 上限 3000。
+  const maxPoints = 3000;
+  const applied = Math.min(requested, maxPoints);
+  return jsonResponse({
+    ...PREVIEW,
+    total_cents: PREVIEW.goods_cents - applied,
+    points_discount_cents: applied,
+    points_redeemed: applied,
+    points_quote: {
+      enabled: true,
+      points_name: "星绒币",
+      amount_cents: PREVIEW.goods_cents,
+      available_points: 3000,
+      max_points: maxPoints,
+      max_cents: maxPoints,
+      requested_points: requested,
+      applied_points: applied,
+      applied_cents: applied,
+      capped: applied < requested,
+      rounded_points: 0,
+      min_points: 50,
+      points_per_yuan: 100,
+      max_ratio_percent: 20,
+      expiry_days: 0,
+      restore_on_refund: true,
+      ratio_note: "兑换率与上限由运营配置。",
+    },
+  });
+}
+
+describe("结算页的星绒币抵扣", () => {
+  it("开关关闭时不出现抵扣入口，预览请求也不带兑换选择", async () => {
+    const { wrapper } = await mountCheckout();
+
+    expect(wrapper.text()).not.toContain("星绒币抵扣");
+    expect(wrapper.find("#checkout-redeem-points").exists()).toBe(false);
+
+    const previewCall = callsTo("/checkout/preview", "POST")[0];
+    expect(previewCall).toBeTruthy();
+    expect(previewCall!.body?.["redeem_points"]).toBe(0);
+  });
+
+  it("开启后按服务端裁定展示抵扣，并把同一用量提交给建单接口", async () => {
+    const { wrapper } = await mountCheckout({
+      settings: REDEMPTION_SETTINGS,
+      preview: previewWithPoints,
+    });
+
+    expect(wrapper.text()).toContain("星绒币抵扣");
+    expect(wrapper.text()).toContain("每 1 元需要 100 星绒币");
+    expect(wrapper.text()).toContain("本单最多可用");
+    expect(wrapper.text()).toContain("3,000"); // 服务端给出的 max_points（可用余额与比例上限取小）
+    expect(wrapper.text()).toContain("¥30.00");
+
+    await wrapper.get("#checkout-redeem-points").setValue("5000");
+    await findButton(wrapper, "使用星绒币").trigger("click");
+    await flush();
+
+    const previewCall = callsTo("/checkout/preview", "POST").at(-1);
+    expect(previewCall!.body?.["redeem_points"]).toBe(5000);
+    // 服务端把 5000 截断到上限 3000，页面展示裁定结果而不是本地计算值
+    expect(wrapper.text()).toContain("请求数量超过上限或余额");
+    expect(wrapper.text()).toContain("已按 3,000 星绒币");
+    expect(wrapper.text()).toContain("星绒币抵扣（3,000 星绒币）");
+    expect(wrapper.text()).toContain("-¥30.00");
+
+    // 勾选条款后提交：请求体只带选择，且与预览一致
+    const checkbox = wrapper.findAll('input[type="checkbox"]').at(-1)!;
+    await checkbox.setValue(true);
+    await flush();
+    await findButton(wrapper, "提交订单").trigger("click");
+    await flush();
+
+    const orderCall = callsTo("/orders", "POST")[0];
+    expect(orderCall).toBeTruthy();
+    expect(orderCall!.body?.["redeem_points"]).toBe(3000);
+    expect(orderCall!.body?.["total_cents"]).toBeUndefined();
+  });
+
+  it("低于最低使用数量时禁用提交并说明原因，不发请求", async () => {
+    const { wrapper } = await mountCheckout({
+      settings: REDEMPTION_SETTINGS,
+      preview: previewWithPoints,
+    });
+
+    await wrapper.get("#checkout-redeem-points").setValue("20");
+    await flush();
+
+    expect(wrapper.text()).toContain("单笔至少使用 50 星绒币。");
+    const before = callsTo("/checkout/preview", "POST").length;
+    await findButton(wrapper, "使用星绒币").trigger("click");
+    await flush();
+    expect(callsTo("/checkout/preview", "POST").length).toBe(before);
   });
 });

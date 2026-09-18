@@ -37,8 +37,13 @@ def spec_operations() -> set[str]:
 
 
 def normalize(raw: str) -> str:
-    """把前端模板串归一成 OpenAPI 风格路径。"""
-    out = re.sub(r"\$\{encodeURIComponent\(([^)]*)\)\}", r"{\1}", raw)
+    """把前端模板串归一成 OpenAPI 风格路径。
+
+    查询串单独处理：`?a=1&b=${x}` 这类**查询参数拼接**是正常写法，查询部分整体丢弃后
+    只校验路径；路径段里出现插值（`/orders/${id}`）仍然按参数段归一，保留原有的严格性。
+    """
+    path_part = raw.split("?", 1)[0]
+    out = re.sub(r"\$\{encodeURIComponent\(([^)]*)\)\}", r"{\1}", path_part)
     out = re.sub(r"\$\{[^}]*\}", "{param}", out)
     if not out.startswith("/api/"):
         out = API_PREFIX + out

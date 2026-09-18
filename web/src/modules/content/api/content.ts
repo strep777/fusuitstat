@@ -152,6 +152,12 @@ export interface LoyaltyRules {
   feedback_daily_reward_limit: number;
   redemption_enabled: boolean;
   redemption_ratio_note?: string;
+  /** 兑换规则（N02/N04）：未配置时为 0，前端不推算任何金额。 */
+  redemption_points_per_yuan?: number;
+  redemption_min_points?: number;
+  redemption_max_ratio_percent?: number;
+  redemption_expiry_days?: number;
+  redemption_restore_on_refund?: boolean;
 }
 
 export interface BrandProfile {

@@ -240,6 +240,26 @@ export interface ShippingOption {
   note: string | null;
 }
 
+export interface PointsQuote {
+  enabled: boolean;
+  points_name: string;
+  amount_cents: number;
+  available_points: number;
+  max_points: number;
+  max_cents: number;
+  requested_points: number;
+  applied_points: number;
+  applied_cents: number;
+  capped: boolean;
+  rounded_points: number;
+  min_points: number;
+  points_per_yuan: number;
+  max_ratio_percent: number;
+  expiry_days: number;
+  restore_on_refund: boolean;
+  ratio_note: string;
+}
+
 export interface CheckoutPreview {
   /** 一次性令牌；创建订单时原样回传，不做本地校验。 */
   checkout_token: string;
@@ -254,6 +274,10 @@ export interface CheckoutPreview {
   /** 服务端可选返回的已选优惠；未启用时为 null。 */
   coupon_code: string | null;
   coupon_note: string | null;
+  /** 积分抵扣（C15）：金额与用量都由服务端裁定；未使用时为 0 / null。 */
+  points_discount_cents: number;
+  points_redeemed: number;
+  points_quote: PointsQuote | null;
   address_id: string;
 }
 
@@ -261,6 +285,8 @@ export interface CheckoutPreviewInput {
   items: Array<{ sku_id: string; quantity: number }>;
   address_id: string;
   coupon_code?: string | null;
+  /** 想使用的星绒币数量（选择，不是金额）；上限与折算由服务端给出。 */
+  redeem_points?: number;
 }
 
 /** 服务端结算行 DTO（与后端 `CheckoutLineDto` 一致）。 */
@@ -290,6 +316,9 @@ interface ServerCheckoutPreview {
   address_id: string;
   coupon_code: string | null;
   coupon_note: string | null;
+  points_discount_cents?: number;
+  points_redeemed?: number;
+  points_quote?: PointsQuote | null;
 }
 
 function checkoutPreviewOf(preview: ServerCheckoutPreview): CheckoutPreview {
@@ -322,6 +351,9 @@ function checkoutPreviewOf(preview: ServerCheckoutPreview): CheckoutPreview {
     shipping_option: null,
     coupon_code: preview.coupon_code,
     coupon_note: preview.coupon_note,
+    points_discount_cents: preview.points_discount_cents ?? 0,
+    points_redeemed: preview.points_redeemed ?? 0,
+    points_quote: preview.points_quote ?? null,
     address_id: preview.address_id,
   };
 }
@@ -332,6 +364,7 @@ export async function previewCheckout(input: CheckoutPreviewInput): Promise<Chec
       items: input.items.map((item) => ({ sku_id: item.sku_id, quantity: item.quantity })),
       address_id: input.address_id,
       coupon_code: input.coupon_code ?? null,
+      redeem_points: input.redeem_points ?? 0,
     }),
   );
 }
@@ -341,6 +374,8 @@ export interface CreateOrderInput {
   address_id: string;
   terms_version: string;
   accepted: boolean;
+  /** 想使用的星绒币数量；必须与预览时一致，否则服务端返回 PRICE_CHANGED。 */
+  redeem_points?: number;
   /** 幂等键由调用方在首次点击时生成并在整份提交中复用。 */
   idempotencyKey: string;
 }
@@ -353,19 +388,27 @@ export interface CreateOrderResult {
   total_cents: number;
   currency: CurrencyCode;
   expires_at: string;
+  points_discount_cents: number;
+  points_redeemed: number;
 }
 
 export async function createOrder(input: CreateOrderInput): Promise<CreateOrderResult> {
-  return api.post<CreateOrderResult>(
+  const result = await api.post<Partial<CreateOrderResult> & CreateOrderResult>(
     "/orders",
     {
       checkout_token: input.checkout_token,
       address_id: input.address_id,
       terms_version: input.terms_version,
       accepted: input.accepted,
+      redeem_points: input.redeem_points ?? 0,
     },
     { idempotencyKey: input.idempotencyKey },
   );
+  return {
+    ...result,
+    points_discount_cents: result.points_discount_cents ?? 0,
+    points_redeemed: result.points_redeemed ?? 0,
+  };
 }
 
 export interface OrderItemSnapshot {

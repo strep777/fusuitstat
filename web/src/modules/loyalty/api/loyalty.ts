@@ -115,6 +115,36 @@ export async function fetchPointsAppeals(): Promise<PointsAppealList> {
   return { items: payload.items ?? [], total: payload.total ?? payload.items?.length ?? 0 };
 }
 
+/** 结算积分抵扣报价（C15）。未开启或规则未配置时后端返回 403 `FEATURE_DISABLED`。 */
+export interface PointsRedemptionQuote {
+  enabled: boolean;
+  points_name: string;
+  amount_cents: number;
+  available_points: number;
+  max_points: number;
+  max_cents: number;
+  requested_points: number;
+  applied_points: number;
+  applied_cents: number;
+  capped: boolean;
+  rounded_points: number;
+  min_points: number;
+  points_per_yuan: number;
+  max_ratio_percent: number;
+  expiry_days: number;
+  restore_on_refund: boolean;
+  ratio_note: string;
+}
+
+export async function fetchPointsRedemptionQuote(
+  amountCents: number,
+  points = 0,
+): Promise<PointsRedemptionQuote> {
+  return api.get<PointsRedemptionQuote>(
+    `/points/redemption-quote?amount_cents=${amountCents}&points=${points}`,
+  );
+}
+
 /** 积分用途说明：未开放兑换时必须直说，不能宣传未上线权益。 */
 export const POINTS_USAGE_NOTICE =
   "星绒币用于记录你在本站的消费与有效反馈，可在未来的兑换或抵扣中使用；兑换功能开放前不产生任何可兑换权益。";

@@ -35,6 +35,14 @@ const enabled = computed(() => rules.value.redemption_enabled === true);
 
 /** 只有服务端给出真实说明时才展示；没有就不编造兑换率或商品范围。 */
 const ratioNote = computed(() => (rules.value.redemption_ratio_note ?? "").trim());
+
+/** 抵扣规则是否配置齐全：缺任何一项都不在页面上给出具体数值。 */
+const redemptionRulesReady = computed(
+  () =>
+    (rules.value.redemption_points_per_yuan ?? 0) > 0 &&
+    (rules.value.redemption_min_points ?? 0) > 0 &&
+    (rules.value.redemption_max_ratio_percent ?? 0) > 0,
+);
 </script>
 
 <template>
@@ -143,6 +151,26 @@ const ratioNote = computed(() => (rules.value.redemption_ratio_note ?? "").trim(
           <div class="flex flex-wrap justify-between gap-3 py-3">
             <dt class="text-ink-faint">明确不支持</dt>
             <dd class="text-ink-soft">充值、提现、转账，以及用星绒币替代现金退款</dd>
+          </div>
+          <!-- 抵扣规则只在运营配置齐全后展示；没配的数字不猜、不占位 -->
+          <div class="flex flex-wrap justify-between gap-3 py-3">
+            <dt class="text-ink-faint">结算抵扣</dt>
+            <dd class="text-ink-soft">
+              <template v-if="redemptionRulesReady">
+                每 1 元需要 {{ rules.redemption_points_per_yuan }} {{ rules.points_name }}；单笔最低
+                {{ rules.redemption_min_points }}，抵扣不超过商品金额的
+                {{ rules.redemption_max_ratio_percent }}%
+                <template v-if="(rules.redemption_expiry_days ?? 0) > 0">
+                  ；有效期 {{ rules.redemption_expiry_days }} 天
+                </template>
+                。
+                {{ rules.redemption_restore_on_refund === false ? "退款时已用积分不返还。" : "退款时按原订单分摊返还已用积分。" }}
+              </template>
+              <template v-else>
+                抵扣规则（兑换率、单笔最低、抵扣比例上限）尚未配置，因此结算页不会出现抵扣入口，
+                也不会有任何占位数值。
+              </template>
+            </dd>
           </div>
         </dl>
 

@@ -9,13 +9,17 @@
  */
 import { computed } from "vue";
 
-import { formatMoneyExact, type CurrencyCode } from "@/shared/lib/format";
+import { formatMoneyExact, formatPoints, type CurrencyCode } from "@/shared/lib/format";
 import { SurfaceCard } from "@/shared/ui/base";
 
 const props = withDefaults(
   defineProps<{
     goodsCents?: number | null;
     discountCents?: number | null;
+    /** 积分抵扣（C15）：与优惠分开显示，退款按原订单分摊返还时口径才清楚。 */
+    pointsDiscountCents?: number | null;
+    pointsName?: string;
+    pointsRedeemed?: number | null;
     shippingCents?: number | null;
     totalCents: number;
     currency?: CurrencyCode;
@@ -34,6 +38,9 @@ const props = withDefaults(
   {
     goodsCents: null,
     discountCents: null,
+    pointsDiscountCents: null,
+    pointsName: "星绒币",
+    pointsRedeemed: null,
     shippingCents: null,
     currency: "CNY",
     paidCents: null,
@@ -59,6 +66,21 @@ const rows = computed(() => {
     list.push({
       label: "优惠抵扣",
       value: `-${formatMoneyExact(props.discountCents, props.currency)}`,
+      tone: "discount",
+    });
+  }
+  if (
+    props.pointsDiscountCents !== null &&
+    props.pointsDiscountCents !== undefined &&
+    props.pointsDiscountCents > 0
+  ) {
+    const used =
+      props.pointsRedeemed !== null && props.pointsRedeemed !== undefined && props.pointsRedeemed > 0
+        ? `（${formatPoints(props.pointsRedeemed)} ${props.pointsName}）`
+        : "";
+    list.push({
+      label: `${props.pointsName}抵扣${used}`,
+      value: `-${formatMoneyExact(props.pointsDiscountCents, props.currency)}`,
       tone: "discount",
     });
   }

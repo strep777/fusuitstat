@@ -12,6 +12,7 @@
  */
 
 import { api } from "@/shared/lib/http";
+import { translate, type MessageKey } from "@/shared/lib/i18n";
 import type { CurrencyCode } from "@/shared/lib/format";
 import type { BadgeTone } from "@/shared/ui/base";
 import type { MediaImage, Page, SeoMeta } from "@/modules/content/api/content";
@@ -118,7 +119,8 @@ export interface CatalogOption {
 
 /**
  * 商城分类（03 文档：现货/配件/周边；服务按 C28 启用）。
- * 取值同时用于 URL query 与 API 的 `category` 参数，后端按同一份清单实现。
+ * 取值同时用于 URL query 与 API 的 `category` 参数，后端按同一份清单实现；
+ * **标签**走词条表（`t()`），因此分类本身在英文站也会显示英文。
  */
 export const PRODUCT_CATEGORY_OPTIONS: CatalogOption[] = [
   { value: "stock", label: "现货" },
@@ -127,22 +129,34 @@ export const PRODUCT_CATEGORY_OPTIONS: CatalogOption[] = [
   { value: "service", label: "服务" },
 ];
 
-const PRODUCT_KIND_LABELS: Record<string, string> = {
-  stock_goods: "现货商品",
-  exclusive_character: "独占角色",
-  commission: "定制单",
-  service: "服务",
+/** 分类 value → 词条键（label 保留中文原文用于兜底与非界面场景）。 */
+const PRODUCT_CATEGORY_KEYS: Record<string, MessageKey> = {
+  stock: "catalog.categoryStock",
+  accessory: "catalog.categoryAccessory",
+  merch: "catalog.categoryMerch",
+  service: "catalog.categoryService",
+};
+
+const PRODUCT_KIND_KEYS: Record<string, MessageKey> = {
+  stock_goods: "catalog.kindStockGoods",
+  exclusive_character: "catalog.kindExclusiveCharacter",
+  commission: "catalog.kindCommission",
+  service: "catalog.kindService",
 };
 
 export function productCategoryLabel(value: string | null | undefined): string {
   if (!value) return "";
+  const key = PRODUCT_CATEGORY_KEYS[value];
+  if (key) return translate(key);
   return PRODUCT_CATEGORY_OPTIONS.find((option) => option.value === value)?.label ?? value;
 }
 
 /** 未登记的类型直接显示原始值，不猜含义、不隐藏后台新增类型。 */
 export function productKindLabel(value: string | null | undefined): string {
   if (!value) return "";
-  return PRODUCT_KIND_LABELS[value] ?? value;
+  const key = PRODUCT_KIND_KEYS[value];
+  if (key) return translate(key);
+  return value;
 }
 
 export interface AvailabilityMeta {

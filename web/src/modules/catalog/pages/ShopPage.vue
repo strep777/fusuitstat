@@ -20,10 +20,12 @@ import {
   type ProductSummary,
 } from "@/modules/catalog/api/catalog";
 import { AppButton, Breadcrumbs, EmptyState, SectionHeading, SkeletonBlock } from "@/shared/ui/base";
+import { useI18n } from "@/shared/lib/i18n";
 import { ApiError } from "@/shared/lib/http";
 
 const route = useRoute();
 const router = useRouter();
+const { t } = useI18n();
 
 const items = ref<ProductSummary[]>([]);
 const total = ref(0);
@@ -68,7 +70,7 @@ async function load(): Promise<void> {
     if (caught instanceof ApiError && (caught.status === 403 || caught.needsLogin)) {
       forbidden.value = true;
     } else {
-      error.value = caught instanceof ApiError ? caught.message : "商品列表加载失败。";
+      error.value = caught instanceof ApiError ? caught.message : t("shop.errorTitle");
     }
     items.value = [];
     total.value = 0;
@@ -109,9 +111,8 @@ function resetFilters(): void {
 
 onMounted(() => {
   applyPageMeta({
-    title: "商城",
-    description:
-      "现货、配件、周边与服务：按分类筛选并查看库存状态。售罄商品仍可浏览；可售性、价格与运费以下单时服务端校验为准。",
+    title: t("shop.title"),
+    description: t("shop.metaDescription"),
     canonicalPath: "/shop",
   });
   void load();
@@ -122,26 +123,26 @@ watch(() => route.fullPath, () => void load());
 
 <template>
   <div class="container-page py-10 lg:py-14">
-    <Breadcrumbs :items="[{ label: '首页', to: '/' }, { label: '商城' }]" />
+    <Breadcrumbs :items="[{ label: t('nav.home'), to: '/' }, { label: t('shop.crumb') }]" />
 
     <div class="mt-6">
       <SectionHeading
         :level="1"
-        eyebrow="Shop"
-        title="商城"
-        description="现货与配件可直接下单；掉落与服务按“申请 → 人工审批 → 购买”执行。售罄商品仍可浏览，是否可售以服务端在下单时的校验为准。"
+        :eyebrow="t('shop.eyebrow')"
+        :title="t('shop.title')"
+        :description="t('shop.description')"
       >
         <template #actions>
-          <AppButton to="/characters" size="sm" variant="secondary">角色领养</AppButton>
-          <AppButton to="/account/applications" size="sm">掉落与服务申请</AppButton>
+          <AppButton to="/characters" size="sm" variant="secondary">{{ t("shop.characters") }}</AppButton>
+          <AppButton to="/account/applications" size="sm">{{ t("shop.applications") }}</AppButton>
         </template>
       </SectionHeading>
     </div>
 
     <!-- 分类筛选：分类进 URL -->
-    <section class="mt-10 rounded-lg border border-line bg-surface p-5" aria-label="商品筛选">
+    <section class="mt-10 rounded-lg border border-line bg-surface p-5" :aria-label="t('shop.filterLabel')">
       <div class="flex flex-wrap items-center gap-2">
-        <span class="text-xs text-ink-faint">分类</span>
+        <span class="text-xs text-ink-faint">{{ t("shop.category") }}</span>
         <button
           type="button"
           class="min-h-[44px] rounded-sm border px-3 text-sm transition-colors"
@@ -153,7 +154,7 @@ watch(() => route.fullPath, () => void load());
           :aria-pressed="filters.category === ''"
           @click="pushQuery({ category: '' })"
         >
-          全部
+          {{ t("shop.all") }}
         </button>
         <button
           v-for="option in PRODUCT_CATEGORY_OPTIONS"
@@ -174,68 +175,70 @@ watch(() => route.fullPath, () => void load());
           v-if="filters.kind"
           class="inline-flex min-h-[44px] items-center gap-2 rounded-sm border border-line-strong bg-surface-muted px-3 text-sm text-ink-soft"
         >
-          类型：{{ productKindLabel(filters.kind) }}
+          {{ t("shop.kindPrefix") }}：{{ productKindLabel(filters.kind) }}
           <button type="button" class="text-xs text-ink-faint link-underline" @click="pushQuery({ kind: '' })">
-            取消
+            {{ t("shop.cancel") }}
           </button>
         </span>
       </div>
 
       <form class="mt-5 flex flex-wrap items-end gap-3" @submit.prevent="submitSearch()">
         <div class="min-w-[240px] flex-1">
-          <label class="text-sm font-medium text-ink-soft" for="shop-q">搜索商品</label>
+          <label class="text-sm font-medium text-ink-soft" for="shop-q">{{ t("shop.searchLabel") }}</label>
           <input
             id="shop-q"
             v-model="draftQuery"
             class="field-base mt-1.5"
             type="search"
-            placeholder="商品名称或关键词"
+            :placeholder="t('shop.searchPlaceholder')"
             autocomplete="off"
           />
         </div>
-        <AppButton type="submit" size="sm">搜索</AppButton>
+        <AppButton type="submit" size="sm">{{ t("shop.search") }}</AppButton>
         <AppButton v-if="activeFilterCount" size="sm" variant="ghost" @click="resetFilters()">
-          清除筛选
+          {{ t("shop.clearFilters") }}
         </AppButton>
       </form>
-      <p class="mt-3 text-xs text-ink-faint">分类与搜索词会写进地址栏，刷新后仍能看到同一批商品。</p>
+      <p class="mt-3 text-xs text-ink-faint">{{ t("shop.urlNote") }}</p>
 
       <p v-if="filters.category" class="mt-3 text-xs text-ink-muted">
-        当前分类：{{ productCategoryLabel(filters.category) }}
+        {{ t("shop.currentCategory") }}：{{ productCategoryLabel(filters.category) }}
       </p>
     </section>
 
     <div v-if="loading" class="mt-10 rounded-lg border border-line bg-surface p-6">
-      <SkeletonBlock :lines="4" aria-label="正在加载商品列表" />
+      <SkeletonBlock :lines="4" :aria-label="t('shop.loading')" />
     </div>
 
     <EmptyState
       v-else-if="forbidden"
       class="mt-10"
       tone="forbidden"
-      title="没有访问商城的权限"
-      description="商城商品对访客开放；如果这里被拒绝，可能是账号状态受限。登录后可确认账号状态。"
+      :title="t('shop.forbiddenTitle')"
+      :description="t('shop.forbiddenBody')"
     >
-      <AppButton to="/login" size="sm">手机号登录</AppButton>
-      <AppButton size="sm" variant="secondary" to="/contact">联系客服</AppButton>
+      <AppButton to="/login" size="sm">{{ t("nav.login") }}</AppButton>
+      <AppButton size="sm" variant="secondary" to="/contact">{{ t("shop.contact") }}</AppButton>
     </EmptyState>
 
     <EmptyState
       v-else-if="error"
       class="mt-10"
       tone="error"
-      title="商品列表暂时无法加载"
-      :description="`${error} 筛选条件仍保留在地址栏，可直接重试。`"
+      :title="t('shop.errorTitle')"
+      :description="`${error} ${t('shop.errorNote')}`"
     >
-      <AppButton size="sm" @click="load()">重新加载</AppButton>
-      <AppButton size="sm" variant="secondary" to="/contact">联系客服</AppButton>
+      <AppButton size="sm" @click="load()">{{ t("shop.reload") }}</AppButton>
+      <AppButton size="sm" variant="secondary" to="/contact">{{ t("shop.contact") }}</AppButton>
     </EmptyState>
 
     <template v-else-if="items.length">
       <p class="mt-8 text-sm text-ink-muted">
-        <template v-if="activeFilterCount">符合条件的商品 {{ total }} 件</template>
-        <template v-else>共 {{ total }} 件商品</template>
-        <span v-if="filters.page > 1" class="ml-2 text-ink-faint">第 {{ filters.page }} 页</span>
+        <template v-if="activeFilterCount">{{ t("shop.matchedCount", { count: total }) }}</template>
+        <template v-else>{{ t("shop.totalCount", { count: total }) }}</template>
+        <span v-if="filters.page > 1" class="ml-2 text-ink-faint">
+          {{ t("shop.page", { page: filters.page }) }}
+        </span>
       </p>
 
       <div class="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
@@ -249,9 +252,9 @@ watch(() => route.fullPath, () => void load());
           variant="secondary"
           @click="pushQuery({ page: filters.page - 1 })"
         >
-          上一页
+          {{ t("shop.previous") }}
         </AppButton>
-        <span v-else class="text-xs text-ink-faint">已是第一页</span>
+        <span v-else class="text-xs text-ink-faint">{{ t("shop.firstPage") }}</span>
 
         <AppButton
           v-if="hasMore"
@@ -259,29 +262,29 @@ watch(() => route.fullPath, () => void load());
           variant="secondary"
           @click="pushQuery({ page: filters.page + 1 })"
         >
-          下一页
+          {{ t("shop.next") }}
         </AppButton>
-        <span v-else class="text-xs text-ink-faint">已显示全部结果</span>
+        <span v-else class="text-xs text-ink-faint">{{ t("shop.allShown") }}</span>
       </div>
     </template>
 
     <EmptyState
       v-else-if="activeFilterCount"
       class="mt-10"
-      title="没有符合条件的商品"
-      description="当前分类或搜索词下没有已上架商品。售罄商品仍会出现在列表里，因此这里确实是没有匹配结果。"
+      :title="t('shop.emptyFilteredTitle')"
+      :description="t('shop.emptyFilteredBody')"
     >
-      <AppButton size="sm" variant="secondary" @click="resetFilters()">清除筛选</AppButton>
+      <AppButton size="sm" variant="secondary" @click="resetFilters()">{{ t("shop.clearFilters") }}</AppButton>
     </EmptyState>
 
     <EmptyState
       v-else
       class="mt-10"
-      title="商城商品正在上架"
-      description="上架前需要完成图片授权、SKU 与库存核对；这里不会用占位商品填充页面。"
+      :title="t('shop.emptyTitle')"
+      :description="t('shop.emptyBody')"
     >
-      <AppButton to="/characters" size="sm" variant="secondary">先看看角色领养</AppButton>
-      <AppButton to="/contact" size="sm">询问现货情况</AppButton>
+      <AppButton to="/characters" size="sm" variant="secondary">{{ t("shop.lookCharacters") }}</AppButton>
+      <AppButton to="/contact" size="sm">{{ t("shop.askStock") }}</AppButton>
     </EmptyState>
   </div>
 </template>

@@ -15189,6 +15189,16 @@
             "type": "boolean",
             "title": "Estimate Available",
             "default": false
+          },
+          "zone": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RegionZoneDto"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "type": "object",
@@ -22593,6 +22603,45 @@
         ],
         "title": "RefundRequestInput",
         "description": "退款申请。申请只登记金额与理由，实际出款由另一名员工批准。"
+      },
+      "RegionZoneDto": {
+        "properties": {
+          "zone": {
+            "type": "string",
+            "title": "Zone"
+          },
+          "currency": {
+            "type": "string",
+            "title": "Currency"
+          },
+          "label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "type": "object"
+              }
+            ],
+            "title": "Label",
+            "default": ""
+          },
+          "cross_border": {
+            "type": "boolean",
+            "title": "Cross Border",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "zone",
+          "currency"
+        ],
+        "title": "RegionZoneDto",
+        "description": "结算所属区域与币种（C02/C24）：币种由区域决定，**不做汇率折算**。"
       },
       "RestrictionInput": {
         "properties": {

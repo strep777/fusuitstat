@@ -284,20 +284,30 @@ def test_cross_border_estimate_is_honest_and_not_charged(
     assert domestic.json()["estimate_available"] is False
 
     overseas = create_address(db, user_id=invoicing["user"].id, region_code="US-CA", city="Los Angeles")
+    # C02/C24：海外区以 USD 结算，因此跨境预估用例必须用**美元定价**的 SKU；
+    # 用人民币定价的商品在海外区会被结算直接拒绝（见 test_region_currency.py）。
+    from tests.conftest import create_sku
+
+    usd_sku = create_sku(
+        db,
+        product_id=invoicing["product"].id,
+        price_cents=12000,
+        stock_on_hand=5,
+        label="USD 规格",
+        currency="USD",
+    )
     db.commit()
 
     # 未配置比例：判定为跨境，但不给数字，只给「以清关为准」的说明
     _patch_policy(db, cross_border={"enabled": True, "duty_percent": 0})
     unconfigured = client.post(
         "/api/v1/checkout/preview",
-        json={
-            "items": [{"sku_id": invoicing["sku"].id, "quantity": 2}],
-            "address_id": overseas.id,
-        },
+        json={"items": [{"sku_id": usd_sku.id, "quantity": 2}], "address_id": overseas.id},
     )
     assert unconfigured.status_code == 200, unconfigured.text
     body = unconfigured.json()
     assert body["cross_border"] is True
+    assert body["currency"] == "USD"
     assert body["duty_estimate_cents"] is None and body["estimate_available"] is False
     assert body["duty_note"], "必须说明关税与税费以清关为准"
 
@@ -305,10 +315,7 @@ def test_cross_border_estimate_is_honest_and_not_charged(
     _patch_policy(db, cross_border={"enabled": True, "duty_percent": 10})
     configured = client.post(
         "/api/v1/checkout/preview",
-        json={
-            "items": [{"sku_id": invoicing["sku"].id, "quantity": 2}],
-            "address_id": overseas.id,
-        },
+        json={"items": [{"sku_id": usd_sku.id, "quantity": 2}], "address_id": overseas.id},
     )
     assert configured.status_code == 200, configured.text
     priced = configured.json()
@@ -321,10 +328,7 @@ def test_cross_border_estimate_is_honest_and_not_charged(
     _patch_policy(db, cross_border={"enabled": False, "duty_percent": 10})
     disabled = client.post(
         "/api/v1/checkout/preview",
-        json={
-            "items": [{"sku_id": invoicing["sku"].id, "quantity": 2}],
-            "address_id": overseas.id,
-        },
+        json={"items": [{"sku_id": usd_sku.id, "quantity": 2}], "address_id": overseas.id},
     )
     assert disabled.json()["cross_border"] is True
     assert disabled.json()["duty_estimate_cents"] is None
@@ -332,18 +336,24 @@ def test_cross_border_estimate_is_honest_and_not_charged(
 
 def test_cross_border_is_frozen_on_the_order(db: Session, client: TestClient, invoicing: dict) -> None:
     """下单时冻结跨境判定与预估：之后改配置不改历史订单的说法。"""
-    from tests.conftest import create_address
+    from tests.conftest import create_address, create_sku
 
     overseas = create_address(db, user_id=invoicing["user"].id, region_code="US-CA", city="Los Angeles")
+    # 海外区以 USD 结算：跨境订单必须用美元定价的 SKU（不按汇率折算）。
+    usd_sku = create_sku(
+        db,
+        product_id=invoicing["product"].id,
+        price_cents=12000,
+        stock_on_hand=5,
+        label="USD 规格",
+        currency="USD",
+    )
     db.commit()
     _patch_policy(db, cross_border={"enabled": True, "duty_percent": 10, "note": "以清关为准"})
 
     preview = client.post(
         "/api/v1/checkout/preview",
-        json={
-            "items": [{"sku_id": invoicing["sku"].id, "quantity": 2}],
-            "address_id": overseas.id,
-        },
+        json={"items": [{"sku_id": usd_sku.id, "quantity": 2}], "address_id": overseas.id},
     )
     assert preview.status_code == 200, preview.text
     created = client.post(

@@ -452,6 +452,12 @@ DEFAULT_SETTINGS: tuple[dict[str, Any], ...] = (
                 "zh-CN": "运费模板由工作室配置，结算时以服务端计算为准。",
                 "en-US": "Shipping rates are configured by the studio; the server-computed amount is authoritative at checkout.",
             },
+            # 区域交易（C02/C24）：区域 → 币种。**不含汇率**——币种不隐式换算，
+            # 某区域只能卖出该币种定价的 SKU。
+            "regions": {
+                "CN": {"currency": "CNY", "label": {"zh-CN": "中国大陆", "en-US": "Mainland China"}},
+                "US": {"currency": "USD", "label": {"zh-CN": "海外（美国）", "en-US": "United States"}},
+            },
         },
     },
     {

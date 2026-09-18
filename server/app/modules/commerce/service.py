@@ -95,6 +95,15 @@ DEFAULT_POLICY: dict[str, Any] = {
             "en-US": "Duties and import taxes on cross-border orders are determined by destination customs at clearance; we neither estimate nor collect them.",
         },
     },
+    # 区域交易（C02/C24）：按收货地区 / 站点语言决定**区域与币种**。
+    # 关键约束：**币种不隐式换算**——某个区域只能卖出该区域定价的 SKU，
+    # 没有该币种定价就如实说明"该区域暂未上架"，绝不按汇率折算。
+    "regions": {
+        # 中国大陆区（简中 / 人民币）。
+        "CN": {"currency": "CNY", "label": {"zh-CN": "中国大陆", "en-US": "Mainland China"}},
+        # 海外区（首发美国：美式英文 / 美元）。
+        "US": {"currency": "USD", "label": {"zh-CN": "海外（美国）", "en-US": "United States"}},
+    },
 }
 
 #: 中国大陆的配送区域前缀；其余视为跨境（双区首发）。
@@ -116,7 +125,46 @@ def commerce_policy(session: Session) -> dict[str, Any]:
     policy["after_sale"] = {**DEFAULT_POLICY["after_sale"], **(stored.get("after_sale") or {})}
     policy["invoice"] = {**DEFAULT_POLICY["invoice"], **(stored.get("invoice") or {})}
     policy["cross_border"] = {**DEFAULT_POLICY["cross_border"], **(stored.get("cross_border") or {})}
+    policy["regions"] = {**DEFAULT_POLICY["regions"], **(stored.get("regions") or {})}
     return policy
+
+
+def zone_for_region(region_code: str | None) -> str:
+    """收货地区 → 区域标识（C02/C24 双区）。
+
+    ``CN`` 开头（含 ``CN-31`` 这类省级编码）属于中国大陆区，其余（含空值之外的
+    一切地区）按海外区处理；空值按中国大陆区（站点默认区）处理。
+    """
+    code = (region_code or "").strip().upper()
+    if code.startswith(DOMESTIC_REGION_PREFIX):
+        return "CN"
+    return "US" if code else "CN"
+
+
+def zone_currency(policy: dict[str, Any], *, zone: str) -> str:
+    """区域对应币种（来自运营配置；未登记的区域回落到站点政策币种）。
+
+    **不做任何汇率折算**：区域只是"用哪种货币定价与结算"的开关。
+    """
+    regions = policy.get("regions") or {}
+    entry = regions.get(zone)
+    if isinstance(entry, dict) and entry.get("currency"):
+        return str(entry["currency"]).upper()
+    return str(policy.get("currency", "CNY")).upper()
+
+
+def zone_payload(policy: dict[str, Any], *, zone: str) -> dict[str, Any]:
+    """区域信息（币种、标签、是否跨境）：页面与结算都读这一份。"""
+    regions = policy.get("regions") or {}
+    entry = regions.get(zone) if isinstance(regions.get(zone), dict) else {}
+    entry = entry or {}
+    currency = zone_currency(policy, zone=zone)
+    return {
+        "zone": zone,
+        "currency": currency,
+        "label": entry.get("label") or zone,
+        "cross_border": zone != "CN",
+    }
 
 
 def cross_border_estimate(
@@ -336,6 +384,20 @@ def _apply_pricing(
         )
     points_discount_cents = int(points_quote["applied_cents"]) if points_quote else 0
     total_cents = _validate_amounts(goods_cents, discount_cents, shipping_cents, points_discount_cents)
+    # 区域与币种（C02/C24）：结算币种由**收货区域**决定；SKU 币种必须与区域币种一致，
+    # 否则该商品在这个区域没有定价——**不换算汇率**，直接拒绝并说明。
+    zone = zone_for_region(region_code)
+    expected_currency = zone_currency(policy, zone=zone)
+    mismatched = sorted(
+        {str(line["currency"]).upper() for line in lines if str(line["currency"]).upper() != expected_currency}
+    )
+    if mismatched:
+        raise AppError(
+            "CURRENCY_NOT_SUPPORTED",
+            f"该收货区域以 {expected_currency} 结算，购物车中的商品只有 "
+            f"{'、'.join(mismatched)} 定价；本站不按汇率折算，请分别下单或联系客服。",
+            fields={"currency": expected_currency},
+        )
     # 跨境预估（只展示，不进应付合计）：关税与进口税费由清关确定。
     cross = cross_border_estimate(
         policy,
@@ -352,6 +414,7 @@ def _apply_pricing(
         "shipping_cents": shipping_cents,
         "total_cents": total_cents,
         "currency": currency,
+        "zone": zone_payload(policy, zone=zone),
         "coupon_code": applied_code,
         "policy": policy,
         **cross,
@@ -510,6 +573,8 @@ def preview_checkout(
         "duty_percent": priced["duty_percent"],
         "duty_note": priced["duty_note"],
         "estimate_available": priced["estimate_available"],
+        # 区域与币种：预览与建单读同一份政策，页面据此说明"该区域以哪种货币结算"。
+        "zone": priced["zone"],
     }
 
 

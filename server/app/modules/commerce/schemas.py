@@ -121,6 +121,15 @@ class PointsQuoteDto(Dto):
     ratio_note: LocalizedTextDto = ""
 
 
+class RegionZoneDto(Dto):
+    """结算所属区域与币种（C02/C24）：币种由区域决定，**不做汇率折算**。"""
+
+    zone: str
+    currency: str
+    label: LocalizedTextDto = ""
+    cross_border: bool = False
+
+
 class CheckoutPreviewDto(Dto):
     checkout_token: str
     expires_at: str | None = None
@@ -144,6 +153,8 @@ class CheckoutPreviewDto(Dto):
     duty_percent: int = 0
     duty_note: LocalizedTextDto = ""
     estimate_available: bool = False
+    # 区域与币种（C02/C24）：结算区域由收货地区决定，币种由区域配置决定。
+    zone: RegionZoneDto | None = None
 
 
 class OrderCreateInput(StrictDto):

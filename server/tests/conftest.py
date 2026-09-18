@@ -380,6 +380,7 @@ def create_sku(
     is_active: bool = True,
     label: str = "标准规格",
     sku_code: str | None = None,
+    currency: str = "CNY",
 ) -> Sku:
     sku = Sku(
         id=new_id("sku"),
@@ -387,6 +388,7 @@ def create_sku(
         sku_code=sku_code or f"SKU-{new_id('sku')[-6:]}",
         label=label,
         price_cents=price_cents,
+        currency=currency,
         stock_on_hand=stock_on_hand,
         reserved=0,
         max_per_order=max_per_order,

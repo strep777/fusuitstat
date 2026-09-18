@@ -20,12 +20,18 @@ import {
   type ProductSummary,
 } from "@/modules/catalog/api/catalog";
 import { AppButton, Breadcrumbs, EmptyState, SectionHeading, SkeletonBlock } from "@/shared/ui/base";
+import { useSiteStore } from "@/modules/content/stores/site";
 import { useI18n } from "@/shared/lib/i18n";
 import { ApiError } from "@/shared/lib/http";
 
 const route = useRoute();
 const router = useRouter();
+const site = useSiteStore();
 const { t } = useI18n();
+
+onMounted(() => {
+  void site.load();
+});
 
 const items = ref<ProductSummary[]>([]);
 const total = ref(0);
@@ -50,6 +56,26 @@ watch(filters, (value) => {
 const activeFilterCount = computed(
   () => [filters.value.category, filters.value.kind, filters.value.q].filter(Boolean).length,
 );
+
+/**
+ * 浏览区与结算币种（C02/C24）。
+ *
+ * 只看"这个区域有没有该币种定价"：**不按汇率折算**——没有定价就如实告诉客户，
+ * 而不是把美元价格换成人民币显示。
+ */
+const zoneNotice = computed(() => {
+  const currency = site.browsingCurrency;
+  const mismatched = items.value.filter((item) => (item.currency ?? currency) !== currency).length;
+  return {
+    currency,
+    label: currency === "USD" ? "USD" : "CNY",
+    mismatched,
+  };
+});
+
+function pricedInZone(product: ProductSummary): boolean {
+  return (product.currency ?? site.browsingCurrency) === site.browsingCurrency;
+}
 
 async function load(): Promise<void> {
   loading.value = true;
@@ -200,6 +226,12 @@ watch(() => route.fullPath, () => void load());
         </AppButton>
       </form>
       <p class="mt-3 text-xs text-ink-faint">{{ t("shop.urlNote") }}</p>
+      <p class="mt-2 text-xs text-ink-muted">
+        {{ t("shop.zoneNote", { currency: zoneNotice.label }) }}
+        <template v-if="zoneNotice.mismatched > 0">
+          {{ t("shop.zoneMismatch", { count: zoneNotice.mismatched, currency: zoneNotice.label }) }}
+        </template>
+      </p>
 
       <p v-if="filters.category" class="mt-3 text-xs text-ink-muted">
         {{ t("shop.currentCategory") }}：{{ productCategoryLabel(filters.category) }}
@@ -242,7 +274,16 @@ watch(() => route.fullPath, () => void load());
       </p>
 
       <div class="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        <ProductCard v-for="product in items" :key="product.id" :product="product" />
+        <div v-for="product in items" :key="product.id" class="space-y-2">
+          <ProductCard :product="product" />
+          <!-- 区域定价（C02/C24）：没有本区币种定价就如实说明，不做汇率折算 -->
+          <p
+            v-if="!pricedInZone(product)"
+            class="rounded-sm bg-surface-muted px-3 py-2 text-xs text-ink-muted"
+          >
+            {{ t("shop.notPricedInZone", { currency: zoneNotice.label }) }}
+          </p>
+        </div>
       </div>
 
       <div class="mt-10 flex flex-wrap items-center justify-between gap-4">

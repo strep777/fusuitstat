@@ -148,6 +148,12 @@ export const enUS: MessageShapeOfDefault = {
     search: "Search",
     clearFilters: "Clear filters",
     urlNote: "Category and search term are written into the address bar, so a refresh shows the same set of products.",
+    zoneNote:
+      "Settlement currency for your region: {currency}. The currency follows regional pricing; we never convert at an exchange rate.",
+    zoneMismatch:
+      "{count} product(s) here are not priced in {currency}, so they cannot be ordered in your region (no exchange-rate conversion).",
+    notPricedInZone:
+      "This product has no {currency} price, so it cannot be ordered in your region; contact support to discuss alternatives.",
     currentCategory: "Current category",
     loading: "Loading products",
     forbiddenTitle: "No permission to browse the shop",

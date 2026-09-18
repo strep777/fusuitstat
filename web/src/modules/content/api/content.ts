@@ -182,6 +182,8 @@ export interface CommercePolicy {
   cross_border_note: LocalizedText;
   invoice_enabled: boolean;
   shipping_template_note: LocalizedText;
+  /** 区域 → 币种（C02/C24）：**只有币种，没有汇率**——本站不隐式换算。 */
+  regions?: Record<string, { currency: string; label?: LocalizedText }>;
 }
 
 /** 已按当前语言解析的站点信息（`useSiteStore()` 对外的形状）。 */
@@ -200,6 +202,8 @@ export interface ResolvedCommercePolicy {
   cross_border_note: string;
   invoice_enabled: boolean;
   shipping_template_note: string;
+  /** 区域 → 币种（原样保留，供页面按浏览区显示结算币种）。 */
+  regions: Record<string, { currency: string; label?: LocalizedText }>;
 }
 
 export interface PublicSettings {

@@ -101,7 +101,22 @@ export const useSiteStore = defineStore("site", () => {
       cross_border_note: resolveText(raw.cross_border_note, preferences.locale),
       invoice_enabled: raw.invoice_enabled !== false,
       shipping_template_note: resolveText(raw.shipping_template_note, preferences.locale),
+      regions: raw.regions ?? {},
     };
+  });
+
+  /**
+   * 站点浏览区（C02/C24）：**语言决定浏览区**（简中 → 中国大陆区、英文 → 海外/美国区）。
+   *
+   * 浏览区只决定"看哪种币种的定价"，结算区仍以**收货地址**为准（服务端裁定）；
+   * 两者不一致时结算会被服务端拒绝并说明，而不是按汇率折算。
+   */
+  const browsingZone = computed(() => (preferences.locale === "en-US" ? "US" : "CN"));
+
+  /** 浏览区对应的结算币种（未配置该区域时回落到站点币种 CNY）。 */
+  const browsingCurrency = computed<"CNY" | "USD">(() => {
+    const currency = commercePolicy.value.regions?.[browsingZone.value]?.currency;
+    return currency === "USD" ? "USD" : "CNY";
   });
   const featureFlags = computed<Record<string, boolean>>(
     () => settings.value["platform.feature_flags"] ?? {},
@@ -143,6 +158,8 @@ export const useSiteStore = defineStore("site", () => {
     commissionPolicy,
     loyaltyRules,
     commercePolicy,
+    browsingZone,
+    browsingCurrency,
     featureFlags,
     featureEnabled,
     load,

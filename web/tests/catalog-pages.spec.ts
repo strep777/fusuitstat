@@ -392,6 +392,43 @@ describe("ShopPage 筛选与 URL 同步", () => {
     expect(wrapper.text()).toContain("商城商品正在上架");
     expect(wrapper.findAll("img")).toHaveLength(0);
   });
+
+  it("区域定价：标注没有本区币种定价的商品，且不做汇率折算", async () => {
+    // 站点配置声明区域币种：CN=CNY、US=USD（只有币种，没有汇率字段）
+    installFetch((url) => {
+      if (url.includes("/content/settings")) {
+        return {
+          body: {
+            "commerce.policy": {
+              returns_reference: "参照平台规则",
+              cross_border_note: "",
+              invoice_enabled: true,
+              shipping_template_note: "",
+              regions: { CN: { currency: "CNY" }, US: { currency: "USD" } },
+            },
+          },
+        };
+      }
+      if (url.includes("/products")) {
+        return {
+          body: jsonPage([
+            makeProductSummary({ id: "p-cny", slug: "cny-item", title: "人民币定价商品", currency: "CNY" }),
+            makeProductSummary({ id: "p-usd", slug: "usd-item", title: "美元定价商品", currency: "USD" }),
+          ]),
+        };
+      }
+      return { body: {} };
+    });
+
+    const { wrapper } = await mountAt(ShopPage, "/shop");
+    // 简中浏览区 → 人民币结算；美元定价的商品被如实标注为"没有本区定价"
+    expect(wrapper.text()).toContain("本区结算币种：CNY");
+    expect(wrapper.text()).toContain("该商品没有 CNY 定价");
+    expect(wrapper.text()).toContain("1 件商品没有 CNY 定价");
+    // 价格来自服务端整数分与币种，页面不做任何换算（两种币种各自按原币显示）
+    expect(wrapper.text()).toContain("¥1,200 起");
+    expect(wrapper.text()).toContain("$1,200 起");
+  });
 });
 
 // ---------------------------------------------------------------------------

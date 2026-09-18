@@ -156,6 +156,17 @@ class CrossBorder(Policy):
     note: LocalizedText = ""
 
 
+class RegionZone(Policy):
+    """区域交易（C02/C24）：某个区域用哪种货币定价与结算。
+
+    **不包含汇率**——币种不隐式换算：某区域只能卖出以该区域币种定价的 SKU，
+    没有定价就如实说明"该区域暂未上架"。
+    """
+
+    currency: Literal["CNY", "USD"]
+    label: LocalizedText = ""
+
+
 class CommercePolicy(Policy):
     currency: Literal["CNY", "USD"] = "CNY"
     default_terms_version: str = "shop-1"
@@ -164,6 +175,8 @@ class CommercePolicy(Policy):
     after_sale: AfterSale = Field(default_factory=AfterSale)
     invoice: Invoice = Field(default_factory=Invoice)
     cross_border: CrossBorder = Field(default_factory=CrossBorder)
+    #: 区域 → 币种（键为区域标识：``CN`` / ``US``；未登记的区域回落到站点币种）。
+    regions: dict[str, RegionZone] = Field(default_factory=dict)
     returns_reference: LocalizedText = ""
     cross_border_note: LocalizedText = ""
     invoice_enabled: bool = True

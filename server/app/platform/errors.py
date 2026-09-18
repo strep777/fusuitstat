@@ -62,6 +62,8 @@ ERROR_CODES: dict[str, int] = {
     "PAYMENT_UNKNOWN": _S_409,
     "PAYMENT_PROVIDER_DISABLED": _S_503,
     "REFUND_LIMIT_EXCEEDED": _S_409,
+    # C02/C24：该区域没有该币种定价 → 不按汇率折算，明确拒绝（422 让客户端按字段提示引导用户）。
+    "CURRENCY_NOT_SUPPORTED": _S_422,
     "POINTS_INSUFFICIENT": _S_409,
     "FEEDBACK_DUPLICATE": _S_409,
     "FEEDBACK_LIMIT_EXCEEDED": _S_429,
@@ -105,6 +107,7 @@ DEFAULT_MESSAGES: dict[str, str] = {
     "PAYMENT_PROVIDER_DISABLED": "该支付方式当前不可用。",
     "REFUND_LIMIT_EXCEEDED": "可退金额不足，请核对已退款金额。",
     "POINTS_INSUFFICIENT": "星绒币不足。",
+    "CURRENCY_NOT_SUPPORTED": "该收货区域与本单商品的定价币种不一致，本站不按汇率折算。",
     "FEEDBACK_DUPLICATE": "该反馈已提交过，可在列表中查看进度。",
     "FEEDBACK_LIMIT_EXCEEDED": "提交过于频繁，请稍后再试。",
     "FEATURE_DISABLED": "该功能尚未开放。",

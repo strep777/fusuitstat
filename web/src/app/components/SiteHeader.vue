@@ -4,8 +4,9 @@
  * 键盘可用；移动端菜单可 Esc 关闭并把焦点还给触发按钮。
  */
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
-import { RouterLink, useRoute } from "vue-router";
+import { RouterLink, useRoute, useRouter } from "vue-router";
 
+import { counterpartPath } from "@/app/router";
 import { useAuthStore } from "@/modules/identity/stores/auth";
 import { useSiteStore } from "@/modules/content/stores/site";
 import { useI18n } from "@/shared/lib/i18n";
@@ -14,6 +15,7 @@ import { AppButton } from "@/shared/ui/base";
 import { usePreferencesStore } from "@/shared/stores/preferences";
 
 const route = useRoute();
+const router = useRouter();
 const auth = useAuthStore();
 const site = useSiteStore();
 const preferences = usePreferencesStore();
@@ -29,6 +31,23 @@ interface NavItem {
 /** 语言切换只在后台启用 `en_locale` 后出现：未上线的语言不输出假入口（C02/C24）。 */
 const englishAvailable = computed(() => site.featureEnabled("en_locale"));
 const nextLocale = computed(() => (locale.value === "en-US" ? "zh-CN" : "en-US"));
+
+/**
+ * 同一页面的另一种语言地址（由路由给出）。
+ *
+ * 账户/结算等尚未双语的页面没有对位地址：此时**只切界面语言、不跳转**，
+ * 避免把用户带到一个"英文 URL 里的中文页"。
+ */
+const counterpart = computed(() => counterpartPath(route.fullPath));
+
+async function switchLocale(): Promise<void> {
+  const target = nextLocale.value;
+  const path = target === "en-US" ? counterpart.value : counterpart.value;
+  setLocale(target);
+  if (path && path !== route.fullPath) {
+    await router.push(path);
+  }
+}
 
 const navItems = computed<NavItem[]>(() => {
   const items: NavItem[] = [
@@ -134,7 +153,7 @@ const commissionLabel = computed(() => {
           lang="en-US"
           class="hidden size-11 items-center justify-center rounded-sm border border-line text-xs font-medium text-ink-muted transition-colors hover:border-amber hover:text-amber-strong sm:inline-flex"
           :aria-label="`${t('common.language')}：${nextLocale === 'en-US' ? t('common.languageEn') : t('common.languageZh')}`"
-          @click="setLocale(nextLocale)"
+          @click="switchLocale()"
         >
           <span aria-hidden="true">{{ nextLocale === "en-US" ? "EN" : "中" }}</span>
         </button>
@@ -214,7 +233,7 @@ const commissionLabel = computed(() => {
           v-if="englishAvailable"
           type="button"
           class="rounded-sm px-3 py-3 text-left text-base text-ink-soft hover:bg-surface-muted"
-          @click="setLocale(nextLocale)"
+          @click="switchLocale()"
         >
           {{ nextLocale === "en-US" ? t("common.languageEn") : t("common.languageZh") }}
         </button>

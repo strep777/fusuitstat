@@ -10,6 +10,7 @@ import { createRouter, createWebHistory } from "vue-router";
 
 import { useAuthStore } from "@/modules/identity/stores/auth";
 import { useSiteStore } from "@/modules/content/stores/site";
+import { usePreferencesStore } from "@/shared/stores/preferences";
 
 const SiteLayout = () => import("@/app/layouts/SiteLayout.vue");
 const HomePage = () => import("@/modules/content/pages/HomePage.vue");
@@ -65,79 +66,110 @@ const MaintenancePage = () => import("@/modules/content/pages/MaintenancePage.vu
 /** 需要登录的路由。401 引导登录并保留不含敏感信息的目标路径。 */
 const AUTH_REQUIRED = { requiresAuth: true } as const;
 
-const routes: RouteRecordRaw[] = [
+/**
+ * 需要有**英文 URL**的公开路由（C02/C24：`/en/...` 前缀路由）。
+ *
+ * 只覆盖公开浏览面与登录：账户中心、结算与支付仍只有一套 URL（N15 未定"后台与账户是否双语"，
+ * 因此不先造一套半成品英文 URL）。名单里的路由会在 `/en` 下再注册一份，名称加 `-en` 后缀。
+ */
+const LOCALIZED_ROUTE_NAMES: readonly string[] = [
+  "home",
+  "about",
+  "contact",
+  "news",
+  "news-detail",
+  "works",
+  "work-detail",
+  "series",
+  "series-detail",
+  "faq",
+  "care",
+  "legal",
+  "custom-page",
+  "commission-guide",
+  "commission-schedules",
+  "commission-contract",
+  "characters",
+  "character-detail",
+  "shop",
+  "product-detail",
+  "login",
+];
+
+/** 英文前缀（唯一一份，路由与跳转都读它）。 */
+export const ENGLISH_PREFIX = "/en";
+
+const publicChildren: RouteRecordRaw[] = [
+  { path: "", name: "home", component: HomePage, meta: { title: "首页" } },
+
+  // ---- 品牌与内容 ----
+  { path: "about", name: "about", component: AboutPage, meta: { title: "关于工作室" } },
+  { path: "contact", name: "contact", component: ContactPage, meta: { title: "联系与反馈" } },
+  { path: "news", name: "news", component: ContentPage, meta: { title: "公告", kind: "news" } },
   {
-    path: "/",
-    component: SiteLayout,
-    children: [
-      { path: "", name: "home", component: HomePage, meta: { title: "首页" } },
+    path: "news/:slug",
+    name: "news-detail",
+    component: ContentDetailPage,
+    meta: { title: "公告", kind: "news" },
+  },
+  { path: "works", name: "works", component: WorksPage, meta: { title: "作品集" } },
+  { path: "works/:slug", name: "work-detail", component: WorkDetailPage, meta: { title: "作品" } },
+  { path: "fursuits", name: "series", component: SeriesListPage, meta: { title: "系列与规格" } },
+  {
+    path: "fursuits/:slug",
+    name: "series-detail",
+    component: SeriesDetailPage,
+    meta: { title: "系列详情" },
+  },
+  { path: "faq", name: "faq", component: FaqPage, meta: { title: "常见问题" } },
+  { path: "care", name: "care", component: CarePage, meta: { title: "养护与清洁" } },
+  { path: "legal/:slug", name: "legal", component: LegalPage, meta: { title: "规则与条款" } },
+  { path: "pages/:slug", name: "custom-page", component: ContentDetailPage, meta: { title: "页面", kind: "page" } },
 
-      // ---- 品牌与内容 ----
-      { path: "about", name: "about", component: AboutPage, meta: { title: "关于工作室" } },
-      { path: "contact", name: "contact", component: ContactPage, meta: { title: "联系与反馈" } },
-      { path: "news", name: "news", component: ContentPage, meta: { title: "公告", kind: "news" } },
-      {
-        path: "news/:slug",
-        name: "news-detail",
-        component: ContentDetailPage,
-        meta: { title: "公告", kind: "news" },
-      },
-      { path: "works", name: "works", component: WorksPage, meta: { title: "作品集" } },
-      { path: "works/:slug", name: "work-detail", component: WorkDetailPage, meta: { title: "作品" } },
-      { path: "fursuits", name: "series", component: SeriesListPage, meta: { title: "系列与规格" } },
-      {
-        path: "fursuits/:slug",
-        name: "series-detail",
-        component: SeriesDetailPage,
-        meta: { title: "系列详情" },
-      },
-      { path: "faq", name: "faq", component: FaqPage, meta: { title: "常见问题" } },
-      { path: "care", name: "care", component: CarePage, meta: { title: "养护与清洁" } },
-      { path: "legal/:slug", name: "legal", component: LegalPage, meta: { title: "规则与条款" } },
-      { path: "pages/:slug", name: "custom-page", component: ContentDetailPage, meta: { title: "页面", kind: "page" } },
+  // ---- 委托 ----
+  {
+    path: "commission/guide",
+    name: "commission-guide",
+    component: CommissionGuidePage,
+    meta: { title: "委托指南" },
+  },
+  {
+    path: "commission/schedules",
+    name: "commission-schedules",
+    component: CommissionSchedulesPage,
+    meta: { title: "档期与名额" },
+  },
+  {
+    path: "commission/contract",
+    name: "commission-contract",
+    component: CommissionContractPage,
+    meta: { title: "合同说明与示例" },
+  },
+  {
+    path: "commission/new",
+    name: "inquiry-new",
+    component: InquiryNewPage,
+    meta: { title: "提交询价", ...AUTH_REQUIRED },
+  },
 
-      // ---- 委托 ----
-      {
-        path: "commission/guide",
-        name: "commission-guide",
-        component: CommissionGuidePage,
-        meta: { title: "委托指南" },
-      },
-      {
-        path: "commission/schedules",
-        name: "commission-schedules",
-        component: CommissionSchedulesPage,
-        meta: { title: "档期与名额" },
-      },
-      {
-        path: "commission/contract",
-        name: "commission-contract",
-        component: CommissionContractPage,
-        meta: { title: "合同说明与示例" },
-      },
-      {
-        path: "commission/new",
-        name: "inquiry-new",
-        component: InquiryNewPage,
-        meta: { title: "提交询价", ...AUTH_REQUIRED },
-      },
+  // ---- 目录 ----
+  { path: "characters", name: "characters", component: CharactersPage, meta: { title: "角色领养" } },
+  {
+    path: "characters/:slug",
+    name: "character-detail",
+    component: CharacterDetailPage,
+    meta: { title: "角色详情" },
+  },
+  { path: "shop", name: "shop", component: ShopPage, meta: { title: "商城" } },
+  { path: "shop/:slug", name: "product-detail", component: ProductDetailPage, meta: { title: "商品详情" } },
 
-      // ---- 目录 ----
-      { path: "characters", name: "characters", component: CharactersPage, meta: { title: "角色领养" } },
-      {
-        path: "characters/:slug",
-        name: "character-detail",
-        component: CharacterDetailPage,
-        meta: { title: "角色详情" },
-      },
-      { path: "shop", name: "shop", component: ShopPage, meta: { title: "商城" } },
-      { path: "shop/:slug", name: "product-detail", component: ProductDetailPage, meta: { title: "商品详情" } },
+  // ---- 登录 ----
+  { path: "login", name: "login", component: LoginPage, meta: { title: "登录", layout: "plain" } },
+];
 
-      // ---- 登录 ----
-      { path: "login", name: "login", component: LoginPage, meta: { title: "登录", layout: "plain" } },
-
-      // ---- 账户中心 ----
-      { path: "account", name: "account", component: AccountOverviewPage, meta: { title: "我的账户", ...AUTH_REQUIRED } },
+/** 账户中心与交易路由：只有一套 URL（双语范围待 N15 决定）。 */
+const accountChildren: RouteRecordRaw[] = [
+  { path: "account", name: "account", component: AccountOverviewPage, meta: { title: "我的账户", ...AUTH_REQUIRED } },
       {
         path: "account/profile",
         name: "account-profile",
@@ -251,6 +283,48 @@ const routes: RouteRecordRaw[] = [
 
       { path: "maintenance", name: "maintenance", component: MaintenancePage, meta: { title: "维护中", layout: "plain" } },
       { path: ":pathMatch(.*)*", name: "not-found", component: NotFoundPage, meta: { title: "页面不存在" } },
+];
+
+/**
+ * 英文副本：把名单里的公开路由整体搬到 `/en` 下（名称加 `-en`，`meta.locale` 标记语言）。
+ *
+ * 同一份组件与同一份路径（只是前缀不同），因此**不存在"英文站功能少一半"**；
+ * 语言由 URL 决定，分享与索引都能拿到稳定的可切换地址。
+ */
+function englishChildren(): RouteRecordRaw[] {
+  return publicChildren
+    .filter((child) => LOCALIZED_ROUTE_NAMES.includes(String(child.name ?? "")))
+    .map((child) => {
+      const record = { ...child } as RouteRecordRaw & { path: string; name?: string };
+      record.path = record.path === "" ? "" : record.path;
+      record.name = `${String(child.name)}-en`;
+      record.meta = { ...(child.meta ?? {}), locale: "en-US" };
+      record.props = child.props;
+      return record;
+    });
+}
+
+const routes: RouteRecordRaw[] = [
+  {
+    path: "/",
+    component: SiteLayout,
+    children: [
+      ...publicChildren.map((child) => ({ ...child, meta: { ...(child.meta ?? {}), locale: "zh-CN" } })),
+      ...accountChildren,
+    ],
+  },
+  {
+    path: ENGLISH_PREFIX,
+    component: SiteLayout,
+    children: [
+      ...englishChildren(),
+      // 英文前缀下没有对应条目时回到 404（不静默回落到首页或中文页）。
+      {
+        path: ":pathMatch(.*)*",
+        name: "not-found-en",
+        component: NotFoundPage,
+        meta: { title: "页面不存在", locale: "en-US" },
+      },
     ],
   },
 ];
@@ -271,11 +345,50 @@ const SITE_NAME = "弈星纪元兽装工作室";
 const PRIVATE_PREFIXES = ["/account", "/admin", "/pay", "/checkout", "/cart", "/login", "/payment", "/feedback"];
 
 function isPrivate(path: string): boolean {
-  return PRIVATE_PREFIXES.some((prefix) => path === prefix || path.startsWith(`${prefix}/`));
+  const normalized = path.startsWith(ENGLISH_PREFIX)
+    ? path.slice(ENGLISH_PREFIX.length) || "/"
+    : path;
+  return PRIVATE_PREFIXES.some(
+    (prefix) => normalized === prefix || normalized.startsWith(`${prefix}/`),
+  );
+}
+
+/**
+ * 同一页面的另一种语言地址（语言切换与 `hreflang` 都用它）。
+ *
+ * 规则：
+ * - 是名单内的公开路由 → 去掉/加上 `/en` 前缀，得到**对位页面**；
+ * - 不是名单内的路由（账户、结算、支付等）→ 返回 `null`，**不给假的英文地址**，
+ *   语言切换入口在这种情况下保持当前页面不动（只切界面语言）。
+ */
+export function counterpartPath(fullPath: string): string | null {
+  const [pathPart, query = ""] = fullPath.split("?");
+  const path = pathPart ?? "/";
+  const suffix = query ? `?${query}` : "";
+  if (path === ENGLISH_PREFIX || path.startsWith(`${ENGLISH_PREFIX}/`)) {
+    const stripped = path.slice(ENGLISH_PREFIX.length) || "/";
+    return `${stripped}${suffix}`;
+  }
+  const matched = router.resolve(path);
+  const name = String(matched.name ?? "");
+  if (!name || !LOCALIZED_ROUTE_NAMES.includes(name)) return null;
+  return `${ENGLISH_PREFIX}${path === "/" ? "" : path}${suffix}`;
+}
+
+/** 该地址是否属于英文站（供 SEO 与语言状态判断）。 */
+export function isEnglishPath(path: string): boolean {
+  return path === ENGLISH_PREFIX || path.startsWith(`${ENGLISH_PREFIX}/`);
 }
 
 router.beforeEach(async (to) => {
   const auth = useAuthStore();
+  // URL 决定语言：进入 `/en/...` 就把界面语言切到英文（反之亦然），
+  // 这样刷新、直达链接与分享出去的地址语言一致。
+  const locale = to.meta.locale;
+  if (locale === "en-US" || locale === "zh-CN") {
+    const preferences = usePreferencesStore();
+    if (preferences.locale !== locale) preferences.setLocale(locale);
+  }
 
   if (to.meta.requiresAuth) {
     if (!auth.loaded) {
@@ -301,12 +414,48 @@ router.afterEach((to) => {
   }
   if (isPrivate(to.path)) {
     robots.content = "noindex, nofollow";
-  } else if (to.name === "not-found") {
+  } else if (to.name === "not-found" || to.name === "not-found-en") {
     robots.content = "noindex, follow";
   } else {
     robots.content = "index, follow";
   }
+  applyAlternateLinks(to.fullPath, isPrivate(to.path));
 });
+
+/**
+ * `hreflang` 与 canonical：公开页面同时声明中英两种地址与 `x-default`。
+ *
+ * 私密页面（账户/结算/支付）不出 alternate，也不写死 canonical——
+ * 它们的语言尚未决定（N15），先不向搜索引擎声明。
+ */
+function applyAlternateLinks(fullPath: string, privatePath: boolean): void {
+  const managed = document.head.querySelectorAll('link[data-dsh-alternate="1"]');
+  managed.forEach((node) => node.remove());
+  const canonical = document.head.querySelector<HTMLLinkElement>('link[rel="canonical"]');
+  if (privatePath) {
+    canonical?.remove();
+    return;
+  }
+  const path = fullPath.split("?")[0] ?? "/";
+  const origin = window.location.origin;
+  const pairs: Array<{ hreflang: string; href: string }> = [];
+  const english = isEnglishPath(path);
+  const zhPath = english ? counterpartPath(fullPath) : fullPath;
+  const enPath = english ? fullPath : counterpartPath(fullPath);
+  if (zhPath) pairs.push({ hreflang: "zh-CN", href: `${origin}${zhPath}` });
+  if (enPath) pairs.push({ hreflang: "en-US", href: `${origin}${enPath}` });
+  if (!pairs.length) return;
+  pairs.push({ hreflang: "x-default", href: pairs[0]!.href });
+  for (const pair of pairs) {
+    const link = document.createElement("link");
+    link.rel = "alternate";
+    link.hreflang = pair.hreflang;
+    link.href = pair.href;
+    link.dataset.dshAlternate = "1";
+    document.head.appendChild(link);
+  }
+  if (canonical) canonical.href = `${origin}${zhPath ?? fullPath}`;
+}
 
 export function registerOptionalRoutes(site: ReturnType<typeof useSiteStore>): void {
   // C15/C18/C20/C29 的可选路由只在开关启用后注册，避免输出假入口。

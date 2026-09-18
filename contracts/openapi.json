@@ -17228,6 +17228,38 @@
             ],
             "title": "Application Id"
           },
+          "sla_workdays": {
+            "type": "integer",
+            "title": "Sla Workdays",
+            "default": 0
+          },
+          "response_due_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Response Due At"
+          },
+          "first_responded_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "First Responded At"
+          },
+          "response_overdue": {
+            "type": "boolean",
+            "title": "Response Overdue",
+            "default": false
+          },
           "revisions": {
             "items": {
               "$ref": "#/components/schemas/InquiryRevisionItem"

@@ -194,6 +194,14 @@ def _cleanup(session: Any, event: OutboxEvent) -> str:
     )
 
 
+def _support_sla(session: Any, event: OutboxEvent) -> str:
+    """C30 首响时效巡检：对逾期未响应的询价登记一次提醒（同日去重）。"""
+    from app.modules.commissions import ports as commission_ports
+
+    result = commission_ports.remind_overdue_inquiries(session, limit=50)
+    return f"sla:overdue={result['overdue']},reminded={result['reminded']}"
+
+
 def _reconcile(session: Any, event: OutboxEvent) -> str:
     from app.adapters.payments.base import bill_date_of
     from app.modules.payments import service as payment_service
@@ -225,6 +233,7 @@ _HANDLERS = {
     "feedback.reviewed": _dispatch_notification,
     "settings.feature_flags_changed": lambda session, event: "acknowledged",
     "ops.cleanup": _cleanup,
+    "support.sla_check": _support_sla,
     "finance.reconcile": _reconcile,
 }
 
@@ -290,8 +299,13 @@ def run_worker(*, once: bool = False, max_iterations: int = 0) -> None:
     signal.signal(signal.SIGTERM, _handle_signal)
 
     iterations = 0
-    # 定期任务：清理与对账由 worker 自己排期，避免依赖外部 cron。
-    schedule = {"ops.cleanup": 3600, "finance.reconcile": 86_400, "notification.dispatch": 60}
+    # 定期任务：清理、对账与首响时效巡检由 worker 自己排期，避免依赖外部 cron。
+    schedule = {
+        "ops.cleanup": 3600,
+        "support.sla_check": 3600,
+        "finance.reconcile": 86_400,
+        "notification.dispatch": 60,
+    }
     last_run = {key: 0 for key in schedule}
 
     while not _stop:

@@ -70,6 +70,7 @@ from app.modules.commissions.schemas import (
     StageChangeInput,
     StageConfirmInput,
 )
+from app.modules.content import ports as content_ports
 from app.modules.contracts import CreatedOrder, OrderTotals
 from app.platform import audit
 from app.platform.db import affected_rows
@@ -653,6 +654,8 @@ def mark_needs_info(
             status="NEEDS_INFO",
             needs_info_note=clean_reason[:500],
             staff_seen_revision=inquiry.current_revision,
+            # C30 首响：要求补件也是一次真实响应；只在首次写入，不覆盖。
+            first_responded_at=sa.func.coalesce(Inquiry.first_responded_at, moment),
             version=Inquiry.version + 1,
             updated_at=moment,
         )
@@ -710,6 +713,8 @@ def reject_inquiry(
     inquiry.reject_reason = reason[:400]
     inquiry.rejected_at = moment
     inquiry.staff_seen_revision = inquiry.current_revision
+    # C30 首响：拒单也是一次真实响应（只在首次写入）。
+    inquiry.first_responded_at = inquiry.first_responded_at or moment
     inquiry.version += 1
     inquiry.updated_at = moment
     audit.record(
@@ -852,6 +857,8 @@ def publish_quote(
         )
     inquiry.status = "QUOTED"
     inquiry.staff_seen_revision = inquiry.current_revision
+    # C30 首响：发布报价是首次响应的主要形式（只在首次写入，改版报价不覆盖）。
+    inquiry.first_responded_at = inquiry.first_responded_at or moment
     inquiry.version += 1
     inquiry.updated_at = moment
     session.flush()
@@ -2543,6 +2550,70 @@ def accept_change_request(
 
 
 # ------------------------------------------------------------------ DTO 组装
+def remind_overdue_inquiries(session: Session, *, now: int | None = None, limit: int = 50) -> dict[str, Any]:
+    """C30 逾期提醒：对超过首响承诺仍未响应的询价，给工作人员登记一次提醒。
+
+    去重靠通知模块的 `(user_id, event_id)` 唯一约束——**同一个询价只提醒一次**
+    （event_id 含首响截止日），避免每天重复提醒同一件事；逾期状态本身在后台列表可见。
+    返回本轮新增的提醒数与仍在逾期的数量。
+    """
+    from app.modules.notifications.ports import NotificationRequest
+    from app.modules.notifications.ports import notify as enqueue_notification
+
+    moment = now if now is not None else now_ms()
+    workdays = int(content_ports.response_sla_workdays(session)["inquiry_workdays"])
+    calendar = content_ports.support_calendar(session)
+    # 先按「最宽的可能截止时间」粗筛（N 个自然日前的都已可能逾期），再逐个按日历精确判定。
+    candidates = repo.overdue_inquiries(session, before_ms=moment, limit=limit)
+    reminded = 0
+    overdue_ids: list[str] = []
+    for inquiry in candidates:
+        start = inquiry.submitted_at or inquiry.created_at
+        deadline = content_ports.add_workdays(start, workdays, calendar=calendar)
+        if deadline >= moment:
+            continue
+        overdue_ids.append(inquiry.id)
+        due_date = iso(deadline) or ""
+        created = enqueue_notification(
+            session,
+            NotificationRequest(
+                # 同一询价只提醒一次（event_id 含首响截止日，跨天也不会重复提醒）。
+                event_id=f"sla-overdue-{inquiry.id}-{due_date[:10]}",
+                event_type="support.sla_overdue",
+                user_id=None,
+                title="询价首响已逾期",
+                body=(
+                    f"询价 {inquiry.id}（{inquiry.character_name}）承诺 {workdays} 个工作日首响，"
+                    f"截止 {due_date}，至今没有工作人员响应。"
+                ),
+                link_path="/admin/quotes",
+                category="support",
+                channels=(),
+                payload={"inquiry_id": inquiry.id, "response_due_at": due_date},
+            ),
+        )
+        reminded += created
+    return {"overdue": len(overdue_ids), "reminded": reminded, "inquiry_ids": overdue_ids}
+
+
+def inquiry_sla(session: Session, inquiry: Inquiry, *, now: int | None = None) -> dict[str, Any]:
+    """C30 首响时效：承诺工作日数、首响截止时间与是否已逾期。
+
+    截止时间按**客服日历**（工作日 + 节假日 + 调休）计算；已响应则报告实际响应时间。
+    """
+    moment = now if now is not None else now_ms()
+    workdays = int(content_ports.response_sla_workdays(session)["inquiry_workdays"])
+    start = inquiry.submitted_at or inquiry.created_at
+    deadline = content_ports.response_deadline(session, start_ms=start, workdays=workdays)
+    responded = inquiry.first_responded_at
+    return {
+        "sla_workdays": workdays,
+        "response_due_at": iso(deadline),
+        "first_responded_at": iso(responded),
+        "response_overdue": responded is None and deadline < moment,
+    }
+
+
 def inquiry_summary(inquiry: Inquiry) -> InquirySummary:
     return InquirySummary(
         id=inquiry.id,
@@ -2589,6 +2660,7 @@ def inquiry_detail_dto(session: Session, inquiry: Inquiry) -> InquiryDetail:
         accepted_at=iso(inquiry.accepted_at),
         withdrawn_at=iso(inquiry.withdrawn_at),
         application_id=inquiry.application_id,
+        **inquiry_sla(session, inquiry),
         revisions=revisions,
         current_quote_version=current_quote.quote_version if current_quote else None,
         project_id=project.id if project else None,

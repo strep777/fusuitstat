@@ -357,6 +357,7 @@ __all__ = [
     "purge_draft_inquiries",
     "purge_stale_drafts",
     "record_terms_consent",
+    "remind_overdue_inquiries",
     "release_slot_on_order_closed",
     "require_rush_enabled",
     "series_is_published",
@@ -419,6 +420,13 @@ def purge_draft_inquiries(session: Session, *, user_id: str) -> int:
         session.delete(inquiry)
     session.flush()
     return len(drafts)
+
+
+def remind_overdue_inquiries(session: Session, *, limit: int = 50) -> dict[str, Any]:
+    """C30 首响逾期提醒（worker 周期任务调用）：同一询价同一天只提醒一次。"""
+    from app.modules.commissions import service as commission_service
+
+    return commission_service.remind_overdue_inquiries(session, limit=limit)
 
 
 def purge_stale_drafts(session: Session, *, before_ms: int, limit: int = 50) -> int:

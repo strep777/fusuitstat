@@ -210,6 +210,11 @@ export interface Inquiry extends Omit<
   contact_preference?: string | null;
   /** 同样只有详情接口返回（列表行不含）。 */
   application_id?: string | null;
+  /** C30 首响时效：承诺工作日数、截止时间、实际首响与是否逾期。 */
+  sla_workdays?: number;
+  response_due_at?: string | null;
+  first_responded_at?: string | null;
+  response_overdue?: boolean;
 }
 
 export interface InquiryListQuery {

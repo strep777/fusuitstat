@@ -211,6 +211,11 @@ class InquiryDetail(InquirySummary):
     withdrawn_at: str | None = None
     # C28：本询价引用的服务申请编号（未引用申请时为 None）。
     application_id: str | None = None
+    # C30 首响时效（详情接口返回）：承诺工作日数、截止时间与是否已逾期。
+    sla_workdays: int = 0
+    response_due_at: str | None = None
+    first_responded_at: str | None = None
+    response_overdue: bool = False
     revisions: list[InquiryRevisionItem] = Field(default_factory=list)
     current_quote_version: int | None = None
     project_id: str | None = None

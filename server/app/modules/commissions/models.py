@@ -133,6 +133,8 @@ class Inquiry(PkMixin, TimestampMixin, VersionMixin, Base):
     # 一个申请只能用于一份询价（唯一索引），避免同一份审批被反复用来报价。
     application_id: Mapped[str | None] = mapped_column(sa.String(48))
     submitted_at: Mapped[int | None] = mapped_column(sa.BigInteger)
+    # C30：工作人员**首次响应**时间（发布报价、要求补件或拒绝时写入一次）。
+    first_responded_at: Mapped[int | None] = mapped_column(sa.BigInteger)
     accepted_at: Mapped[int | None] = mapped_column(sa.BigInteger)
     rejected_at: Mapped[int | None] = mapped_column(sa.BigInteger)
     withdrawn_at: Mapped[int | None] = mapped_column(sa.BigInteger)

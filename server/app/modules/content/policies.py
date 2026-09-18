@@ -1,4 +1,5 @@
 """后台设置的字段约束；验证完成前不得修改持久化对象。"""
+from datetime import date
 from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
@@ -124,11 +125,42 @@ class CommercePolicy(Policy):
     shipping_template_note: str = ""
 
 
+class SupportCalendar(Policy):
+    """客服工作日与节假日（C30）：逾期提醒与首响截止时间按它计算。"""
+
+    timezone: Literal["Asia/Shanghai", "America/Los_Angeles"] = "Asia/Shanghai"
+    # 周一=1 … 周日=7；至少要有 1 个工作日，否则「N 个工作日」永远算不出结果。
+    workdays: list[Annotated[int, Field(ge=1, le=7)]] = Field(default_factory=lambda: [1, 2, 3, 4, 5])
+    holidays: list[str] = Field(default_factory=list)
+    extra_workdays: list[str] = Field(default_factory=list)
+    holiday_note: str = ""
+
+    @model_validator(mode="after")
+    def valid_calendar(self) -> "SupportCalendar":
+        if not self.workdays:
+            raise ValueError("至少要配置一个工作日")
+        if len(set(self.workdays)) != len(self.workdays):
+            raise ValueError("workdays 不能重复")
+        for name, values in (("holidays", self.holidays), ("extra_workdays", self.extra_workdays)):
+            if len(set(values)) != len(values):
+                raise ValueError(f"{name} 不能重复")
+            for value in values:
+                try:
+                    date.fromisoformat(value)
+                except ValueError as exc:
+                    raise ValueError(f"{name} 必须是 YYYY-MM-DD 日期") from exc
+        overlap = set(self.holidays) & set(self.extra_workdays)
+        if overlap:
+            raise ValueError(f"同一天不能既是节假日又是调休上班日：{sorted(overlap)[0]}")
+        return self
+
+
 MODELS: dict[str, type[BaseModel]] = {
     "commission.policy": CommissionPolicy,
     "loyalty.rules": LoyaltyPolicy,
     "platform.feature_flags": FeatureFlags,
     "commerce.policy": CommercePolicy,
+    "support.calendar": SupportCalendar,
 }
 
 

@@ -366,6 +366,21 @@ const suitTypeLabel = computed(() => {
           {{ suitTypeLabel }} · 收货区域 {{ inquiry.delivery_region || "未填写" }} · 提交于
           {{ inquiry.submitted_at ? formatDateTime(inquiry.submitted_at) : "尚未提交" }}
         </p>
+        <!-- C30：首响承诺与本次询价的实际截止时间（服务端按客服日历计算，含节假日） -->
+        <p v-if="inquiry.submitted_at && inquiry.response_due_at" class="mt-2 text-sm">
+          <span v-if="inquiry.first_responded_at" class="text-jade">
+            工作人员已于 {{ formatDateTime(inquiry.first_responded_at) }} 首次响应
+            （承诺 {{ inquiry.sla_workdays }} 个工作日）。
+          </span>
+          <span v-else-if="inquiry.response_overdue" class="text-wine">
+            首响承诺为 {{ inquiry.sla_workdays }} 个工作日，截止
+            {{ formatDateTime(inquiry.response_due_at) }} 仍未响应；我们正在跟进，也可直接联系客服催办。
+          </span>
+          <span v-else class="text-ink-muted">
+            首响承诺 {{ inquiry.sla_workdays }} 个工作日，本次截止
+            {{ formatDateTime(inquiry.response_due_at) }}（按客服工作日计算，节假日顺延）。
+          </span>
+        </p>
       </header>
 
       <!-- 接受成功 -->

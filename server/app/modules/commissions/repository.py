@@ -32,6 +32,23 @@ def get_inquiry(session: Session, *, inquiry_id: str, user_id: str) -> Inquiry |
     ).one_or_none()
 
 
+def overdue_inquiries(session: Session, *, before_ms: int, limit: int = 50) -> list[Inquiry]:
+    """已提交、首响截止已过、且工作人员尚未响应的询价（C30 逾期提醒）。"""
+    return list(
+        session.scalars(
+            sa.select(Inquiry)
+            .where(
+                Inquiry.status.in_(("SUBMITTED", "NEEDS_INFO")),
+                Inquiry.submitted_at.is_not(None),
+                Inquiry.submitted_at <= before_ms,
+                Inquiry.first_responded_at.is_(None),
+            )
+            .order_by(Inquiry.submitted_at)
+            .limit(max(1, min(limit, 200)))
+        )
+    )
+
+
 def get_inquiry_for_staff(session: Session, inquiry_id: str) -> Inquiry | None:
     """员工路径按权限码访问，不做本人过滤。"""
     return session.get(Inquiry, inquiry_id)

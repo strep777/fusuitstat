@@ -10,7 +10,16 @@ from typing import Any
 
 from sqlalchemy.orm import Session
 
-__all__ = ["feature_flags", "loyalty_policy", "require_feature", "setting_value"]
+__all__ = [
+    "add_workdays",
+    "feature_flags",
+    "loyalty_policy",
+    "require_feature",
+    "response_deadline",
+    "response_sla_workdays",
+    "setting_value",
+    "support_calendar",
+]
 
 
 def require_feature(session: Session, name: str) -> None:
@@ -37,3 +46,31 @@ def loyalty_policy(session: Session) -> dict[str, Any]:
     from app.modules.content.service import loyalty_policy as read
 
     return read(session)
+
+
+def support_calendar(session: Session) -> dict[str, Any]:
+    """客服工作日与节假日（C30）：逾期提醒与首响截止时间都按它计算。"""
+    from app.modules.content.service import support_calendar as read
+
+    return read(session)
+
+
+def response_sla_workdays(session: Session) -> dict[str, int]:
+    """首响承诺的工作日数（询价 3 / 反馈 7，来自后台配置）。"""
+    from app.modules.content.service import response_sla_workdays as read
+
+    return read(session)
+
+
+def add_workdays(moment_ms: int, workdays: int, *, calendar: dict[str, Any]) -> int:
+    """在给定时刻上加 N 个客服工作日（跳过节假日与周末，计入调休上班日）。"""
+    from app.modules.content.service import add_workdays as compute
+
+    return compute(moment_ms, workdays, calendar=calendar)
+
+
+def response_deadline(session: Session, *, start_ms: int, workdays: int) -> int:
+    """首响截止时间 = 起始时间 + N 个客服工作日。"""
+    from app.modules.content.service import response_deadline as compute
+
+    return compute(session, start_ms=start_ms, workdays=workdays)

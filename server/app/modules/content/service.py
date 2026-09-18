@@ -7,7 +7,9 @@
 from __future__ import annotations
 
 import re
+from datetime import date, datetime, timedelta
 from typing import Any
+from zoneinfo import ZoneInfo
 
 import sqlalchemy as sa
 from sqlalchemy.orm import Session
@@ -330,6 +332,25 @@ DEFAULT_SETTINGS: tuple[dict[str, Any], ...] = (
             "support_email": "support@starium.cn",
             "service_hours": "周一至周五 10:00–19:00（Asia/Shanghai），节假日另行说明",
             "response_sla": {"inquiry_workdays": 3, "feedback_workdays": 7},
+        },
+    },
+    {
+        "key": "support.calendar",
+        "group": "support",
+        "label": "客服工作日与节假日",
+        "description": "C30：询价 3 个工作日、反馈 7 个工作日首响；节假日与调休由这里配置，"
+        "逾期提醒按该日历计算。",
+        "is_public": 1,
+        "value": {
+            "timezone": "Asia/Shanghai",
+            # 周一=1 … 周日=7；默认周一至周五为工作日。
+            "workdays": [1, 2, 3, 4, 5],
+            # 法定节假日（YYYY-MM-DD）：即使落在工作日也不算工作日。
+            "holidays": [],
+            # 调休上班日（YYYY-MM-DD）：即使落在周末也算工作日。
+            "extra_workdays": [],
+            # N13 待补：节假日期间的服务时效说明文案（留空表示沿用服务时段说明）。
+            "holiday_note": "",
         },
     },
     {
@@ -706,6 +727,68 @@ def _record_display_retraction(
         resource_id=resource_id,
         reason=reason,
     )
+
+
+def support_calendar(session: Session) -> dict[str, Any]:
+    """客服工作日与节假日（C30）。缺失时给出「周一至周五、无节假日」的安全基线。"""
+    stored = setting_value(session, "support.calendar", {}) or {}
+    workdays = sorted({int(day) for day in (stored.get("workdays") or [1, 2, 3, 4, 5])})
+    return {
+        "timezone": str(stored.get("timezone") or "Asia/Shanghai"),
+        "workdays": workdays or [1, 2, 3, 4, 5],
+        "holidays": sorted({str(day) for day in (stored.get("holidays") or [])}),
+        "extra_workdays": sorted({str(day) for day in (stored.get("extra_workdays") or [])}),
+        "holiday_note": str(stored.get("holiday_note") or ""),
+    }
+
+
+def response_sla_workdays(session: Session) -> dict[str, int]:
+    """首响承诺（C30）：询价 3 个工作日、反馈 7 个工作日。数值来自后台配置。"""
+    profile = setting_value(session, "brand.profile", {}) or {}
+    sla = profile.get("response_sla") or {}
+    return {
+        "inquiry_workdays": int(sla.get("inquiry_workdays", 3)),
+        "feedback_workdays": int(sla.get("feedback_workdays", 7)),
+    }
+
+
+def _calendar_date(moment_ms: int, timezone_name: str) -> date:
+    """把毫秒时间戳换算成客服时区里的自然日。"""
+    tz = ZoneInfo(timezone_name) if timezone_name in ("Asia/Shanghai", "America/Los_Angeles") else ZoneInfo("Asia/Shanghai")
+    return datetime.fromtimestamp(moment_ms / 1000, tz=tz).date()
+
+
+def is_workday(moment_ms: int, *, calendar: dict[str, Any]) -> bool:
+    """某一天是否为客服工作日：先看调休上班日，再看节假日，最后看星期几。"""
+    day = _calendar_date(moment_ms, str(calendar["timezone"]))
+    iso = day.isoformat()
+    if iso in set(calendar["extra_workdays"]):
+        return True
+    if iso in set(calendar["holidays"]):
+        return False
+    return day.isoweekday() in set(calendar["workdays"])
+
+
+def add_workdays(moment_ms: int, workdays: int, *, calendar: dict[str, Any]) -> int:
+    """在给定时刻上加 N 个客服工作日，返回毫秒时间戳。
+
+    规则（C30）：从次日开始数，只数工作日；节假日跳过、调休上班日照常计入。
+    起始日当天不计入 N（当天提交不算「已经过一个工作日」）。
+    """
+    tz = ZoneInfo(str(calendar["timezone"]))
+    start = datetime.fromtimestamp(moment_ms / 1000, tz=tz)
+    cursor = start
+    remaining = max(0, int(workdays))
+    while remaining > 0:
+        cursor = cursor + timedelta(days=1)
+        if is_workday(int(cursor.timestamp() * 1000), calendar=calendar):
+            remaining -= 1
+    return int(cursor.timestamp() * 1000)
+
+
+def response_deadline(session: Session, *, start_ms: int, workdays: int) -> int:
+    """首响截止时间 = 提交时间 + N 个客服工作日（同一时刻的秒级精度）。"""
+    return add_workdays(start_ms, workdays, calendar=support_calendar(session))
 
 
 def series_payload(spec: SeriesSpec, entry: ContentEntry) -> dict[str, Any]:    return {

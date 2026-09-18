@@ -11,6 +11,7 @@ import { computed, onMounted, ref } from "vue";
 import { RouterLink } from "vue-router";
 
 import { useAuthStore } from "@/modules/identity/stores/auth";
+import { useSiteStore } from "@/modules/content/stores/site";
 import {
   INQUIRY_FILTER_GROUPS,
   INQUIRY_STATUS_LABEL,
@@ -25,6 +26,7 @@ import { formatDateTime, formatMoneyExact } from "@/shared/lib/format";
 import { ApiError } from "@/shared/lib/http";
 
 const auth = useAuthStore();
+const site = useSiteStore();
 const setTitle = useDocumentTitle();
 
 type FilterKey = "all" | "draft" | "processing" | "quoted" | "expired";
@@ -125,7 +127,8 @@ function nextAction(inquiry: Inquiry): string {
     case "DRAFT":
       return "继续填写并提交，或直接删除草稿（撤回）。";
     case "SUBMITTED":
-      return "等待工作人员评估；首响为工作日内的 3 个工作日。";
+      // C30 首响承诺来自后台配置，不在这里写死数字。
+      return `等待工作人员评估；首响承诺为 ${site.brand.response_sla.inquiry_workdays} 个工作日（按客服工作日计算）。`;
     case "NEEDS_INFO":
       return "需要你补件，进入详情查看说明。";
     case "QUOTED":

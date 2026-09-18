@@ -329,7 +329,14 @@ def list_quotes(
         quote = repo.current_published_quote(ctx.session, inquiry_id=inquiry.id)
         if quote is None:
             quote = repo.latest_quote(ctx.session, inquiry_id=inquiry.id)
-        items.append(_quote_workbench_row(inquiry, quote))
+        items.append(
+            {
+                **_quote_workbench_row(inquiry, quote),
+                # C30：首响承诺与逾期状态，运营在工作台直接看到「哪些已逾期」。
+                **svc.inquiry_sla(ctx.session, inquiry),
+                "submitted_at": iso(inquiry.submitted_at),
+            }
+        )
     return {
         "items": items,
         "total": total,

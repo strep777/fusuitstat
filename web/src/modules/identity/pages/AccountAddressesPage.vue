@@ -1,4 +1,4 @@
-﻿<script setup lang="ts">
+<script setup lang="ts">
 /**
  * 收货地址（`/account/addresses`）。
  *
@@ -15,8 +15,8 @@ import {
   describeIdentityError,
   errorCodeOf,
   fetchAddresses,
-  isMainlandPhone,
   isSessionExpired,
+  phoneFormatError,
   updateAddress,
   type Address,
 } from "@/modules/identity/api/identity";
@@ -92,7 +92,8 @@ function markDirty(): void {
 function validate(): boolean {
   const errors: Record<string, string> = {};
   if (!form.value.recipient.trim()) errors["recipient"] = "请填写收件人姓名。";
-  if (!isMainlandPhone(form.value.phone)) errors["phone"] = "手机号格式不正确：中国大陆号码为 1 开头的 11 位数字。";
+  const phoneError = phoneFormatError(form.value.phone);
+  if (phoneError) errors["phone"] = phoneError;
   if (form.value.detail.trim().length < 4) errors["detail"] = "详细地址至少 4 个字符，请写到门牌号或代收点。";
   if (form.value.detail.trim().length > 200) errors["detail"] = "详细地址最多 200 个字符。";
   if (form.value.label.trim().length > 30) errors["label"] = "地址标签最多 30 个字符。";

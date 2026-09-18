@@ -19,13 +19,12 @@ import {
   describeIdentityError,
   errorCodeOf,
   fetchMySessions,
-  isMainlandPhone,
   isSessionExpired,
   isSixDigitCode,
   normalizePhoneForSubmit,
+  phoneFormatError,
   requestAccountClosure,
   requestPhoneChangeChallenge,
-  requestSensitiveActionChallenge,
   requiresSensitiveReauth,
   revokeSession,
   verifySensitiveChallenge,
@@ -195,15 +194,17 @@ function openSensitive(notice: string, next: (() => Promise<void>) | null): void
 }
 
 async function sendSensitiveCode(): Promise<void> {
-  const phone = auth.user?.phone_masked ?? "";
-  if (!isMainlandPhone(phone.replace(/^\+?86/, ""))) {
+  // 敏感动作的验证码由服务端按**会话绑定的真实号码**下发（`role="sensitive"`），
+  // 前端不提交手机号：页面上只有脱敏号（`+861380***0000`），既不能做格式校验，
+  // 也不能当作真实号码提交（否则服务端会按非法号码拒绝）。
+  if (!auth.user?.phone_masked) {
     sensitiveError.value = "无法读取当前手机号，请刷新页面后重试。";
     return;
   }
   sensitiveError.value = "";
   sensitiveVerifying.value = true;
   try {
-    const challenge = await requestSensitiveActionChallenge(phone);
+    const challenge = await requestPhoneChangeChallenge("sensitive");
     sensitiveChallenge.value = challenge.challenge_id;
     sensitiveOtp.value?.focus();
     sensitiveCountdown.value?.start(challenge.retry_after);
@@ -266,8 +267,9 @@ async function sendOldCode(): Promise<void> {
 
 async function sendNewCode(): Promise<void> {
   phoneError.value = "";
-  if (!isMainlandPhone(newPhone.value)) {
-    phoneError.value = "新手机号格式不正确：中国大陆号码为 1 开头的 11 位数字。";
+  const formatError = phoneFormatError(newPhone.value);
+  if (formatError) {
+    phoneError.value = `新手机号格式不正确：${formatError.replace(/^手机号格式不正确：/, "")}`;
     return;
   }
   newSent.value = true;
@@ -338,8 +340,9 @@ async function submitPhoneChange(manualAppeal = false): Promise<void> {
 
 async function sendAppealCode(): Promise<void> {
   appealError.value = "";
-  if (!isMainlandPhone(newPhone.value)) {
-    appealError.value = "请先填写可接收短信的新手机号。";
+  const formatError = phoneFormatError(newPhone.value);
+  if (formatError) {
+    appealError.value = `请先填写可接收短信的新手机号。${formatError}`;
     return;
   }
   try {
@@ -373,13 +376,13 @@ async function submitAppeal(): Promise<void> {
 // ---------------------------------------------------------------- 注销
 async function sendClosureCode(): Promise<void> {
   closureError.value = "";
-  const phone = auth.user?.phone_masked ?? "";
-  if (!isMainlandPhone(phone.replace(/^\+?86/, ""))) {
+  // 同 sendSensitiveCode：注销验证码也走「服务端按会话号码下发」，不提交脱敏号。
+  if (!auth.user?.phone_masked) {
     closureError.value = "无法读取当前手机号，请刷新页面后重试。";
     return;
   }
   try {
-    const challenge = await requestSensitiveActionChallenge(phone);
+    const challenge = await requestPhoneChangeChallenge("sensitive");
     closureChallenge.value = challenge;
     closureChallengeSent.value = true;
     closureCountdown.value?.start(challenge.retry_after);
@@ -519,10 +522,9 @@ onMounted(() => {
               <label class="space-y-1.5 text-sm">
                 <span class="block font-medium text-ink-soft">区号</span>
                 <select v-model="newDialCode" class="field-base" name="new-dial">
+                  <!-- 与服务端白名单（SMS_REGIONS，默认 CN,US）一致：C02/C24 首发中国大陆 + 美国 -->
                   <option value="+86">中国大陆 +86</option>
-                  <option value="+852">中国香港 +852</option>
-                  <option value="+853">中国澳门 +853</option>
-                  <option value="+886">中国台湾 +886</option>
+                  <option value="+1">美国 / 加拿大 +1</option>
                 </select>
               </label>
               <FieldRow label="新手机号" for="new-phone" required>

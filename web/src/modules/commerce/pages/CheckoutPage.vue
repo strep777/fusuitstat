@@ -31,6 +31,7 @@ import {
   fetchPointsRedemptionQuote,
   type PointsRedemptionQuote,
 } from "@/modules/loyalty/api/loyalty";
+import { phoneFormatError } from "@/modules/identity/api/identity";
 import { formatDateTime, formatMoneyExact, formatPoints } from "@/shared/lib/format";
 import { ApiError, newIdempotencyKey } from "@/shared/lib/http";
 import { useToast } from "@/shared/lib/toast";
@@ -479,8 +480,9 @@ async function saveAddress(): Promise<void> {
   if (!addressForm.value.recipient.trim()) {
     addressFieldErrors.value["recipient"] = "请填写收货人姓名。";
   }
-  if (!/^1[3-9]\d{9}$/.test(addressForm.value.phone.trim())) {
-    addressFieldErrors.value["phone"] = "请填写 11 位中国大陆手机号，用于配送联系。";
+  const phoneError = phoneFormatError(addressForm.value.phone);
+  if (phoneError) {
+    addressFieldErrors.value["phone"] = `${phoneError}（用于配送联系）`;
   }
   if (!addressForm.value.region.trim()) {
     addressFieldErrors.value["region"] = "请填写所在地区，例如：上海市 徐汇区。";

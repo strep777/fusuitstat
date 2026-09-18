@@ -29,10 +29,17 @@ _US_PREFIX = "+1"
 
 
 def normalize_phone(raw: str) -> str:
-    """把用户输入规范化为 E.164。
+    """把用户输入规范化为 E.164，并按区号做本地校验（C02/C24：中国大陆 + 美国首发）。
 
-    接受 ``13800000000``、``+8613800000000``、``8613800000000``、
-    ``(555) 123-4567``、``+1 555 123 4567`` 等形式；无法判定时按默认区号补全。
+    接受 ``13800000000``、``+8613800000000``、``8613800000000``、``(415) 555-2671``、
+    ``+1 415 555 2671``、``1 415 555 2671`` 等形式；无法判定时按默认区号补全。
+
+    判定顺序按**国家码优先**，避免把 ``1`` 开头的美国号码当成中国大陆号码：
+
+    1. 显式 ``+`` 前缀 → 直接用；
+    2. 以 ``1`` 开头且第二位是 ``3``–``9``（中国大陆手机号段）且总长 11 → ``+86``；
+    3. 以 ``1`` 开头且剩余 10 位是合法 NANP 号码 → ``+1``（例如 ``14155552671``）；
+    4. 10 位且是合法 NANP 号码 → ``+1``；11 位且以 ``1`` 开头 → ``+86``（例如 ``13800000000``）。
     """
     settings = get_settings()
     text = (raw or "").strip()
@@ -44,24 +51,72 @@ def normalize_phone(raw: str) -> str:
     if not digits.isdigit():
         raise AppError("VALIDATION_ERROR", "手机号只能包含数字。", fields={"phone": "格式不正确"})
 
-    if has_plus or digits.startswith("86") and len(digits) == 13:
+    if has_plus:
         normalized = f"+{digits}"
-    elif digits.startswith("1") and len(digits) == 11:
+    elif _is_cn_mobile(digits):
         normalized = f"{_CN_PREFIX}{digits}"
-    elif len(digits) == 10 or len(digits) == 11 and digits.startswith("1"):
+    elif digits.startswith("1") and _is_nanp(digits[1:]):
+        normalized = f"{_US_PREFIX}{digits[1:]}"
+    elif _is_nanp(digits):
         normalized = f"{_US_PREFIX}{digits}"
+    elif len(digits) == 11 and digits.startswith("1"):
+        normalized = f"{_CN_PREFIX}{digits}"
+    elif digits.startswith("86") and len(digits) == 13:
+        normalized = f"+{digits}"
     else:
         normalized = f"+{digits}"
 
     body = normalized[1:]
     if not (7 <= len(body) <= 15):
         raise AppError("VALIDATION_ERROR", "手机号位数不正确。", fields={"phone": "位数不正确"})
-    if normalized.startswith(_CN_PREFIX):
-        local = normalized[len(_CN_PREFIX) :]
-        if len(local) != 11 or not local.startswith("1"):
-            raise AppError("VALIDATION_ERROR", "中国大陆手机号格式不正确。", fields={"phone": "格式不正确"})
-    _ = settings  # 保留读取，便于后续按区号启用策略
+
+    region = _region_of(normalized)
+    allowed = settings.allowed_sms_regions
+    if allowed and region not in allowed:
+        raise AppError(
+            "VALIDATION_ERROR",
+            f"当前只支持这些地区的手机号：{'、'.join(allowed)}。",
+            fields={"phone": f"不支持的地区：{region}"},
+        )
+    if region == "CN" and not _is_cn_mobile(normalized[len(_CN_PREFIX) :]):
+        raise AppError(
+            "VALIDATION_ERROR", "中国大陆手机号格式不正确。", fields={"phone": "格式不正确"}
+        )
+    if region == "US" and not _is_nanp(normalized[len(_US_PREFIX) :]):
+        raise AppError(
+            "VALIDATION_ERROR", "美国手机号格式不正确。", fields={"phone": "格式不正确"}
+        )
     return normalized
+
+
+def _is_cn_mobile(digits: str) -> bool:
+    """中国大陆手机号：11 位、以 ``1`` 开头，且号段符合已分配的移动前缀。
+
+    第二位取 3/5/6/7/8/9；``14x`` 只在第三位为 5–9 时算移动号段（145/146–149）。
+    这样 ``14155552671``（美国 ``1`` + 区号 ``415``）不会被误判成中国大陆号码。
+    """
+    if len(digits) != 11 or not digits.startswith("1"):
+        return False
+    second = digits[1]
+    if second in "356789":
+        return True
+    return second == "4" and digits[2] in "56789"
+
+
+def _is_nanp(digits: str) -> bool:
+    """北美编号计划（NANP）：10 位，区号与局号首位均不能是 0 或 1。"""
+    if len(digits) != 10 or not digits.isdigit():
+        return False
+    return digits[0] in "23456789" and digits[3] in "23456789"
+
+
+def _region_of(phone_e164: str) -> str:
+    """按 E.164 前缀判断地区；用于区号白名单与本地格式校验。"""
+    if phone_e164.startswith(_CN_PREFIX):
+        return "CN"
+    if phone_e164.startswith(_US_PREFIX):
+        return "US"
+    return "OTHER"
 
 
 def mask_phone(phone_e164: str) -> str:

@@ -30,7 +30,11 @@ export type ConsentPurpose =
   | "miner_guardian"
   | "measurement_data";
 
-export type PhoneChangeRole = "old" | "new";
+/**
+ * 换绑/敏感动作验证码的角色（与后端 `PhoneChangeChallengeRequest.role` 一致）。
+ * `sensitive` 表示「向当前绑定号码下发验证码」，服务端按会话号码下发，前端不提交手机号。
+ */
+export type PhoneChangeRole = "old" | "new" | "sensitive";
 
 export type ClosureStatus = "BLOCKED" | "REQUESTED" | string;
 
@@ -150,9 +154,39 @@ export function isSessionExpired(error: unknown): boolean {
 
 // ------------------------------------------------------------------ 本地校验
 
-/** 中国大陆手机号：11 位、1 开头、第二位 3–9。只做前端提示，服务端仍是权威。 */
+/**
+ * 中国大陆手机号：11 位、1 开头，且号段符合已分配的移动前缀。
+ * `14x` 只在第三位为 5–9 时算移动号段，避免把「美国 1 + 区号 415」误判成大陆号码。
+ * 只做前端提示，服务端（`normalize_phone`）仍是权威。
+ */
+export const CN_MOBILE_PATTERN = /^1(?:[356789]\d{9}|4[5-9]\d{8})$/;
+
+/** 北美编号计划（NANP）：10 位，区号与局号首位均不能是 0 或 1。 */
+export const NANP_PATTERN = /^[2-9]\d{2}[2-9]\d{6}$/;
+
+/** 中国大陆手机号（兼容旧调用）。 */
 export function isMainlandPhone(value: string): boolean {
-  return /^1[3-9]\d{9}$/.test(value.trim());
+  return CN_MOBILE_PATTERN.test(value.trim());
+}
+
+/** 去掉空格、连字符、括号与 `+`，用于本地格式判断。 */
+export function phoneDigits(value: string): string {
+  return value.replace(/[\s\-()]/g, "").replace(/^\+/, "");
+}
+
+/**
+ * 本地手机号校验（C02/C24：首发中国大陆 + 美国）。
+ * 返回空字符串表示通过，否则返回可直接展示的原因。
+ */
+export function phoneFormatError(value: string): string {
+  const digits = phoneDigits(value);
+  if (digits === "") return "请填写手机号。";
+  if (!/^\d+$/.test(digits)) return "手机号只能包含数字。";
+  if (digits.startsWith("86") && CN_MOBILE_PATTERN.test(digits.slice(2))) return "";
+  if (digits.startsWith("1") && NANP_PATTERN.test(digits.slice(1))) return "";
+  if (CN_MOBILE_PATTERN.test(digits)) return "";
+  if (NANP_PATTERN.test(digits)) return "";
+  return "手机号格式不正确：中国大陆号码为 1 开头的 11 位数字，美国号码为 10 位数字（可带 +1）。";
 }
 
 /** 6 位数字验证码：保留前导零，因此用字符串而不是数字。 */
@@ -160,11 +194,21 @@ export function isSixDigitCode(value: string): boolean {
   return /^\d{6}$/.test(value);
 }
 
-/** 区号只影响本地校验与拼装，服务端按 E.164 归一化。 */
+/**
+ * 区号只影响本地校验与拼装，服务端按 E.164 归一化。
+ *
+ * 用户把国家码也填进号码里时（例如选了 +1 又输入 `14155552671`）不重复拼接，
+ * 否则会得到 `+114155552671` 这种既不是美国也不是大陆的号码。
+ */
 export function normalizePhoneForSubmit(dialCode: string, nationalNumber: string): string {
-  const digits = nationalNumber.replace(/[\s-]/g, "");
+  const digits = nationalNumber.replace(/[\s\-()]/g, "").replace(/^\+/, "");
   const prefix = dialCode.startsWith("+") ? dialCode.slice(1) : dialCode;
-  return /^\d+$/.test(prefix) ? `+${prefix}${digits}` : digits;
+  if (!/^\d+$/.test(prefix)) return digits;
+  const duplicated =
+    digits.startsWith(prefix) && digits.length > prefix.length + 5
+      ? digits.slice(prefix.length)
+      : digits;
+  return `+${prefix}${duplicated}`;
 }
 
 /**

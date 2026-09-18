@@ -20,9 +20,9 @@ import {
   DEFAULT_PRIVACY_VERSION,
   describeIdentityError,
   errorCodeOf,
-  isMainlandPhone,
   isSixDigitCode,
   normalizePhoneForSubmit,
+  phoneFormatError,
   recordConsent,
   safeReturnPath,
 } from "@/modules/identity/api/identity";
@@ -36,12 +36,13 @@ const router = useRouter();
 const auth = useAuthStore();
 const site = useSiteStore();
 
-/** 首发基线为中国大陆；列表只放已确认支持的地区，不做假入口。 */
+/**
+ * 区号列表必须与服务端白名单（`SMS_REGIONS`，默认 CN,US）一致：
+ * C02/C24 首发中国大陆 + 美国，其他地区在没有通道与合规确认前不做假入口。
+ */
 const DIAL_CODES = [
   { code: "+86", label: "中国大陆 +86" },
-  { code: "+852", label: "中国香港 +852" },
-  { code: "+853", label: "中国澳门 +853" },
-  { code: "+886", label: "中国台湾 +886" },
+  { code: "+1", label: "美国 / 加拿大 +1" },
 ] as const;
 
 const dialCode = ref<string>("+86");
@@ -64,12 +65,19 @@ const returnTo = computed(() => safeReturnPath(route.query.returnTo, "/account")
 const termsVersion = computed(() => site.commissionPolicy.terms_version || "commission-1");
 
 const canSubmit = computed(
-  () => isMainlandPhone(phone.value) && isSixDigitCode(code.value) && accepted.value && !!challengeId.value,
+  () =>
+    phoneFormatError(normalizePhoneForSubmit(dialCode.value, phone.value)) === "" &&
+    isSixDigitCode(code.value) &&
+    accepted.value &&
+    !!challengeId.value,
 );
 
 /** 禁用提交的原因必须写在按钮旁（11 文档）。 */
 const submitBlockedReason = computed(() => {
-  if (!isMainlandPhone(phone.value)) return "请先填写 11 位中国大陆手机号。";
+  if (!phone.value.trim()) return "请先填写手机号（中国大陆或美国号码）。";
+  if (phoneFormatError(normalizePhoneForSubmit(dialCode.value, phone.value))) {
+    return "请填写正确的手机号：中国大陆 11 位或美国 10 位。";
+  }
   if (!challengeId.value) return "请先获取短信验证码。";
   if (!isSixDigitCode(code.value)) return "请输入 6 位数字验证码。";
   if (!accepted.value) return "请先勾选同意《用户服务协议》与《隐私政策》。";
@@ -82,7 +90,9 @@ onMounted(() => {
 
 // 用户修正输入后立即撤掉字段错误，避免旧提示一直挂着（11 文档：错误贴字段）。
 watch(phone, () => {
-  if (phoneError.value && isMainlandPhone(phone.value)) phoneError.value = "";
+  if (phoneError.value && !phoneFormatError(normalizePhoneForSubmit(dialCode.value, phone.value))) {
+    phoneError.value = "";
+  }
 });
 watch(code, () => {
   if (codeError.value && isSixDigitCode(code.value)) codeError.value = "";
@@ -99,8 +109,10 @@ async function sendCode(): Promise<void> {
     phoneError.value = "请先填写手机号，用于接收登录验证码。";
     return;
   }
-  if (!isMainlandPhone(phone.value)) {
-    phoneError.value = "手机号格式不正确：中国大陆号码为 1 开头的 11 位数字。";
+  // C02/C24：中国大陆与美国号码都接受；服务端按 E.164 归一化并做区号白名单校验。
+  const formatError = phoneFormatError(normalizePhoneForSubmit(dialCode.value, phone.value));
+  if (formatError) {
+    phoneError.value = formatError;
     return;
   }
   sending.value = true;

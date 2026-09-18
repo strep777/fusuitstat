@@ -205,8 +205,37 @@ describe("登录页：手机号与验证码校验", () => {
     expect(wrapper.text()).toContain("只在开发/测试环境返回");
   });
 
-  it("填写完整但未勾选协议时提交按钮禁用，并说明原因", async () => {
+  it("美国号码（+1）可以发送验证码，并按 E.164 提交", async () => {
     const { wrapper } = await mountLogin();
+    await wrapper.find("#login-dial").setValue("+1");
+    await setPhoneAndSend(wrapper, "4155552671");
+
+    const challengeCalls = calls.filter((call) => call.url.includes("/auth/sms/challenges"));
+    expect(challengeCalls).toHaveLength(1);
+    expect(challengeCalls[0]!.body).toMatchObject({ phone: "+14155552671", purpose: "login" });
+    expect(wrapper.text()).not.toContain("手机号格式不正确");
+  });
+
+  it("带国家码的美国号码不会被当成中国大陆号码", async () => {
+    const { wrapper } = await mountLogin();
+    await wrapper.find("#login-dial").setValue("+1");
+    await setPhoneAndSend(wrapper, "14155552671");
+
+    const challengeCalls = calls.filter((call) => call.url.includes("/auth/sms/challenges"));
+    expect(challengeCalls).toHaveLength(1);
+    expect(challengeCalls[0]!.body).toMatchObject({ phone: "+14155552671" });
+  });
+
+  it("不支持的地区码在本地就给出可读原因，不发请求", async () => {
+    const { wrapper } = await mountLogin();
+    await wrapper.find("#login-dial").setValue("+86");
+    await setPhoneAndSend(wrapper, "4155552671");
+
+    expect(wrapper.text()).toContain("手机号格式不正确");
+    expect(calls.filter((call) => call.url.includes("/auth/sms/challenges"))).toHaveLength(0);
+  });
+
+  it("填写完整但未勾选协议时提交按钮禁用，并说明原因", async () => {    const { wrapper } = await mountLogin();
     await setPhoneAndSend(wrapper, "13800001234");
     await wrapper.find('input[type="text"][inputmode="numeric"]').setValue("123456");
     await flush();

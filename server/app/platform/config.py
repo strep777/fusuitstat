@@ -72,6 +72,22 @@ class Settings(BaseSettings):
     sms_adapter: AdapterName = "mock"
     sms_sign_name: str = "弈星纪元"
     sms_template_code: str = ""
+    # 通知类短信模板（非验证码）。留空表示只发验证码，通知走邮件（C27 邮件必选）。
+    sms_notice_template_code: str = ""
+    # 允许接收验证码的国家码（C02/C24 双区：中国大陆 + 美国）。
+    sms_regions: str = "CN,US"
+    # 阿里云短信（RPC 签名，C03/C05：通道随云厂商切换）
+    aliyun_sms_access_key_id: str = ""
+    aliyun_sms_access_key_secret: str = ""
+    aliyun_sms_endpoint: str = "https://dysmsapi.aliyuncs.com/"
+    # 腾讯云短信（TC3-HMAC-SHA256 签名）
+    tencent_sms_secret_id: str = ""
+    tencent_sms_secret_key: str = ""
+    tencent_sms_sdk_app_id: str = ""
+    tencent_sms_template_id: str = ""
+    tencent_sms_notice_template_id: str = ""
+    tencent_sms_region: str = "ap-guangzhou"
+    tencent_sms_endpoint: str = "https://sms.tencentcloudapi.com/"
     sms_sender_email: str = "no-reply@starium.cn"
     smtp_host: str = ""
     smtp_port: int = 587
@@ -172,6 +188,7 @@ class Settings(BaseSettings):
                 problems.append("COOKIE_SECURE 必须为 true")
             if self.sms_adapter == "mock":
                 problems.append("SMS_ADAPTER=mock 不允许在生产启用")
+            problems.extend(self._sms_provider_problems())
             if set(self._provider_list()).intersection(SANDBOX_PROVIDERS):
                 problems.append("PAYMENT_PROVIDERS 不允许包含 mock 或 sandbox")
             if self.storage_backend == "local":
@@ -193,6 +210,35 @@ class Settings(BaseSettings):
 
     def _provider_list(self) -> list[str]:
         return [item.strip().lower() for item in self.payment_providers.split(",") if item.strip()]
+
+    @property
+    def allowed_sms_regions(self) -> list[str]:
+        """允许接收验证码的国家码（大写，去重保序）。"""
+        seen: list[str] = []
+        for item in self.sms_regions.split(","):
+            code = item.strip().upper()
+            if code and code not in seen:
+                seen.append(code)
+        return seen
+
+    def _sms_provider_problems(self) -> list[str]:
+        """生产环境所选短信通道必须具备该通道自己的凭据，缺一条都不放行。"""
+        problems: list[str] = []
+        if self.sms_adapter == "aliyun":
+            if not self.aliyun_sms_access_key_id or not self.aliyun_sms_access_key_secret:
+                problems.append("SMS_ADAPTER=aliyun 需要 ALIYUN_SMS_ACCESS_KEY_ID/SECRET")
+            if not self.sms_template_code:
+                problems.append("SMS_ADAPTER=aliyun 需要 SMS_TEMPLATE_CODE")
+        elif self.sms_adapter == "tencent":
+            if not self.tencent_sms_secret_id or not self.tencent_sms_secret_key:
+                problems.append("SMS_ADAPTER=tencent 需要 TENCENT_SMS_SECRET_ID/SECRET_KEY")
+            if not self.tencent_sms_sdk_app_id or not self.tencent_sms_template_id:
+                problems.append("SMS_ADAPTER=tencent 需要 TENCENT_SMS_SDK_APP_ID/TEMPLATE_ID")
+        if not self.allowed_sms_regions:
+            problems.append("SMS_REGIONS 不能为空（至少允许一个区号）")
+        if "mock" in self._provider_list():
+            problems.append("PAYMENT_PROVIDERS 不允许包含 mock")
+        return problems
 
     @property
     def enabled_payment_providers(self) -> list[str]:

@@ -15,6 +15,7 @@ import {
   text,
   usePageData,
   type AdminList,
+  type CommissionContract,
   type CommissionProjectRecord,
   type Dict,
   type FailureView,
@@ -72,6 +73,119 @@ const changeError = ref("");
 const changePending = ref(false);
 const changeConfirmOpen = ref(false);
 
+/* ---------------- 合同电子签（C07/C19） ----------------
+ * 后台只能"重新发送"或"作废"，**不能**代替客户或监护人签署，也不能把未签改成已签。
+ */
+const projectDetail = ref<CommissionProjectRecord | null>(null);
+const contract = computed<CommissionContract | null>(() => projectDetail.value?.contract ?? null);
+const contractPending = ref(false);
+const contractError = ref("");
+const voidReason = ref("");
+const voidConfirmOpen = ref(false);
+
+const CONTRACT_STATUS_LABEL: Record<string, string> = {
+  NOT_REQUESTED: "尚未发起",
+  PENDING_SEND: "待发送",
+  SENT: "待签署",
+  PARTIALLY_SIGNED: "部分签署完成",
+  SIGNED: "已签署完成",
+  DECLINED: "已拒签",
+  EXPIRED: "已过期",
+  VOID: "已作废",
+};
+
+const CONTRACT_ROLE_LABEL: Record<string, string> = {
+  customer: "委托方",
+  guardian: "监护人",
+  staff: "工作室",
+};
+
+const contractLabel = computed(() =>
+  contract.value ? (CONTRACT_STATUS_LABEL[String(contract.value.status ?? "")] ?? text(contract.value.status)) : "无签署任务",
+);
+
+const contractTone = computed(() => {
+  switch (String(contract.value?.status ?? "")) {
+    case "SIGNED":
+      return "jade" as const;
+    case "DECLINED":
+    case "EXPIRED":
+      return "wine" as const;
+    case "SENT":
+    case "PARTIALLY_SIGNED":
+      return "amber" as const;
+    default:
+      return "neutral" as const;
+  }
+});
+
+const contractSignerSummary = computed(() => {
+  const signers = contract.value?.signers ?? [];
+  return signers
+    .map((signer) => {
+      const role = CONTRACT_ROLE_LABEL[String(signer.role ?? "")] ?? text(signer.role);
+      const state =
+        signer.status === "SIGNED" ? "已签署" : signer.status === "DECLINED" ? "已拒签" : "待签署";
+      return `${role} ${text(signer.name)}（${state}）`;
+    })
+    .join("；");
+});
+
+/** 作废需要理由；已签署的合同不允许作废（服务端同样拒绝）。 */
+const contractBlockReason = computed(() => {
+  if (!contract.value) return "该制作单没有签署任务";
+  if (String(contract.value.status ?? "") === "SIGNED") return "已签署的合同不能作废";
+  if (String(contract.value.status ?? "") === "VOID") return "该签署任务已作废";
+  return "";
+});
+
+async function resendContract(): Promise<void> {
+  const row = selected.value;
+  if (!row || contractPending.value) return;
+  contractPending.value = true;
+  contractError.value = "";
+  try {
+    const updated = (await adminApi.sendContract(row.id)) as CommissionContract;
+    if (projectDetail.value) projectDetail.value = { ...projectDetail.value, contract: updated };
+    const sent = String(updated.status ?? "") !== "PENDING_SEND";
+    if (sent) {
+      toast.success("合同已发送", "签署链接已通过邮件发给每位签署人。");
+    } else {
+      toast.error("合同未发送", text(updated.failure_reason, "电子签渠道不可用，请检查配置。"));
+    }
+  } catch (caught) {
+    contractError.value = actionErrorMessage(caught, "重新发送合同失败，请稍后重试。").message;
+  } finally {
+    contractPending.value = false;
+  }
+}
+
+function openVoidContract(): void {
+  voidReason.value = "";
+  contractError.value = "";
+  voidConfirmOpen.value = true;
+}
+
+async function submitVoidContract(): Promise<void> {
+  const row = selected.value;
+  if (!row) return;
+  if (voidReason.value.trim().length < 5) {
+    contractError.value = "请填写至少 5 个字的作废理由（会写入审计记录）。";
+    return;
+  }
+  contractPending.value = true;
+  try {
+    const updated = (await adminApi.voidContract(row.id, { reason: voidReason.value.trim() })) as CommissionContract;
+    if (projectDetail.value) projectDetail.value = { ...projectDetail.value, contract: updated };
+    voidConfirmOpen.value = false;
+    toast.success("签署任务已作废", "客户侧的合同状态会显示为已作废，可重新发起签署。");
+  } catch (caught) {
+    contractError.value = actionErrorMessage(caught, "作废签署任务失败，请稍后重试。").message;
+  } finally {
+    contractPending.value = false;
+  }
+}
+
 const columns: TableColumn[] = [
   { key: "code", label: "制作单号" },
   { key: "series", label: "系列 / 规格" },
@@ -115,14 +229,27 @@ async function selectProject(row: CommissionProjectRecord): Promise<void> {
   selected.value = row;
   detailLoading.value = true;
   detailError.value = null;
-  const result = await collect<{ confirmations: AdminList<Dict>; changes: AdminList<Dict> }>({
+  projectDetail.value = null;
+  contractError.value = "";
+  const result = await collect<{
+    detail: CommissionProjectRecord;
+    confirmations: AdminList<Dict>;
+    changes: AdminList<Dict>;
+  }>({
+    detail: () => adminApi.commissionDetail(row.id),
     confirmations: () => adminApi.confirmRecords(row.id),
     changes: () => adminApi.changeRequests(row.id),
   });
+  projectDetail.value = result.ok.detail ?? null;
   confirmations.value = result.ok.confirmations?.items ?? [];
   changeRequests.value = result.ok.changes?.items ?? [];
   const failure = result.failed[0];
-  detailError.value = failure ? describeFailure(failure.error, failure.key === "changes" ? "变更单列表" : "确认记录") : null;
+  detailError.value = failure
+    ? describeFailure(
+        failure.error,
+        failure.key === "changes" ? "变更单列表" : failure.key === "detail" ? "制作单详情" : "确认记录",
+      )
+    : null;
   detailLoading.value = false;
 }
 
@@ -284,6 +411,81 @@ onMounted(state.load);
             ]"
           />
 
+          <!-- 合同电子签（C07/C19）：未签完不能进入制作；渠道未接入时如实标注 -->
+          <div class="mt-5 rounded-md border border-line bg-surface-muted p-4">
+            <div class="flex flex-wrap items-center justify-between gap-3">
+              <div class="flex flex-wrap items-center gap-2">
+                <p class="text-sm font-medium text-ink">合同签署</p>
+                <StatusBadge :tone="contractTone" :label="contractLabel" />
+                <StatusBadge
+                  v-if="contract?.guardian_required"
+                  tone="neutral"
+                  label="需监护人签署"
+                />
+              </div>
+              <div class="flex flex-wrap gap-2">
+                <AppButton
+                  v-if="contract?.id && !['SIGNED', 'VOID', 'EXPIRED'].includes(String(contract.status))"
+                  size="sm"
+                  variant="secondary"
+                  :loading="contractPending"
+                  @click="resendContract()"
+                >
+                  重新发送合同
+                </AppButton>
+                <AppButton
+                  v-if="contract?.id && contract.status !== 'SIGNED' && contract.status !== 'VOID'"
+                  size="sm"
+                  variant="quiet"
+                  :disabled="!!contractBlockReason"
+                  :disabled-reason="contractBlockReason"
+                  @click="openVoidContract()"
+                >
+                  作废签署任务
+                </AppButton>
+              </div>
+            </div>
+
+            <p v-if="!contract" class="mt-3 text-xs text-ink-muted">
+              该制作单还没有合同签署任务（未接入电子签渠道或报价尚未被接受）。
+            </p>
+            <template v-else>
+              <p v-if="!contract.provider_configured" class="mt-3 text-xs text-wine" role="status">
+                尚未接入电子签渠道（当前 {{ text(contract.esign_provider, "disabled") }}）：
+                合同无法在线签署，制作开工前必须解决；这里是如实状态，不是已完成。
+              </p>
+              <p v-else-if="contract.failure_reason" class="mt-3 text-xs text-wine" role="status">
+                发送/签署存在问题：{{ contract.failure_reason }}
+              </p>
+              <dl class="mt-3 space-y-1 text-xs text-ink-muted">
+                <div v-if="contract.signers?.length" class="flex flex-wrap gap-2">
+                  <dt class="text-ink-faint">签署人</dt>
+                  <dd>
+                    {{ contractSignerSummary }}
+                  </dd>
+                </div>
+                <div v-if="contract.awaiting_roles?.length" class="flex flex-wrap gap-2">
+                  <dt class="text-ink-faint">待签署</dt>
+                  <dd>{{ contract.awaiting_roles.join("、") }}</dd>
+                </div>
+                <div v-if="contract.completed_at" class="flex flex-wrap gap-2">
+                  <dt class="text-ink-faint">签署完成</dt>
+                  <dd class="tabular-nums">{{ formatDateTime(String(contract.completed_at)) }}</dd>
+                </div>
+              </dl>
+              <FieldRow
+                v-if="contract.id && contract.status !== 'SIGNED' && contract.status !== 'VOID'"
+                class="mt-3"
+                label="作废理由"
+                for="void-contract-reason"
+                hint="只有在需要作废签署任务时填写；会写入审计记录（至少 5 个字）"
+              >
+                <input id="void-contract-reason" v-model="voidReason" type="text" class="field-base" />
+              </FieldRow>
+              <p v-if="contractError" class="mt-3 text-xs text-wine" role="alert">{{ contractError }}</p>
+            </template>
+          </div>
+
           <div class="mt-6 space-y-4 border-t border-line pt-5">
             <h3 class="text-sm font-medium text-ink-soft">新增节点更新</h3>
             <div class="grid gap-4 sm:grid-cols-2">
@@ -378,6 +580,20 @@ onMounted(state.load);
       :tone="changeMode === 'APPROVE' ? 'primary' : 'danger'"
       :pending="changePending"
       @confirm="submitChange"
+    />
+
+    <ConfirmDialog
+      v-model="voidConfirmOpen"
+      title="作废合同签署任务"
+      :target="`制作单 ${text(selected?.code ?? selected?.id)}`"
+      change="签署任务 → 已作废；已发出的签署链接不再有效。"
+      consequence="作废后客户不能再通过原链接签署，需要重新发起签署任务；已签署的合同不允许作废（服务端同样拒绝）。"
+      :amount="voidReason"
+      confirm-label="确认作废签署任务"
+      tone="danger"
+      :pending="contractPending"
+      :disabled-reason="contractBlockReason || (voidReason.trim().length < 5 ? '请先填写至少 5 个字的作废理由' : '')"
+      @confirm="submitVoidContract"
     />
   </div>
 </template>

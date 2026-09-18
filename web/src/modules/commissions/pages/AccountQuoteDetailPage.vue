@@ -24,11 +24,14 @@ import {
   addInquirySupplement,
   describeErrorCode,
   fetchInquiry,
+  fetchInquiryContract,
   fetchInquiryQuotes,
   inquiryAllowedActions,
+  refreshContract,
   requestQuoteReassessment,
   useDocumentTitle,
   withdrawInquiry,
+  type ContractStatus,
   type Inquiry,
   type Quote,
   type QuoteAcceptResult,
@@ -76,6 +79,89 @@ const reassessError = ref<string | null>(null);
 const reassessing = ref(false);
 const showReassessForm = ref(false);
 
+/* ---------------- 合同电子签（C07 / C19） ----------------
+ * 只展示服务端给出的签署状态；页面上的"刷新"是向平台查单，不是"点一下就算签了"。
+ */
+const contract = ref<ContractStatus | null>(null);
+const contractError = ref<string | null>(null);
+const refreshingContract = ref(false);
+
+const CONTRACT_STATUS_LABEL: Record<string, string> = {
+  NOT_REQUESTED: "尚未发起",
+  PENDING_SEND: "待发送",
+  SENT: "待签署",
+  PARTIALLY_SIGNED: "部分签署完成",
+  SIGNED: "已签署完成",
+  DECLINED: "已拒签",
+  EXPIRED: "签署已过期",
+  VOID: "已作废",
+};
+
+const SIGNER_ROLE_LABEL: Record<string, string> = {
+  customer: "委托方",
+  guardian: "监护人",
+  staff: "工作室",
+};
+
+const contractStatusLabel = computed(() =>
+  contract.value ? (CONTRACT_STATUS_LABEL[contract.value.status] ?? contract.value.status) : "",
+);
+
+const contractTone = computed(() => {
+  switch (contract.value?.status) {
+    case "SIGNED":
+      return "jade" as const;
+    case "DECLINED":
+    case "EXPIRED":
+      return "wine" as const;
+    case "SENT":
+    case "PARTIALLY_SIGNED":
+      return "amber" as const;
+    default:
+      return "neutral" as const;
+  }
+});
+
+/** 待签署人（用中文角色名，未识别的角色回退原值，不隐藏）。 */
+const awaitingLabels = computed(() =>
+  (contract.value?.awaiting_roles ?? []).map((role) => SIGNER_ROLE_LABEL[role] ?? role),
+);
+
+async function loadContract(): Promise<void> {
+  if (!inquiryId.value) return;
+  contractError.value = null;
+  try {
+    contract.value = await fetchInquiryContract(inquiryId.value);
+  } catch (caught) {
+    // 合同状态读取失败不影响询价与报价展示；单独说明，不把整页判为失败。
+    contract.value = null;
+    contractError.value =
+      caught instanceof ApiError && caught.status === 404
+        ? "合同信息不存在或不属于当前账号。"
+        : "合同签署状态暂时无法加载，可以稍后重试。";
+  }
+}
+
+async function refreshContractStatus(): Promise<void> {
+  const current = contract.value;
+  if (!current?.id || refreshingContract.value) return;
+  refreshingContract.value = true;
+  contractError.value = null;
+  try {
+    contract.value = await refreshContract(current.id);
+    if (contract.value.status === "SIGNED") {
+      toast.success("合同已签署完成", "签署结果来自电子签平台，可继续等待工作室排期。");
+    } else {
+      toast.info("已向平台查单", `当前状态：${contractStatusLabel.value}。`);
+    }
+  } catch (caught) {
+    contractError.value =
+      caught instanceof ApiError ? caught.message : "查询签署状态失败，请稍后重试。";
+  } finally {
+    refreshingContract.value = false;
+  }
+}
+
 async function load(): Promise<void> {
   loading.value = true;
   error.value = null;
@@ -85,6 +171,7 @@ async function load(): Promise<void> {
     const detail = await fetchInquiry(inquiryId.value);
     inquiry.value = detail;
     setTitle(`询价 ${detail.character_name || detail.id}`);
+    await loadContract();
     try {
       quotes.value = await fetchInquiryQuotes(detail.id);
     } catch (caught) {
@@ -382,6 +469,86 @@ const suitTypeLabel = computed(() => {
           </span>
         </p>
       </header>
+
+      <!-- 合同电子签（C07/C19）：状态只来自平台，未接入渠道时如实说明 -->
+      <SurfaceCard v-if="contract?.available" class="mt-8">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div class="flex flex-wrap items-center gap-2">
+            <h2 class="font-display text-lg">合同签署</h2>
+            <StatusBadge :tone="contractTone" :label="contractStatusLabel" />
+            <StatusBadge
+              v-if="contract.guardian_required"
+              tone="neutral"
+              label="未成年委托 · 需监护人签署"
+            />
+          </div>
+          <AppButton
+            v-if="contract.id && !['SIGNED', 'VOID', 'EXPIRED'].includes(contract.status)"
+            size="sm"
+            variant="secondary"
+            :loading="refreshingContract"
+            @click="refreshContractStatus()"
+          >
+            查询签署结果
+          </AppButton>
+        </div>
+
+        <dl class="mt-4 space-y-2 text-sm text-ink-muted">
+          <div v-if="contract.subject" class="flex flex-wrap gap-2">
+            <dt class="text-ink-faint">合同</dt>
+            <dd>{{ contract.subject }}</dd>
+          </div>
+          <div v-if="contract.signers?.length" class="flex flex-wrap gap-2">
+            <dt class="text-ink-faint">签署人</dt>
+            <dd class="space-y-1">
+              <span v-for="signer in contract.signers" :key="signer.role" class="block">
+                {{ SIGNER_ROLE_LABEL[signer.role] ?? signer.role }}：{{ signer.name }}
+                <template v-if="signer.relation">（{{ signer.relation }}）</template>
+                · {{ signer.status === "SIGNED" ? "已签署" : signer.status === "DECLINED" ? "已拒签" : "待签署" }}
+                <template v-if="signer.signed_at">（{{ formatDateTime(signer.signed_at) }}）</template>
+              </span>
+            </dd>
+          </div>
+          <div v-if="contract.expires_at && contract.status !== 'SIGNED'" class="flex flex-wrap gap-2">
+            <dt class="text-ink-faint">签署链接有效期至</dt>
+            <dd class="tabular-nums">{{ formatDateTime(contract.expires_at) }}</dd>
+          </div>
+          <div v-if="contract.completed_at" class="flex flex-wrap gap-2">
+            <dt class="text-ink-faint">签署完成时间</dt>
+            <dd class="tabular-nums">{{ formatDateTime(contract.completed_at) }}</dd>
+          </div>
+          <div v-if="contract.awaiting_roles?.length" class="flex flex-wrap gap-2">
+            <dt class="text-ink-faint">待签署</dt>
+            <dd>{{ awaitingLabels.join("、") }}</dd>
+          </div>
+        </dl>
+
+        <p v-if="contract.status === 'SIGNED'" class="mt-4 rounded-sm bg-canvas-sunk px-4 py-3 text-xs text-ink-muted">
+          合同已由电子签平台确认签署完成。签署结果与合同版本摘要都会留证，之后不因页面刷新而改变。
+        </p>
+        <p v-else-if="contract.status === 'DECLINED'" class="mt-4 rounded-sm border border-wine bg-wine-soft px-4 py-3 text-xs text-wine">
+          合同被拒签<template v-if="contract.decline_reason">：{{ contract.decline_reason }}</template>。
+          制作不会开始；如需继续，请联系客服重新发起签署。
+        </p>
+        <p v-else-if="contract.status === 'EXPIRED'" class="mt-4 rounded-sm bg-canvas-sunk px-4 py-3 text-xs text-ink-muted">
+          签署链接已过期，合同未签署完成。请联系客服重新发起签署，制作不会因此自动开始。
+        </p>
+        <p v-else-if="!contract.provider_configured" class="mt-4 rounded-sm border border-dashed border-line-strong bg-surface-muted px-4 py-3 text-xs text-ink-muted">
+          当前尚未接入电子签渠道，合同无法在线签署（C07 要求合同全部电子签）。
+          这不影响报价与订单本身，但制作开工前必须完成签署；客服会通过其他方式与你确认。
+        </p>
+        <p v-else-if="contract.failure_reason" class="mt-4 rounded-sm bg-canvas-sunk px-4 py-3 text-xs text-ink-muted">
+          合同尚未发送成功：{{ contract.failure_reason }}。可联系客服核实后重新发送。
+        </p>
+        <p v-else class="mt-4 rounded-sm bg-canvas-sunk px-4 py-3 text-xs text-ink-muted">
+          签署链接已由工作室通过邮件发送给每位签署人；签署完成后这里的状态会自动更新
+          （也可以点「查询签署结果」主动向平台核对）。
+        </p>
+      </SurfaceCard>
+
+      <p v-else-if="contractError" class="mt-6 rounded-lg border border-line bg-surface-muted p-4 text-sm text-ink-muted" role="status">
+        {{ contractError }}
+      </p>
 
       <!-- 接受成功 -->
       <SurfaceCard v-if="acceptResult" class="mt-8">

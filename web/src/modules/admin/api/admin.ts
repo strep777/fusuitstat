@@ -251,6 +251,30 @@ export interface CommissionProjectRecord extends Dict {
   assignee?: string | null;
   version?: number | null;
   updated_at?: string | null;
+  /** 合同签署状态（C07）：由服务端给出，后台只展示与重发/作废，不能代替签署。 */
+  contract?: CommissionContract | null;
+}
+
+export interface CommissionContractSigner {
+  role?: string | null;
+  name?: string | null;
+  relation?: string | null;
+  status?: string | null;
+  signed_at?: string | null;
+}
+
+export interface CommissionContract {
+  id?: string | null;
+  status?: string | null;
+  subject?: string | null;
+  signers?: CommissionContractSigner[];
+  awaiting_roles?: string[];
+  guardian_required?: boolean;
+  provider_configured?: boolean;
+  esign_provider?: string | null;
+  failure_reason?: string | null;
+  completed_at?: string | null;
+  expires_at?: string | null;
 }
 
 /* ------------------------------------------------------------------ *
@@ -582,6 +606,19 @@ export const adminApi = {
     api.get<AdminList<Dict>>(`/admin/commission-projects/${encodeURIComponent(id)}/change-requests`),
   decideChangeRequest: (changeId: string, input: { decision: "APPROVE" | "REJECT"; reason: string }) =>
     api.post<Dict>(`/admin/change-requests/${encodeURIComponent(changeId)}/decide`, input),
+  /* --- 合同电子签（C07/C19） --- */
+  sendContract: (projectId: string) =>
+    api.post<CommissionContract>(
+      `/admin/commission-projects/${encodeURIComponent(projectId)}/contract/send`,
+      {},
+      { idempotencyKey: newIdempotencyKey() },
+    ),
+  voidContract: (projectId: string, input: { reason: string }) =>
+    api.post<CommissionContract>(
+      `/admin/commission-projects/${encodeURIComponent(projectId)}/contract/void`,
+      input,
+      { idempotencyKey: newIdempotencyKey() },
+    ),
 
   /* --- 订单与发货 --- */
   orders: (query?: ListQuery) => api.get<AdminList<OrderRecord>>("/admin/orders", { query }),

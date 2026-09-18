@@ -10,7 +10,7 @@
  * - 草稿保存在服务端（11 文档：敏感草稿只存服务端），本地不写敏感数据。
  */
 
-import { ApiError, api } from "@/shared/lib/http";
+import { ApiError, api, newIdempotencyKey } from "@/shared/lib/http";
 
 /* ------------------------------------------------------------------
    档期与名额
@@ -452,11 +452,77 @@ export interface CommissionProject {
   stages: ProductionStage[];
   measurements: MeasurementVersion[];
   change_requests: ChangeRequest[];
+  /** 合同签署状态（C07）：制作开工前必须有已签署的合同。 */
+  contract: ContractStatus;
   version: number;
 }
 
 export async function fetchCommissionProject(id: string): Promise<CommissionProject> {
   return api.get<CommissionProject>(`/commission-projects/${id}`);
+}
+
+/* ------------------------------------------------------------------
+   合同电子签（C07 / C19）
+   签署结论**只认平台**：页面上的刷新只是向服务端查单，不存在"点一下就签好"的入口。
+   ------------------------------------------------------------------ */
+
+export interface ContractSigner {
+  role: "customer" | "guardian" | "staff" | string;
+  name: string;
+  /** 邮箱脱敏由服务端处理（渠道侧直发签署链接，前端不拿明文）。 */
+  email: string;
+  relation: string;
+  status: "PENDING" | "SIGNED" | "DECLINED" | string;
+  signed_at: string | null;
+}
+
+export interface ContractStatus {
+  /** 未发起签署任务时为 false（渠道未接入或报价尚未被接受）。 */
+  available?: boolean;
+  reason?: string;
+  note?: string;
+  id?: string;
+  quote_id?: string;
+  order_id?: string | null;
+  project_id?: string | null;
+  provider?: string;
+  status:
+    | "NOT_REQUESTED"
+    | "PENDING_SEND"
+    | "SENT"
+    | "PARTIALLY_SIGNED"
+    | "SIGNED"
+    | "DECLINED"
+    | "EXPIRED"
+    | "VOID";
+  subject?: string;
+  signers?: ContractSigner[];
+  guardian_required?: boolean;
+  awaiting_roles?: string[];
+  sign_url?: string | null;
+  sent_at?: string | null;
+  expires_at?: string | null;
+  completed_at?: string | null;
+  decline_reason?: string | null;
+  failure_reason?: string | null;
+  /** 是否已接入电子签渠道；false 时页面不得假装"已发送/待签署"。 */
+  provider_configured: boolean;
+  esign_provider?: string;
+  signed?: boolean;
+}
+
+/** 本人询价对应合同的签署状态（未接受报价时返回 `available=false`）。 */
+export async function fetchInquiryContract(inquiryId: string): Promise<ContractStatus> {
+  return api.get<ContractStatus>(`/inquiries/${encodeURIComponent(inquiryId)}/contract`);
+}
+
+/** 主动向平台查单刷新签署状态（成功只认平台返回）。 */
+export async function refreshContract(envelopeId: string): Promise<ContractStatus> {
+  return api.post<ContractStatus>(
+    `/contract-envelopes/${encodeURIComponent(envelopeId)}/refresh`,
+    {},
+    { idempotencyKey: newIdempotencyKey() },
+  );
 }
 
 export async function submitMeasurements(

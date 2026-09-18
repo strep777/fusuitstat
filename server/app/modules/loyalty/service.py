@@ -1199,6 +1199,100 @@ def reservations_enabled(session: Session) -> bool:
     return bool(feature_flags(session).get("points_redemption", False))
 
 
+def _points_to_cents(points: int, *, points_per_yuan: int) -> int:
+    """按兑换率把积分折算成整数分：向下取整，绝不产生小数分或超出上限。"""
+    if points_per_yuan <= 0:
+        raise AppError("FEATURE_DISABLED", "积分兑换尚未配置兑换率，入口保持关闭。")
+    return max(0, int(points)) * 100 // points_per_yuan
+
+
+def _cents_to_points(cents: int, *, points_per_yuan: int) -> int:
+    """把要抵扣的分数折算回**恰好够用**的积分（向上取整，避免因取整多扣用户积分）。"""
+    if points_per_yuan <= 0:
+        raise AppError("FEATURE_DISABLED", "积分兑换尚未配置兑换率，入口保持关闭。")
+    amount = max(0, int(cents))
+    return (amount * points_per_yuan + 99) // 100
+
+
+def redemption_policy(session: Session) -> dict[str, Any]:
+    """兑换规则视图。规则值全部来自运营配置，未配置时如实返回 0 而不是猜一个数。"""
+    policy = _policy(session)
+    points_per_yuan = int(policy.get("redemption_points_per_yuan", 0))
+    min_points = int(policy.get("redemption_min_points", 0))
+    max_ratio = int(policy.get("redemption_max_ratio_percent", 0))
+    rules_ready = points_per_yuan > 0 and min_points > 0 and max_ratio > 0
+    return {
+        "rules_ready": rules_ready,
+        "enabled": reservations_enabled(session) and rules_ready,
+        "points_name": str(policy["points_name"]),
+        "points_per_yuan": points_per_yuan,
+        "min_points": min_points,
+        "max_ratio_percent": max_ratio,
+        "expiry_days": int(policy.get("redemption_expiry_days", 0)),
+        "restore_on_refund": bool(policy.get("redemption_restore_on_refund", True)),
+        "ratio_note": str(policy.get("redemption_ratio_note", "")),
+    }
+
+
+def redemption_quote(
+    session: Session, *, user_id: str, amount_cents: int, points: int = 0
+) -> dict[str, Any]:
+    """服务端裁定：这笔金额最多能用多少积分、实际抵扣多少分。
+
+    金额与积分都只能用整数（分 / 枚）。客户端提交的是「想用多少积分」这一选择，
+    上限、比例与折算一律由服务端计算（08 文档：客户端不得决定金额）。
+    """
+    if int(amount_cents) <= 0:
+        raise AppError("VALIDATION_ERROR", "结算金额必须大于 0。", fields={"amount_cents": "非法金额"})
+    if int(points) < 0:
+        raise AppError("VALIDATION_ERROR", "积分数量不能为负。", fields={"points": "非法积分数量"})
+    policy = redemption_policy(session)
+    if not policy["rules_ready"]:
+        raise AppError(
+            "FEATURE_DISABLED",
+            "积分抵扣的兑换率、最低使用数量与抵扣上限尚未配置，入口保持关闭。",
+        )
+    if not reservations_enabled(session):
+        raise AppError("FEATURE_DISABLED", "积分兑换尚未开放。")
+
+    points_per_yuan = int(policy["points_per_yuan"])
+    available = int(account_view(session, user_id=user_id)["available_points"])
+    max_cents_by_ratio = int(amount_cents) * int(policy["max_ratio_percent"]) // 100
+    max_points = min(available, _cents_to_points(max_cents_by_ratio, points_per_yuan=points_per_yuan))
+    requested = int(points)
+    if 0 < requested < int(policy["min_points"]):
+        raise AppError(
+            "VALIDATION_ERROR",
+            f"单笔至少使用 {policy['min_points']} {policy['points_name']}。",
+            fields={"points": "低于最低使用数量"},
+        )
+    allowed_points = min(requested, max_points)
+    applied_cents = _points_to_cents(allowed_points, points_per_yuan=points_per_yuan)
+    # 折算回恰好够用的积分：向下取整可能让「积分 × 兑换率」多出零头，
+    # 这里只扣真正换算成金额的那部分，不吞掉用户积分。
+    applied_points = _cents_to_points(applied_cents, points_per_yuan=points_per_yuan)
+    return {
+        "enabled": True,
+        "points_name": str(policy["points_name"]),
+        "amount_cents": int(amount_cents),
+        "available_points": available,
+        "max_points": max_points,
+        "max_cents": _points_to_cents(max_points, points_per_yuan=points_per_yuan),
+        "requested_points": requested,
+        "applied_points": applied_points,
+        "applied_cents": applied_cents,
+        # capped 只表示「被上限或余额截断」，取整零头不算被截断。
+        "capped": allowed_points < requested,
+        "rounded_points": allowed_points - applied_points,
+        "min_points": int(policy["min_points"]),
+        "points_per_yuan": points_per_yuan,
+        "max_ratio_percent": int(policy["max_ratio_percent"]),
+        "expiry_days": int(policy["expiry_days"]),
+        "restore_on_refund": bool(policy["restore_on_refund"]),
+        "ratio_note": str(policy["ratio_note"]),
+    }
+
+
 def reserve_points(
     session: Session,
     *,

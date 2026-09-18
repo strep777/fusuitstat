@@ -37,6 +37,33 @@ class LoyaltyPolicy(Policy):
     feedback_daily_reward_limit: Positive = 1
     redemption_enabled: bool = False
     redemption_ratio_note: str = ""
+    # N02/N04 未确认前一律为 0：服务端不发明兑换率、上限与有效期，
+    # 读不到规则时兑换入口保持关闭（09 文档：不能宣传未上线的兑换权益）。
+    # ``redemption_points_per_yuan`` = 抵扣 1 元需要多少星绒币。
+    redemption_points_per_yuan: Nonnegative = 0
+    redemption_min_points: Nonnegative = 0
+    redemption_max_ratio_percent: Annotated[int, Field(ge=0, le=100)] = 0
+    # 0 = 不启用过期制度（09 文档：有效期随兑换一并启用，细则未定前不启用）。
+    redemption_expiry_days: Nonnegative = 0
+    redemption_restore_on_refund: bool = True
+
+    @model_validator(mode="after")
+    def redemption_rules_required(self) -> "LoyaltyPolicy":
+        """启用兑换必须先把规则配全，避免出现「已开启但无法计算」的中间态。"""
+        if not self.redemption_enabled:
+            return self
+        missing = [
+            name
+            for name, value in (
+                ("redemption_points_per_yuan", self.redemption_points_per_yuan),
+                ("redemption_min_points", self.redemption_min_points),
+                ("redemption_max_ratio_percent", self.redemption_max_ratio_percent),
+            )
+            if value <= 0
+        ]
+        if missing:
+            raise ValueError(f"启用兑换前必须配置：{'、'.join(missing)}")
+        return self
 
 
 class FeatureFlags(Policy):

@@ -375,6 +375,12 @@ DEFAULT_SETTINGS: tuple[dict[str, Any], ...] = (
             "feedback_daily_reward_limit": 1,
             "redemption_enabled": False,
             "redemption_ratio_note": "兑换率与上限在启用前定义（N02/N04）",
+            # 规则值全部为 0 = 未配置：启用兑换前必须由运营填好，服务端不预置业务数值。
+            "redemption_points_per_yuan": 0,
+            "redemption_min_points": 0,
+            "redemption_max_ratio_percent": 0,
+            "redemption_expiry_days": 0,
+            "redemption_restore_on_refund": True,
         },
     },
     {
@@ -599,6 +605,14 @@ def loyalty_policy(session: Session) -> dict[str, Any]:
             stored.get("feedback_daily_reward_limit", settings.feedback_daily_reward_limit)
         ),
         "redemption_enabled": bool(stored.get("redemption_enabled", False)),
+        # 兑换规则（N02/N04）：未配置时如实返回 0 / 默认值，由积分模块决定是否可兑换。
+        # 这里必须逐项转发——漏掉任何一项都会让「已配置」在服务端看起来仍是未配置。
+        "redemption_ratio_note": str(stored.get("redemption_ratio_note", "")),
+        "redemption_points_per_yuan": int(stored.get("redemption_points_per_yuan", 0)),
+        "redemption_min_points": int(stored.get("redemption_min_points", 0)),
+        "redemption_max_ratio_percent": int(stored.get("redemption_max_ratio_percent", 0)),
+        "redemption_expiry_days": int(stored.get("redemption_expiry_days", 0)),
+        "redemption_restore_on_refund": bool(stored.get("redemption_restore_on_refund", True)),
     }
 
 

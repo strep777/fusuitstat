@@ -5220,6 +5220,63 @@
         }
       }
     },
+    "/api/v1/points/redemption-quote": {
+      "get": {
+        "tags": [
+          "loyalty"
+        ],
+        "summary": "Quote Points Redemption",
+        "description": "结算积分抵扣报价（C15；未配置规则或开关关闭时返回 403 ``FEATURE_DISABLED``）。\n\n客户端只提交「这笔金额想用多少积分」，可用上限、抵扣比例与折算结果全部由服务端给出。",
+        "operationId": "quote_points_redemption_api_v1_points_redemption_quote_get",
+        "parameters": [
+          {
+            "name": "amount_cents",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "maximum": 100000000,
+              "minimum": 1,
+              "title": "Amount Cents"
+            }
+          },
+          {
+            "name": "points",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100000000,
+              "minimum": 0,
+              "default": 0,
+              "title": "Points"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PointRedemptionQuote"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/feedback": {
       "post": {
         "tags": [
@@ -19634,6 +19691,100 @@
         ],
         "title": "PointLedgerSource",
         "description": "来源摘要：只给类型、编号与业务标签，不含他人反馈正文。"
+      },
+      "PointRedemptionQuote": {
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled",
+            "default": true
+          },
+          "points_name": {
+            "type": "string",
+            "title": "Points Name"
+          },
+          "amount_cents": {
+            "type": "integer",
+            "title": "Amount Cents"
+          },
+          "available_points": {
+            "type": "integer",
+            "title": "Available Points"
+          },
+          "max_points": {
+            "type": "integer",
+            "title": "Max Points"
+          },
+          "max_cents": {
+            "type": "integer",
+            "title": "Max Cents"
+          },
+          "requested_points": {
+            "type": "integer",
+            "title": "Requested Points"
+          },
+          "applied_points": {
+            "type": "integer",
+            "title": "Applied Points"
+          },
+          "applied_cents": {
+            "type": "integer",
+            "title": "Applied Cents"
+          },
+          "capped": {
+            "type": "boolean",
+            "title": "Capped",
+            "default": false
+          },
+          "rounded_points": {
+            "type": "integer",
+            "title": "Rounded Points",
+            "default": 0
+          },
+          "min_points": {
+            "type": "integer",
+            "title": "Min Points"
+          },
+          "points_per_yuan": {
+            "type": "integer",
+            "title": "Points Per Yuan"
+          },
+          "max_ratio_percent": {
+            "type": "integer",
+            "title": "Max Ratio Percent"
+          },
+          "expiry_days": {
+            "type": "integer",
+            "title": "Expiry Days",
+            "default": 0
+          },
+          "restore_on_refund": {
+            "type": "boolean",
+            "title": "Restore On Refund",
+            "default": true
+          },
+          "ratio_note": {
+            "type": "string",
+            "title": "Ratio Note",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "points_name",
+          "amount_cents",
+          "available_points",
+          "max_points",
+          "max_cents",
+          "requested_points",
+          "applied_points",
+          "applied_cents",
+          "min_points",
+          "points_per_yuan",
+          "max_ratio_percent"
+        ],
+        "title": "PointRedemptionQuote",
+        "description": "结算积分抵扣报价（C15，默认关闭）。\n\n所有数值都由服务端按运营配置裁定：``applied_cents`` 是真正抵扣的金额，\n``applied_points`` 是为这笔抵扣实际冻结/消费的积分（不含取整零头）。"
       },
       "PointsBadge": {
         "properties": {

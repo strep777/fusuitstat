@@ -11,7 +11,9 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Request
+from typing import Annotated
+
+from fastapi import APIRouter, Query, Request
 
 from app.api.dependencies import (
     ContextDep,
@@ -28,6 +30,7 @@ from app.modules.loyalty.schemas import (
     PointAppealResponse,
     PointLedgerItem,
     PointLedgerPage,
+    PointRedemptionQuote,
 )
 from app.modules.shared.schemas import CursorField, LimitField
 
@@ -84,6 +87,24 @@ def list_points_appeals(
         items=[PointAppealResponse(**item) for item in items],
         next_cursor=str(offset + limit) if has_more else None,
         has_more=has_more,
+    )
+
+
+@public_router.get("/points/redemption-quote", response_model=PointRedemptionQuote)
+def quote_points_redemption(
+    ctx: ContextDep,
+    user_id: CustomerIdDep,
+    amount_cents: Annotated[int, Query(ge=1, le=100_000_000)],
+    points: Annotated[int, Query(ge=0, le=100_000_000)] = 0,
+) -> PointRedemptionQuote:
+    """结算积分抵扣报价（C15；未配置规则或开关关闭时返回 403 ``FEATURE_DISABLED``）。
+
+    客户端只提交「这笔金额想用多少积分」，可用上限、抵扣比例与折算结果全部由服务端给出。
+    """
+    return PointRedemptionQuote(
+        **svc.redemption_quote(
+            ctx.session, user_id=user_id, amount_cents=amount_cents, points=points
+        )
     )
 
 

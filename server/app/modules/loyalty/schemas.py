@@ -25,6 +25,32 @@ class PointAccountResponse(Dto):
     rules_version: str
 
 
+class PointRedemptionQuote(Dto):
+    """结算积分抵扣报价（C15，默认关闭）。
+
+    所有数值都由服务端按运营配置裁定：``applied_cents`` 是真正抵扣的金额，
+    ``applied_points`` 是为这笔抵扣实际冻结/消费的积分（不含取整零头）。
+    """
+
+    enabled: bool = True
+    points_name: str
+    amount_cents: int
+    available_points: int
+    max_points: int
+    max_cents: int
+    requested_points: int
+    applied_points: int
+    applied_cents: int
+    capped: bool = False
+    rounded_points: int = 0
+    min_points: int
+    points_per_yuan: int
+    max_ratio_percent: int
+    expiry_days: int = 0
+    restore_on_refund: bool = True
+    ratio_note: str = ""
+
+
 class PointLedgerSource(Dto):
     """来源摘要：只给类型、编号与业务标签，不含他人反馈正文。"""
 
@@ -125,4 +151,5 @@ __all__ = [
     "PointLedgerItem",
     "PointLedgerPage",
     "PointLedgerSource",
+    "PointRedemptionQuote",
 ]

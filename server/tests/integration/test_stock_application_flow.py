@@ -1,4 +1,4 @@
-﻿"""掉落审批购买优先级、独占库存与「服务先申请再报价」回归（R20）。
+"""掉落审批购买优先级、独占库存与「服务先申请再报价」回归（R20）。
 
 依据：
 - `功能确认清单-已确认.md` C28：掉落商品需申请后人工审批，审批通过才可购买；
@@ -25,10 +25,9 @@ from app.modules.catalog.models import StockApplication
 from app.modules.commerce import repository as commerce_repo
 from app.platform.errors import AppError
 from app.platform.ids import now_ms
-from tests.conftest import admin_session, create_product, create_sku, create_staff, create_user, issue_login
+from tests.conftest import admin_session, create_product, create_sku, create_staff, create_user
 from tests.integration.test_commission_flow import (
     accept_payload,
-    create_submitted_inquiry,
     login,
     make_asset,
     make_series,

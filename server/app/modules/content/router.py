@@ -9,7 +9,14 @@ from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, Query, Request
 
-from app.api.dependencies import ContextDep, CsrfDep, PrincipalDep, require_permission
+from app.api.dependencies import (
+    ContextDep,
+    CsrfDep,
+    CustomerIdDep,
+    PrincipalDep,
+    enforce_write_guard,
+    require_permission,
+)
 from app.modules.content import repository as repo
 from app.modules.content import service as svc
 from app.modules.content.models import CONTENT_KINDS
@@ -19,6 +26,10 @@ from app.modules.content.schemas import (
     ContentEntrySummary,
     ContentPage,
     ContentUpdateInput,
+    DisplayAuthorizationItem,
+    DisplayAuthorizationPage,
+    DisplayRetractInput,
+    DisplayRetractResponse,
     PaginationQuery,
     PublishInput,
     SeriesSpecInput,
@@ -174,6 +185,35 @@ def _validate_kind(kind: str) -> None:
         raise AppError("RESOURCE_NOT_FOUND")
 
 
+# ------------------------------------------------------------------ 公开展示授权（C18）
+@public_router.get("/me/display-authorizations", response_model=DisplayAuthorizationPage)
+def list_my_display_authorizations(ctx: ContextDep, user_id: CustomerIdDep) -> DisplayAuthorizationPage:
+    """我的公开展示授权：作品与本人公开素材的当前展示状态与撤回入口。"""
+    items = [DisplayAuthorizationItem(**item) for item in svc.list_display_authorizations(ctx.session, user_id=user_id)]
+    return DisplayAuthorizationPage(items=items, total=len(items))
+
+
+@public_router.post("/me/display-authorizations/retract", response_model=DisplayRetractResponse)
+def retract_my_display_authorization(
+    payload: DisplayRetractInput,
+    ctx: ContextDep,
+    _csrf: CsrfDep,
+    user_id: CustomerIdDep,
+    request: Request,
+) -> DisplayRetractResponse:
+    """撤回公开展示授权：立即生效（公开页面与直链不再展示），并登记缓存失效任务。"""
+    enforce_write_guard(request)
+    result = svc.retract_display_authorization(
+        ctx.session,
+        user_id=user_id,
+        resource_type=payload.resource_type,
+        resource_id=payload.resource_id,
+        reason=payload.reason,
+    )
+    ctx.session.commit()
+    return DisplayRetractResponse(**result)
+
+
 # ------------------------------------------------------------------ 站点聚合
 @public_router.get("/site/home", response_model=dict)
 def home_aggregate(ctx: ContextDep) -> dict[str, Any]:
@@ -311,6 +351,7 @@ def admin_get_content(entry_id: str, ctx: ContextDep) -> dict[str, Any]:
             "unpublish_at": iso(entry.unpublish_at),
             "sanitized_body": entry.sanitized_body,
             "display_authorized": bool(entry.display_authorized),
+            "client_user_id": entry.client_user_id,
             "revisions": [
                 {
                     "revision": row.revision,
@@ -357,6 +398,7 @@ def admin_create_content(
         photographer_credit=payload.photographer_credit,
         display_authorized=1 if payload.display_authorized else 0,
         client_display_name=payload.client_display_name,
+        client_user_id=payload.client_user_id,
         sort_order=payload.sort_order,
         is_featured=1 if payload.is_featured else 0,
     )
@@ -400,6 +442,7 @@ def admin_update_content(
                 "maker_credit",
                 "photographer_credit",
                 "client_display_name",
+                "client_user_id",
             )
             if getattr(payload, name) is not None
         },

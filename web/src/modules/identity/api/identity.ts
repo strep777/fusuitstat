@@ -147,6 +147,56 @@ export function requiresSensitiveReauth(error: unknown): boolean {
   return error instanceof ApiError && (error.code === "REAUTH_REQUIRED" || error.status === 401);
 }
 
+// ------------------------------------------------------------------ 公开展示授权（C18）
+export interface DisplayAuthorization {
+  resource_type: "work" | "media";
+  resource_id: string;
+  title: string;
+  slug: string | null;
+  route: string | null;
+  client_display_name: string | null;
+  display_authorized: boolean;
+  published: boolean;
+  visible_now: boolean;
+  state: "ACTIVE" | "PENDING" | "RETRACTED" | string;
+  granted_at: string | null;
+  updated_at: string | null;
+}
+
+export interface DisplayAuthorizationPage {
+  items: DisplayAuthorization[];
+  total: number;
+}
+
+export interface DisplayRetractInput {
+  resource_type: "work" | "media";
+  resource_id: string;
+  reason: string;
+}
+
+export interface DisplayRetractResult {
+  resource_type: string;
+  resource_id: string;
+  display_authorized: boolean;
+  already_retracted: boolean;
+  prebuild_job_id: string | null;
+  effective: string;
+}
+
+export async function fetchDisplayAuthorizations(): Promise<DisplayAuthorizationPage> {
+  const payload = await api.get<DisplayAuthorizationPage>("/me/display-authorizations");
+  return { items: payload.items ?? [], total: payload.total ?? payload.items?.length ?? 0 };
+}
+
+/** 撤回公开展示授权：服务端立即生效并登记缓存失效任务。 */
+export async function retractDisplayAuthorization(
+  input: DisplayRetractInput,
+): Promise<DisplayRetractResult> {
+  return api.post<DisplayRetractResult>("/me/display-authorizations/retract", input, {
+    idempotencyKey: newIdempotencyKey(),
+  });
+}
+
 /** 真正的登录失效（排除只需敏感重验证的情况）。 */
 export function isSessionExpired(error: unknown): boolean {
   return error instanceof ApiError && error.needsLogin && error.code !== "REAUTH_REQUIRED";

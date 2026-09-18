@@ -113,3 +113,36 @@ def resolve_active_staff(session: Session, reference: str | None) -> str | None:
     if staff is None or staff.status != "active":
         return None
     return staff.id
+
+
+def record_consent(
+    session: Session,
+    *,
+    user_id: str,
+    purpose: str,
+    version: str,
+    resource_type: str | None = None,
+    resource_id: str | None = None,
+    evidence: dict[str, Any] | None = None,
+) -> Any:
+    """记录一条同意/授权留证（C18/C22：不覆盖历史，撤回单独留痕）。"""
+    from app.modules.identity.service import record_consent as write
+
+    return write(
+        session,
+        user_id=user_id,
+        purpose=purpose,
+        version=version,
+        resource_type=resource_type,
+        resource_id=resource_id,
+        evidence=evidence,
+    )
+
+
+def revoke_consent(
+    session: Session, *, user_id: str, purpose: str, resource_id: str | None, reason: str
+) -> bool:
+    """撤回生效中的授权留证；返回 False 表示没有生效中的记录。"""
+    from app.modules.identity.service import revoke_consent as revoke
+
+    return revoke(session, user_id=user_id, purpose=purpose, resource_id=resource_id, reason=reason)

@@ -21,6 +21,8 @@ from app.modules.content.models import (
     SiteSetting,
 )
 from app.modules.content.sanitize import excerpt, sanitize_html
+from app.modules.identity import ports as identity_ports
+from app.modules.media import ports as media_ports
 from app.platform import audit
 from app.platform.errors import AppError
 from app.platform.ids import iso, new_id, now_ms
@@ -529,7 +531,11 @@ def entry_payload(entry: ContentEntry, *, include_body: bool = False) -> dict[st
             "designer": entry.designer_credit,
             "maker": entry.maker_credit,
             "photographer": entry.photographer_credit,
-            "client_display_name": entry.client_display_name,
+            # C18：客户姓名只在**仍持有公开展示授权**时出现在公开载荷里。
+            # 撤回授权后即使条目还没重新发布，也不能再泄露客户身份。
+            "client_display_name": (
+                entry.client_display_name if entry.display_authorized else None
+            ),
         }
         payload["craft_notes"] = entry.craft_notes
     if include_body:
@@ -537,8 +543,172 @@ def entry_payload(entry: ContentEntry, *, include_body: bool = False) -> dict[st
     return payload
 
 
-def series_payload(spec: SeriesSpec, entry: ContentEntry) -> dict[str, Any]:
+# ------------------------------------------------------------------ 公开展示授权（C18）
+def list_display_authorizations(session: Session, *, user_id: str) -> list[dict[str, Any]]:
+    """我的公开展示授权：列出租给本人账号的委托作品与本人上传且被设为公开的素材。
+
+    只列事实，不替客户做判断：``visible_now`` 表示此刻公开页面是否真的会展示它。
+    """
+    items: list[dict[str, Any]] = []
+    for entry in repo.list_entries_for_client(session, user_id=user_id):
+        published = entry.status == "published"
+        authorized = bool(entry.display_authorized)
+        items.append(
+            {
+                "resource_type": "work",
+                "resource_id": entry.id,
+                "title": entry.title,
+                "slug": entry.slug,
+                "route": public_route_for(entry),
+                "client_display_name": entry.client_display_name if authorized else None,
+                "display_authorized": authorized,
+                "published": published,
+                "visible_now": published and authorized,
+                "state": "ACTIVE" if (published and authorized) else ("RETRACTED" if not authorized else "PENDING"),
+                "granted_at": iso(entry.created_at),
+                "updated_at": iso(entry.updated_at),
+            }
+        )
+    for asset in media_ports.public_assets_for_owner(session, owner_id=user_id):
+        items.append(
+            {
+                "resource_type": "media",
+                "resource_id": asset["id"],
+                "title": asset["filename"],
+                "slug": None,
+                "route": None,
+                "client_display_name": None,
+                "display_authorized": True,
+                "published": True,
+                "visible_now": True,
+                "state": "ACTIVE",
+                "granted_at": iso(asset["created_at"]),
+                "updated_at": iso(asset["updated_at"]),
+            }
+        )
+    return items
+
+
+def retract_display_authorization(
+    session: Session,
+    *,
+    user_id: str,
+    resource_type: str,
+    resource_id: str,
+    reason: str,
+) -> dict[str, Any]:
+    """撤回公开展示授权（C18：单独可撤回）。
+
+    撤回**立即生效**：作品立即从公开列表与直链消失、客户姓名不再出现在公开载荷里；
+    素材立即取消公开。授权留证保留（`consents` 里记一条已撤回的 `public_display`），
+    并登记预渲染任务让缓存与静态产物同步失效。
+    """
+    if resource_type == "work":
+        entry = repo.get_entry(session, resource_id)
+        if entry is None or entry.kind != "work" or entry.client_user_id != user_id:
+            # 非本人或不存在一律 404，不透露作品是否存在。
+            raise AppError("RESOURCE_NOT_FOUND")
+        already = not bool(entry.display_authorized)
+        if not already:
+            entry.display_authorized = 0
+            entry.version += 1
+            entry.updated_at = now_ms()
+        route: str | None = public_route_for(entry)
+    elif resource_type == "media":
+        if not media_ports.retract_public_display(session, asset_id=resource_id, owner_id=user_id):
+            raise AppError("RESOURCE_NOT_FOUND")
+        entry = None
+        already = False
+        route = None
+    else:
+        raise AppError(
+            "VALIDATION_ERROR",
+            "不支持的展示资源类型。",
+            fields={"resource_type": "只支持 work 或 media"},
+        )
+
+    _record_display_retraction(
+        session,
+        user_id=user_id,
+        resource_type=resource_type,
+        resource_id=resource_id,
+        reason=reason,
+    )
+    job_id: str | None = None
+    if entry is not None:
+        job = repo.enqueue_prebuild(
+            session,
+            trigger="content.display_retracted",
+            resource_type="content_entry",
+            resource_id=entry.id,
+            routes=[route or public_route_for(entry)],
+            actor_id=user_id,
+        )
+        job_id = job.id
+        enqueue(
+            session,
+            event_type="content.prebuild_requested",
+            aggregate_id=entry.id,
+            payload={"job_id": job.id, "slug": entry.slug, "kind": entry.kind, "reason": "display_retracted"},
+            aggregate_version=entry.revision,
+        )
+    audit.record(
+        session,
+        actor_type="customer",
+        actor_id=user_id,
+        action="display_authorization.retract",
+        resource_type=resource_type,
+        resource_id=resource_id,
+        after={"display_authorized": False, "already_retracted": already, "prebuild_job_id": job_id},
+        reason=reason,
+    )
+    session.flush()
     return {
+        "resource_type": resource_type,
+        "resource_id": resource_id,
+        "display_authorized": False,
+        "already_retracted": already,
+        "prebuild_job_id": job_id,
+        "effective": "immediate",
+    }
+
+
+def _record_display_retraction(
+    session: Session, *, user_id: str, resource_type: str, resource_id: str, reason: str
+) -> None:
+    """留证：有生效中的授权就撤回它，否则补记一条已撤回的授权记录。
+
+    两种情况下 `consents` 里都会存在一条 purpose=``public_display`` 且带
+    ``revoked_at`` 的记录，客服与审计都能回答「客户什么时候撤回的、为什么」。
+    """
+    revoked = identity_ports.revoke_consent(
+        session,
+        user_id=user_id,
+        purpose="public_display",
+        resource_id=resource_id,
+        reason=reason,
+    )
+    if revoked:
+        return
+    identity_ports.record_consent(
+        session,
+        user_id=user_id,
+        purpose="public_display",
+        version="retraction-1",
+        resource_type=resource_type,
+        resource_id=resource_id,
+        evidence={"retracted_at": iso(now_ms()), "channel": "customer_center"},
+    )
+    identity_ports.revoke_consent(
+        session,
+        user_id=user_id,
+        purpose="public_display",
+        resource_id=resource_id,
+        reason=reason,
+    )
+
+
+def series_payload(spec: SeriesSpec, entry: ContentEntry) -> dict[str, Any]:    return {
         **entry_payload(entry),
         "code": spec.code,
         "base_price_cents": spec.base_price_cents,

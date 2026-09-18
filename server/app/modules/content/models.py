@@ -62,6 +62,9 @@ class ContentEntry(PkMixin, TimestampMixin, VersionMixin, Base):
     # 只有拿到公开授权的委托作品才能公开（FR-002、C18）
     display_authorized: Mapped[int] = mapped_column(sa.Integer, nullable=False, default=0)
     client_display_name: Mapped[str | None] = mapped_column(sa.String(80))
+    # C18：客户身份与成品的公开展示是**单独可撤回**授权。记录授权归属的客户账号后，
+    # 客户才能在「我的公开展示授权」里看到并撤回；未登记的旧作品保持 NULL。
+    client_user_id: Mapped[str | None] = mapped_column(sa.String(48), index=True)
     created_by: Mapped[str | None] = mapped_column(sa.String(48))
 
     __table_args__ = (

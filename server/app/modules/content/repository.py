@@ -19,20 +19,41 @@ def get_entry(session: Session, entry_id: str) -> ContentEntry | None:
     return session.get(ContentEntry, entry_id)
 
 
+def list_entries_for_client(session: Session, *, user_id: str) -> list[ContentEntry]:
+    """授权归属本人的委托作品（C18：客户在账户里查看与撤回公开展示授权）。"""
+    return list(
+        session.scalars(
+            sa.select(ContentEntry)
+            .where(
+                ContentEntry.kind == "work",
+                ContentEntry.client_user_id == user_id,
+                ContentEntry.status != "archived",
+            )
+            .order_by(ContentEntry.updated_at.desc())
+        )
+    )
+
+
 def get_published(
     session: Session, *, kind: str, slug: str, locale: str = "zh-CN", moment: int | None = None
 ) -> ContentEntry | None:
+    """公开详情。
+
+    委托作品（``kind="work"``）**必须仍有公开展示授权**：撤回授权后即使条目仍是
+    published，也不能再通过直链访问（FR-002、C18：无授权的作品不出现）。
+    """
     now = moment if moment is not None else now_ms()
-    return session.scalars(
-        sa.select(ContentEntry).where(
-            ContentEntry.kind == kind,
-            ContentEntry.slug == slug,
-            ContentEntry.locale == locale,
-            ContentEntry.status == "published",
-            sa.or_(ContentEntry.publish_at.is_(None), ContentEntry.publish_at <= now),
-            sa.or_(ContentEntry.unpublish_at.is_(None), ContentEntry.unpublish_at > now),
-        )
-    ).one_or_none()
+    conditions = [
+        ContentEntry.kind == kind,
+        ContentEntry.slug == slug,
+        ContentEntry.locale == locale,
+        ContentEntry.status == "published",
+        sa.or_(ContentEntry.publish_at.is_(None), ContentEntry.publish_at <= now),
+        sa.or_(ContentEntry.unpublish_at.is_(None), ContentEntry.unpublish_at > now),
+    ]
+    if kind == "work":
+        conditions.append(ContentEntry.display_authorized == 1)
+    return session.scalars(sa.select(ContentEntry).where(*conditions)).one_or_none()
 
 
 def list_published(

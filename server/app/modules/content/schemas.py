@@ -106,6 +106,8 @@ class ContentCreateInput(StrictDto):
     photographer_credit: str | None = Field(default=None, max_length=120)
     display_authorized: bool = False
     client_display_name: str | None = Field(default=None, max_length=80)
+    # C18：这份作品的公开展示授权属于哪个客户账号（客户据此在账户里撤回）。
+    client_user_id: str | None = Field(default=None, max_length=48)
     sort_order: int = 0
     is_featured: bool = False
 
@@ -129,8 +131,49 @@ class ContentUpdateInput(StrictDto):
     maker_credit: str | None = Field(default=None, max_length=120)
     photographer_credit: str | None = Field(default=None, max_length=120)
     client_display_name: str | None = Field(default=None, max_length=80)
+    client_user_id: str | None = Field(default=None, max_length=48)
     display_authorized: bool | None = None
     is_featured: bool | None = None
+
+
+# ------------------------------------------------------------------ 公开展示授权（C18）
+class DisplayAuthorizationItem(Dto):
+    """一条公开展示授权：资源、当前展示状态与「此刻是否真的公开」。"""
+
+    resource_type: str
+    resource_id: str
+    title: str
+    slug: str | None = None
+    route: str | None = None
+    client_display_name: str | None = None
+    display_authorized: bool = False
+    published: bool = False
+    visible_now: bool = False
+    state: str = "ACTIVE"
+    granted_at: str | None = None
+    updated_at: str | None = None
+
+
+class DisplayAuthorizationPage(Dto):
+    items: list[DisplayAuthorizationItem] = Field(default_factory=list)
+    total: int = 0
+
+
+class DisplayRetractInput(StrictDto):
+    """撤回输入：只允许 work / media，且必须是本人资源。"""
+
+    resource_type: Literal["work", "media"]
+    resource_id: str = Field(min_length=1, max_length=48)
+    reason: str = Field(min_length=2, max_length=200)
+
+
+class DisplayRetractResponse(Dto):
+    resource_type: str
+    resource_id: str
+    display_authorized: bool = False
+    already_retracted: bool = False
+    prebuild_job_id: str | None = None
+    effective: str = "immediate"
 
 
 class SeriesSpecInput(StrictDto):

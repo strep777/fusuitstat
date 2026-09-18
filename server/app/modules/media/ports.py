@@ -13,6 +13,7 @@ from __future__ import annotations
 
 from typing import Any
 
+import sqlalchemy as sa
 from sqlalchemy.orm import Session
 
 __all__ = [
@@ -20,8 +21,53 @@ __all__ = [
     "assets_for",
     "link_asset",
     "linked_asset_ids",
+    "public_assets_for_owner",
     "public_media_payload",
+    "retract_public_display",
 ]
+
+
+def public_assets_for_owner(session: Session, *, owner_id: str) -> list[dict[str, Any]]:
+    """本人上传且当前被设为公开的素材（C18：客户可在账户里看到并撤回公开授权）。"""
+    from app.modules.media.models import MediaAsset
+
+    rows = session.scalars(
+        sa.select(MediaAsset).where(
+            MediaAsset.owner_id == owner_id,
+            MediaAsset.status == "active",
+            MediaAsset.visibility == "public",
+            MediaAsset.is_public_ok == 1,
+        )
+    )
+    return [
+        {
+            "id": row.id,
+            "filename": row.original_filename or row.object_key,
+            "mime": row.mime,
+            "created_at": row.created_at,
+            "updated_at": row.updated_at or row.created_at,
+        }
+        for row in rows
+    ]
+
+
+def retract_public_display(session: Session, *, asset_id: str, owner_id: str) -> bool:
+    """撤回本人素材的公开展示：立即取消公开可见性。
+
+    返回 False 表示素材不存在或不属于该用户（调用方按 404 处理，不泄露存在性）。
+    已撤回过再调用同样返回 True（幂等），因此客户重复点击不会报错。
+    """
+    from app.modules.media.models import MediaAsset
+    from app.platform.ids import now_ms
+
+    asset = session.get(MediaAsset, asset_id)
+    if asset is None or asset.owner_id != owner_id:
+        return False
+    asset.is_public_ok = 0
+    asset.visibility = "private"
+    asset.updated_at = now_ms() if asset.updated_at else asset.updated_at
+    session.flush()
+    return True
 
 
 def public_media_payload(session: Session, asset_id: str) -> dict[str, Any] | None:

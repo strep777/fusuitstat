@@ -18,6 +18,7 @@ import {
   confirmPhoneChange,
   describeIdentityError,
   errorCodeOf,
+  fetchDisplayAuthorizations,
   fetchMySessions,
   isSessionExpired,
   isSixDigitCode,
@@ -26,9 +27,11 @@ import {
   requestAccountClosure,
   requestPhoneChangeChallenge,
   requiresSensitiveReauth,
+  retractDisplayAuthorization,
   revokeSession,
   verifySensitiveChallenge,
   type ClosureResult,
+  type DisplayAuthorization,
   type PhoneChangeChallenge,
   type UserSession,
 } from "@/modules/identity/api/identity";
@@ -432,9 +435,79 @@ async function submitClosure(): Promise<void> {
   }
 }
 
+// ---------------------------------------------------------------- 公开展示授权（C18）
+const displayAuthorizations = ref<DisplayAuthorization[]>([]);
+const displayAuthLoading = ref(false);
+const displayAuthError = ref<string | null>(null);
+const retractTarget = ref<string | null>(null);
+const retractReason = ref("");
+const retractError = ref<string | null>(null);
+const retractSaving = ref(false);
+const retractNotice = ref<string | null>(null);
+
+/** 只有真的会公开的条目才给出撤回入口；未公开与已撤回只如实说明状态。 */
+function displayAuthStateLabel(item: DisplayAuthorization): string {
+  if (item.visible_now) return "当前公开中：作品页会展示它";
+  if (item.state === "RETRACTED") return "已撤回：公开页面与直链都不再展示";
+  return "尚未公开：发布后才会公开，撤回入口保留";
+}
+
+async function loadDisplayAuthorizations(): Promise<void> {
+  displayAuthLoading.value = true;
+  displayAuthError.value = null;
+  try {
+    const page = await fetchDisplayAuthorizations();
+    displayAuthorizations.value = page.items;
+  } catch (caught) {
+    displayAuthError.value = describeIdentityError(caught);
+  } finally {
+    displayAuthLoading.value = false;
+  }
+}
+
+function openRetract(item: DisplayAuthorization): void {
+  retractTarget.value = item.resource_id;
+  retractReason.value = "";
+  retractError.value = null;
+  retractNotice.value = null;
+}
+
+function cancelRetract(): void {
+  retractTarget.value = null;
+  retractReason.value = "";
+  retractError.value = null;
+}
+
+async function confirmRetract(item: DisplayAuthorization): Promise<void> {
+  const reason = retractReason.value.trim();
+  if (reason.length < 2) {
+    retractError.value = "请填写至少 2 个字的撤回原因，我们会记录在授权留证里。";
+    return;
+  }
+  retractSaving.value = true;
+  retractError.value = null;
+  try {
+    const result = await retractDisplayAuthorization({
+      resource_type: item.resource_type,
+      resource_id: item.resource_id,
+      reason,
+    });
+    retractNotice.value = result.already_retracted
+      ? "该条目此前已撤回，公开页面保持不展示。"
+      : "已撤回并立即生效：公开页面、直链与缓存都不再展示；授权留证已保留。";
+    cancelRetract();
+    await loadDisplayAuthorizations();
+  } catch (caught) {
+    retractError.value = describeIdentityError(caught);
+  } finally {
+    retractSaving.value = false;
+  }
+}
+
 onMounted(() => {
   void site.load();
   void loadSessions();
+  void loadDisplayAuthorizations();
 });
 </script>
 
@@ -780,6 +853,100 @@ onMounted(() => {
           我们会登记办理状态与理由。
         </p>
       </div>
+    </SurfaceCard>
+
+    <!-- 公开展示授权（C18）：默认公开，但可单独撤回且立即生效 -->
+    <SurfaceCard as="section" class="mt-6" aria-labelledby="display-auth-heading">
+      <h2 id="display-auth-heading" class="font-display text-xl">公开展示授权</h2>
+      <p class="mt-2 text-sm leading-relaxed text-ink-muted">
+        作品页默认展示客户身份与成品，依据的是你可以单独撤回的展示授权。撤回立即生效：
+        作品从公开列表与直链消失、客户姓名不再出现在公开页面，并同步失效缓存与静态产物；
+        授权留证会保留，便于日后核对。
+      </p>
+
+      <div v-if="displayAuthLoading" class="mt-4">
+        <SkeletonBlock :lines="2" aria-label="正在读取公开展示授权" />
+      </div>
+      <p v-else-if="displayAuthError" class="mt-4 text-sm text-wine" role="alert">
+        {{ displayAuthError }}
+        <button type="button" class="link-underline ml-2" @click="loadDisplayAuthorizations()">重新加载</button>
+      </p>
+      <EmptyState
+        v-else-if="displayAuthorizations.length === 0"
+        class="mt-4"
+        title="没有可撤回的公开展示"
+        description="当前没有登记在你名下的公开展示授权。若作品页出现了你的姓名或照片而你认为不该公开，请联系客服核对。"
+      >
+        <AppButton size="sm" variant="secondary" to="/contact">联系客服</AppButton>
+      </EmptyState>
+      <ul v-else class="mt-4 divide-y divide-line">
+        <li
+          v-for="item in displayAuthorizations"
+          :key="`${item.resource_type}-${item.resource_id}`"
+          class="py-4"
+        >
+          <div class="flex flex-wrap items-start justify-between gap-3">
+            <div class="min-w-0">
+              <p class="text-sm font-medium">{{ item.title }}</p>
+              <p class="mt-1 text-xs text-ink-faint">
+                {{ item.resource_type === "media" ? "我上传的素材" : "委托作品" }}
+                <template v-if="item.route">· 公开地址 {{ item.route }}</template>
+              </p>
+              <p class="mt-1 text-xs" :class="item.visible_now ? 'text-jade' : 'text-ink-faint'">
+                {{ displayAuthStateLabel(item) }}
+              </p>
+            </div>
+            <AppButton
+              v-if="item.visible_now"
+              size="sm"
+              variant="danger"
+              @click="openRetract(item)"
+            >
+              撤回公开展示
+            </AppButton>
+            <StatusBadge
+              v-else
+              tone="neutral"
+              :label="item.state === 'RETRACTED' ? '已撤回' : '未公开'"
+            />
+          </div>
+
+          <div
+            v-if="retractTarget === item.resource_id"
+            class="mt-3 space-y-3 rounded-sm border border-line bg-surface-muted p-3"
+          >
+            <FieldRow
+              label="撤回原因"
+              :for="`retract-reason-${item.resource_id}`"
+              required
+              :error="retractError ?? undefined"
+              hint="原因会记录在授权留证里，方便日后核对；不会公开。"
+            >
+              <input
+                :id="`retract-reason-${item.resource_id}`"
+                v-model.trim="retractReason"
+                type="text"
+                maxlength="200"
+                class="field-base"
+                placeholder="例如：不希望公开姓名"
+              />
+            </FieldRow>
+            <div class="flex flex-wrap gap-3">
+              <AppButton size="sm" variant="danger" :loading="retractSaving" @click="confirmRetract(item)">
+                确认撤回
+              </AppButton>
+              <AppButton size="sm" variant="quiet" @click="cancelRetract()">取消</AppButton>
+            </div>
+          </div>
+        </li>
+      </ul>
+      <p
+        v-if="retractNotice"
+        class="mt-3 rounded-sm border border-jade bg-jade-soft px-3 py-2 text-sm text-jade"
+        role="status"
+      >
+        {{ retractNotice }}
+      </p>
     </SurfaceCard>
   </div>
 </template>

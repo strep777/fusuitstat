@@ -1348,6 +1348,88 @@
         }
       }
     },
+    "/api/v1/me/display-authorizations": {
+      "get": {
+        "tags": [
+          "content"
+        ],
+        "summary": "List My Display Authorizations",
+        "description": "我的公开展示授权：作品与本人公开素材的当前展示状态与撤回入口。",
+        "operationId": "list_my_display_authorizations_api_v1_me_display_authorizations_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DisplayAuthorizationPage"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me/display-authorizations/retract": {
+      "post": {
+        "tags": [
+          "content"
+        ],
+        "summary": "Retract My Display Authorization",
+        "description": "撤回公开展示授权：立即生效（公开页面与直链不再展示），并登记缓存失效任务。",
+        "operationId": "retract_my_display_authorization_api_v1_me_display_authorizations_retract_post",
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DisplayRetractInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DisplayRetractResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/site/home": {
       "get": {
         "tags": [
@@ -15089,6 +15171,18 @@
             ],
             "title": "Client Display Name"
           },
+          "client_user_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 48
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Client User Id"
+          },
           "sort_order": {
             "type": "integer",
             "title": "Sort Order",
@@ -15731,6 +15825,18 @@
             ],
             "title": "Client Display Name"
           },
+          "client_user_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 48
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Client User Id"
+          },
           "display_authorized": {
             "anyOf": [
               {
@@ -15802,6 +15908,200 @@
         ],
         "title": "DifferenceResolveInput",
         "description": "对账差异处置。必须给出归因与理由，不允许静默忽略。"
+      },
+      "DisplayAuthorizationItem": {
+        "properties": {
+          "resource_type": {
+            "type": "string",
+            "title": "Resource Type"
+          },
+          "resource_id": {
+            "type": "string",
+            "title": "Resource Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "slug": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Slug"
+          },
+          "route": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Route"
+          },
+          "client_display_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Client Display Name"
+          },
+          "display_authorized": {
+            "type": "boolean",
+            "title": "Display Authorized",
+            "default": false
+          },
+          "published": {
+            "type": "boolean",
+            "title": "Published",
+            "default": false
+          },
+          "visible_now": {
+            "type": "boolean",
+            "title": "Visible Now",
+            "default": false
+          },
+          "state": {
+            "type": "string",
+            "title": "State",
+            "default": "ACTIVE"
+          },
+          "granted_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Granted At"
+          },
+          "updated_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "resource_type",
+          "resource_id",
+          "title"
+        ],
+        "title": "DisplayAuthorizationItem",
+        "description": "一条公开展示授权：资源、当前展示状态与「此刻是否真的公开」。"
+      },
+      "DisplayAuthorizationPage": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/DisplayAuthorizationItem"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "title": "DisplayAuthorizationPage"
+      },
+      "DisplayRetractInput": {
+        "properties": {
+          "resource_type": {
+            "type": "string",
+            "enum": [
+              "work",
+              "media"
+            ],
+            "title": "Resource Type"
+          },
+          "resource_id": {
+            "type": "string",
+            "maxLength": 48,
+            "minLength": 1,
+            "title": "Resource Id"
+          },
+          "reason": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 2,
+            "title": "Reason"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "resource_type",
+          "resource_id",
+          "reason"
+        ],
+        "title": "DisplayRetractInput",
+        "description": "撤回输入：只允许 work / media，且必须是本人资源。"
+      },
+      "DisplayRetractResponse": {
+        "properties": {
+          "resource_type": {
+            "type": "string",
+            "title": "Resource Type"
+          },
+          "resource_id": {
+            "type": "string",
+            "title": "Resource Id"
+          },
+          "display_authorized": {
+            "type": "boolean",
+            "title": "Display Authorized",
+            "default": false
+          },
+          "already_retracted": {
+            "type": "boolean",
+            "title": "Already Retracted",
+            "default": false
+          },
+          "prebuild_job_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Prebuild Job Id"
+          },
+          "effective": {
+            "type": "string",
+            "title": "Effective",
+            "default": "immediate"
+          }
+        },
+        "type": "object",
+        "required": [
+          "resource_type",
+          "resource_id"
+        ],
+        "title": "DisplayRetractResponse"
       },
       "EmailVerificationConfirm": {
         "properties": {

@@ -38,6 +38,8 @@ HTTP：400 格式错误，401 未认证，403 无权限/CSRF，404 无可访问�
 | POST `/uploads` | 本人/员工+限流 | 建临时上传，返回受限地址/表单 |
 | POST `/uploads/:id/complete`、GET `/uploads/:id` | 文件所有者 | 核验实际对象并排队扫描/查询结果 |
 | GET `/media/:id/access` | 授权主体 | 私密附件短期下载地址；no-store |
+| GET `/me/display-authorizations` | 本人 | 公开展示授权列表（作品与本人公开素材的当前展示状态、是否真的公开） |
+| POST `/me/display-authorizations/retract` | 本人+幂等 | 撤回公开展示授权（C18）：只允许 `work`/`media` 且必须是本人资源；**立即生效**（公开列表/直链/公开载荷均不再展示），写授权留证并登记预渲染任务失效缓存 |
 | GET/POST `/inquiries`、GET/PATCH `/inquiries/:id` | 本人 | 询价列表/草稿/允许版本的编辑；`POST` 可带 `application_id` 引用本人**已审批通过且未过期**的服务申请（C28：服务先申请再报价），非本人/未通过/已用过一律拒绝 |
 | POST `/inquiries/:id/submit`、`/withdraw`、`/supplements` | 本人 | 受状态约束动作 |
 | GET `/inquiries/:id/quotes` | 本人 | 报价版本列表 |

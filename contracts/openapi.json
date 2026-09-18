@@ -5096,6 +5096,26 @@
         }
       }
     },
+    "/api/v1/payment-notifications/stripe": {
+      "post": {
+        "tags": [
+          "payments"
+        ],
+        "summary": "Stripe Notification",
+        "description": "Stripe Webhook：``Stripe-Signature`` 验签后落实收款效果。\n\n未配置签名密钥时按渠道未配置处理（记安全事件 + 5xx 应答），\n**不会**因为\"没有密钥\"就放行或入账。",
+        "operationId": "stripe_notification_api_v1_payment_notifications_stripe_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/points/account": {
       "get": {
         "tags": [

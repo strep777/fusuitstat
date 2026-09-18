@@ -250,6 +250,9 @@ class PaypalGateway:
         }
         try:
             result = self._request("POST", f"/v2/payments/captures/{capture_id}/refund", body)
+        except GatewayNotConfigured:
+            # 凭据缺失是配置错误：不能让退款停在「处理中」并一直重试。
+            raise
         except GatewayError as exc:
             if exc.retryable:
                 # 网络/超时：结果未知，保留退款预约额度并继续查单。
@@ -265,6 +268,8 @@ class PaypalGateway:
     def query_refund(self, refund_no: str) -> dict[str, Any]:
         try:
             result = self._request("GET", f"/v2/payments/refunds/{refund_no}")
+        except GatewayNotConfigured:
+            raise
         except GatewayError as exc:
             if exc.retryable:
                 raise

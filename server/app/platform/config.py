@@ -118,6 +118,13 @@ class Settings(BaseSettings):
     alipay_public_key: str = ""
     paypal_client_id: str = ""
     paypal_webhook_id: str = ""
+    # Stripe（C04 信用卡）：密钥不留空即视为已配置；缺任一凭据时适配器 fail closed。
+    stripe_secret_key: str = ""
+    stripe_webhook_secret: str = ""
+    #: 平台账户标识（``acct_...``）：用于核对渠道侧账户，未配置则跳过该项核对。
+    stripe_account_id: str = ""
+    #: 固定 API 版本，避免 Stripe 默认版本漂移导致回调结构变化。
+    stripe_api_version: str = "2024-06-20"
     installment_payment_ttl_minutes: int = 30
 
     # ---- 存储 ----
@@ -196,6 +203,7 @@ class Settings(BaseSettings):
             problems.extend(self._sms_provider_problems())
             if set(self._provider_list()).intersection(SANDBOX_PROVIDERS):
                 problems.append("PAYMENT_PROVIDERS 不允许包含 mock 或 sandbox")
+            problems.extend(self._payment_provider_problems())
             if self.storage_backend == "local":
                 problems.append("STORAGE_BACKEND=local 不允许生产（须对象存储 + CDN）")
             if not self.smtp_host:
@@ -248,6 +256,29 @@ class Settings(BaseSettings):
     @property
     def enabled_payment_providers(self) -> list[str]:
         return self._provider_list()
+
+    def _payment_provider_problems(self) -> list[str]:
+        """生产环境所选支付渠道必须具备该渠道自己的凭据，缺一条都不放行。
+
+        与短信侧同一口径：**不允许「配置了渠道但没有凭据」的中间态**，
+        否则上线后表现为"入口存在但一点就失败"，比明确关闭更糟。
+        """
+        problems: list[str] = []
+        enabled = set(self._provider_list())
+        if "stripe" in enabled:
+            if not self.stripe_secret_key.strip():
+                problems.append("PAYMENT_PROVIDERS 含 stripe 时需要 STRIPE_SECRET_KEY")
+            if not self.stripe_webhook_secret.strip():
+                problems.append("PAYMENT_PROVIDERS 含 stripe 时需要 STRIPE_WEBHOOK_SECRET")
+            if not self.stripe_account_id.strip():
+                problems.append("PAYMENT_PROVIDERS 含 stripe 时需要 STRIPE_ACCOUNT_ID（用于核对渠道账户）")
+        if "wechat" in enabled and not (self.wechat_merchant_id and self.wechat_api_v3_key):
+            problems.append("PAYMENT_PROVIDERS 含 wechat 时需要 WECHAT_MERCHANT_ID/WECHAT_API_V3_KEY")
+        if "alipay" in enabled and not (self.alipay_app_id and self.alipay_public_key):
+            problems.append("PAYMENT_PROVIDERS 含 alipay 时需要 ALIPAY_APP_ID/ALIPAY_PUBLIC_KEY")
+        if "paypal" in enabled and not (self.paypal_client_id and self.paypal_webhook_id):
+            problems.append("PAYMENT_PROVIDERS 含 paypal 时需要 PAYPAL_CLIENT_ID/PAYPAL_WEBHOOK_ID")
+        return problems
 
     @property
     def resolved_database_url(self) -> str:

@@ -12,7 +12,6 @@
 
 from __future__ import annotations
 
-from app.adapters.base import GatewayNotConfigured
 from app.adapters.payments.base import PaymentGateway
 from app.adapters.payments.sandbox import SandboxPaymentGateway
 from app.platform.config import get_settings
@@ -71,8 +70,9 @@ def _build_gateway(name: str) -> PaymentGateway:
 
         return PaypalGateway(settings)
     if name == "stripe":
-        # 已登记但尚未接入：明确 fail closed，而不是退化成沙箱。
-        raise GatewayNotConfigured("stripe")
+        from app.adapters.payments.stripe import StripeGateway
+
+        return StripeGateway(settings)
     raise AppError("PAYMENT_PROVIDER_DISABLED", f"支付方式「{name}」当前不可用。")
 
 

@@ -1183,6 +1183,10 @@ def request_refund(
             refund.amount_cents,
             refund.reason,
         )
+    except GatewayNotConfigured as exc:
+        # 渠道未配置：请求根本没到渠道，不能记成「渠道拒绝退款」（那会把配置问题
+        # 永久写成业务失败，修好配置后也无法重试）。与发起支付同口径报不可用。
+        raise AppError("PROVIDER_UNAVAILABLE", f"支付方式「{refund.provider}」尚未配置完成。") from exc
     except GatewayError as exc:
         if exc.retryable:
             # 结果未知：预留继续占用，等查单；失败或未知都不能直接说钱已退。

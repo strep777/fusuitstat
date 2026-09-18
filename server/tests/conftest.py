@@ -519,8 +519,10 @@ def csrf_headers(session_info: dict[str, Any]) -> dict[str, str]:
 # ======================================================================================
 PAYMENT_TEST_ROOT = SERVER_DATA_ROOT / "payment-tests"
 
-#: 支付用例启用的渠道：真实微信/支付宝适配器 + 沙箱通道（替代未开通渠道做时序验证）。
-PAYMENT_TEST_PROVIDERS = "wechat,alipay,sandbox"
+#: 支付用例启用的渠道：真实微信/支付宝/Stripe 适配器 + 沙箱通道（替代未开通渠道做时序验证）。
+PAYMENT_TEST_PROVIDERS = "wechat,alipay,stripe,sandbox"
+#: Stripe 回调验签用的测试签名密钥（只在本机测试使用；真实值按运维手册注入）。
+STRIPE_TEST_WEBHOOK_SECRET = "whsec_payment_test_0123456789abcdef"
 
 
 def _import_all_models() -> None:
@@ -565,6 +567,11 @@ def payment_settings(payment_data_dir: Path, monkeypatch: pytest.MonkeyPatch) ->
     monkeypatch.setenv("WECHAT_API_V3_KEY", "0123456789abcdef0123456789abcdef")
     monkeypatch.setenv("WECHAT_PLATFORM_CERT_SERIAL", "TESTSERIAL0001")
     monkeypatch.setenv("ALIPAY_APP_ID", "2021000000000000")
+    # Stripe：只配置回调验签所需材料（密钥 + endpoint 签名密钥 + 账户标识），
+    # 真实下单/查单/退款仍会因为没有真实账号而在联调阶段验证（R30）。
+    monkeypatch.setenv("STRIPE_SECRET_KEY", "sk_test_payment_test_0123456789")
+    monkeypatch.setenv("STRIPE_WEBHOOK_SECRET", STRIPE_TEST_WEBHOOK_SECRET)
+    monkeypatch.setenv("STRIPE_ACCOUNT_ID", "acct_payment_test_1")
     monkeypatch.delenv("WECHAT_PAY_PRIVATE_KEY", raising=False)
     monkeypatch.delenv("WECHAT_PAY_PRIVATE_KEY_PATH", raising=False)
     monkeypatch.delenv("ALIPAY_PRIVATE_KEY", raising=False)

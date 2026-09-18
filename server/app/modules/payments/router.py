@@ -245,6 +245,16 @@ def paypal_notification(request: Request, ctx: ContextDep, raw_body: RawBodyDep)
     return _notification_response("paypal", request, ctx, raw_body)
 
 
+@public_router.post("/payment-notifications/stripe", include_in_schema=True)
+def stripe_notification(request: Request, ctx: ContextDep, raw_body: RawBodyDep) -> Response:
+    """Stripe Webhook：``Stripe-Signature`` 验签后落实收款效果。
+
+    未配置签名密钥时按渠道未配置处理（记安全事件 + 5xx 应答），
+    **不会**因为"没有密钥"就放行或入账。
+    """
+    return _notification_response("stripe", request, ctx, raw_body)
+
+
 @public_router.post("/payment-notifications/sandbox", include_in_schema=False)
 def sandbox_notification(request: Request, ctx: ContextDep, raw_body: RawBodyDep) -> Response:
     """沙箱回调（仅开发/测试环境）：生产环境该路径必须 404。"""

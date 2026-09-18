@@ -1084,6 +1084,97 @@ def test_cross_module_payment_confirms_order_and_consumes_inventory(
     assert detail.json()["payments"]["source"] == "payments"
 
 
+def test_stripe_notification_endpoint_verifies_and_never_false_credits(
+    customer, payment_client, payment_db, commerce, payment_settings
+) -> None:
+    """Stripe 回调端点（R17）：验签通过的未匹配事件不入账，篡改签名一律 403。"""
+    from app.adapters.payments.stripe import expected_signature
+
+    secret = payment_settings.stripe_webhook_secret
+    assert secret, "测试环境必须配置 Stripe 回调签名密钥"
+
+    order, installments = commerce.create_order(user_id=customer.user_id, amounts=[19900])
+    payment_db.commit()
+    attempt = repo.create_attempt(
+        payment_db,
+        order_id=order.id,
+        installment_id=installments[0].id,
+        user_id=customer.user_id,
+        provider="stripe",
+        scene="web",
+        merchant_order_no="STST-P17-1",
+        expected_cents=19900,
+        currency="CNY",
+        action_expires_at=None,
+    )
+    payment_db.commit()
+
+    def _event(merchant_order_no: str, amount: int, event_id: str = "evt_p17") -> bytes:
+        return json.dumps(
+            {
+                "id": event_id,
+                "type": "payment_intent.succeeded",
+                "data": {
+                    "object": {
+                        "id": "pi_p17",
+                        "object": "payment_intent",
+                        "status": "succeeded",
+                        "amount": amount,
+                        "amount_received": amount,
+                        "currency": "cny",
+                        "created": int(now_ms() // 1000),
+                        "metadata": {"merchant_order_no": merchant_order_no},
+                    }
+                },
+            },
+            ensure_ascii=False,
+        ).encode("utf-8")
+
+    moment = int(now_ms() // 1000)
+    # 三个阶段必须用不同的渠道事件号：同一个事件号会被「至少一次投递、业务效果一次」判定为重复。
+    raw = _event(attempt.merchant_order_no, 19900, event_id="evt_p17_applied")
+    signature = expected_signature(secret, moment, raw)
+
+    # 1) 篡改报文但沿用原签名：拒绝且记安全事件，不入账。
+    tampered = _event(attempt.merchant_order_no, 29900, event_id="evt_p17_applied")
+    rejected = _post_notification(
+        payment_client,
+        "stripe",
+        tampered,
+        {"Stripe-Signature": f"t={moment},v1={signature}", "Content-Type": "application/json"},
+    )
+    assert rejected.status_code == 403, rejected.text
+    assert rejected.status == "REJECTED"
+    fresh(payment_db)
+    assert repo.applied_sum(payment_db, installment_id=installments[0].id) == 0
+    assert commerce.paid_calls == []
+
+    # 2) 未匹配的商户单号（验签通过）：不入账、按忽略留证，但仍回 2xx 让渠道停止重试。
+    unknown = _event("STST-UNKNOWN-9", 19900, event_id="evt_p17_unknown")
+    unknown_sig = expected_signature(secret, moment, unknown)
+    ignored = _post_notification(
+        payment_client,
+        "stripe",
+        unknown,
+        {"Stripe-Signature": f"t={moment},v1={unknown_sig}", "Content-Type": "application/json"},
+    )
+    assert ignored.status_code in (200, 202), ignored.text
+    fresh(payment_db)
+    assert repo.applied_sum(payment_db, installment_id=installments[0].id) == 0
+
+    # 3) 正确签名的匹配事件：入账到该期应付项。
+    matched_sig = expected_signature(secret, moment, raw)
+    applied = _post_notification(
+        payment_client,
+        "stripe",
+        raw,
+        {"Stripe-Signature": f"t={moment},v1={matched_sig}", "Content-Type": "application/json"},
+    )
+    assert applied.status_code in (200, 202), applied.text
+    fresh(payment_db)
+    assert repo.applied_sum(payment_db, installment_id=installments[0].id) == 19900
+
+
 @pytest.fixture(autouse=True)
 def enable_payments_for_channel_tests(monkeypatch):
     monkeypatch.setenv("FEATURE_ONLINE_PAYMENT", "true")

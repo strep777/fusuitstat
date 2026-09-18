@@ -273,6 +273,9 @@ class WechatPayGateway:
             payload = self._request(
                 "GET", f"/v3/pay/transactions/out-trade-no/{merchant_order_no}?mchid={mchid}", pem=pem
             )
+        except GatewayNotConfigured:
+            # 未配置凭据（商户号/证书/APIv3 密钥）是**配置错误**，不能答成「渠道查无此单」。
+            raise
         except GatewayError as exc:
             if not exc.retryable:
                 return {"status": PAYMENT_RESULT_NOT_FOUND, "provider_transaction_id": None}
@@ -309,6 +312,9 @@ class WechatPayGateway:
             self._request(
                 "POST", f"/v3/pay/transactions/out-trade-no/{merchant_order_no}/close", body=payload, pem=pem
             )
+        except GatewayNotConfigured:
+            # 未配置凭据时不能答「SUCCEEDED（让服务层复核）」——那会被读成「可能已支付」。
+            raise
         except GatewayError as exc:
             if exc.retryable:
                 raise
@@ -334,6 +340,9 @@ class WechatPayGateway:
         }
         try:
             result = self._request("POST", "/v3/refund/domestic/refunds", body=payload, pem=pem)
+        except GatewayNotConfigured:
+            # 凭据缺失不能让退款停在「处理中」：额度会被占用且重试永远不成功。
+            raise
         except GatewayError as exc:
             # 退款超时/网络失败：结果未知，保留预约额度并继续查单。
             if exc.retryable:
@@ -345,6 +354,8 @@ class WechatPayGateway:
         pem = self._ensure_trading_configured()
         try:
             result = self._request("GET", f"/v3/refund/domestic/refunds/{refund_no}", pem=pem)
+        except GatewayNotConfigured:
+            raise
         except GatewayError as exc:
             if exc.retryable:
                 raise

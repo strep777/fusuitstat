@@ -353,7 +353,7 @@ def test_feedback_overdue_reminder_once_and_skips_settled(
     assert "反馈首响已逾期" in rows[0].title
 
     # 已结束的反馈不算逾期
-    setattr(overdue, "status", "CLOSED")
+    overdue.status = "CLOSED"
     db.commit()
     assert feedback_service.remind_overdue_feedback(db, now=moment + 2 * 24 * 3600 * 1000)["overdue"] == 0
     assert feedback_service.feedback_sla(db, overdue, now=moment)["response_overdue"] is False

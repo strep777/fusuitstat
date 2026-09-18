@@ -209,6 +209,10 @@ class AlipayGateway:
     def query(self, merchant_order_no: str) -> dict[str, Any]:
         try:
             payload = self._call("alipay.trade.query", {"out_trade_no": merchant_order_no})
+        except GatewayNotConfigured:
+            # 未配置凭据是**配置错误**，不是「渠道查无此单」：必须显式失败，
+            # 否则在途支付会被静默记成 NOT_FOUND（R17 复核发现的跨渠道缺陷）。
+            raise
         except GatewayError as exc:
             if not exc.retryable:
                 return {"status": PAYMENT_RESULT_NOT_FOUND, "provider_transaction_id": None}
@@ -240,6 +244,8 @@ class AlipayGateway:
     def close(self, merchant_order_no: str) -> dict[str, Any]:
         try:
             self._call("alipay.trade.close", {"out_trade_no": merchant_order_no})
+        except GatewayNotConfigured:
+            raise
         except GatewayError as exc:
             if exc.retryable:
                 raise
@@ -257,6 +263,9 @@ class AlipayGateway:
         }
         try:
             payload = self._call("alipay.trade.refund", biz)
+        except GatewayNotConfigured:
+            # 未配置凭据不能让退款停在「处理中」：额度会被一直占用且永远重试不成功。
+            raise
         except GatewayError as exc:
             if exc.retryable:
                 return {"status": REFUND_RESULT_PROCESSING, "provider_refund_id": None}
@@ -274,6 +283,8 @@ class AlipayGateway:
             payload = self._call(
                 "alipay.trade.fastpay.refund.query", {"out_request_no": refund_no}
             )
+        except GatewayNotConfigured:
+            raise
         except GatewayError as exc:
             if exc.retryable:
                 raise

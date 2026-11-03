@@ -85,31 +85,70 @@ function restart(): void {
 </script>
 
 <template>
-  <div class="min-h-screen bg-canvas">
-    <div class="container-page flex min-h-screen flex-col justify-center py-10">
-      <div class="mx-auto w-full max-w-2xl">
-        <div class="flex items-center gap-3">
-          <BrandMark :size="48" decorative />
+  <div class="grid min-h-screen bg-canvas lg:grid-cols-[0.85fr_1.15fr]">
+    <!-- 品牌侧板：安全事实，不放营销空话 -->
+    <aside class="relative hidden flex-col justify-between overflow-hidden border-r-2 border-ink bg-[#17121C] p-10 text-[#FFFCF2] lg:flex">
+      <div class="pointer-events-none absolute inset-0 bg-dots opacity-20" aria-hidden="true" />
+      <div class="relative flex items-center gap-3">
+        <BrandMark :size="40" variant="light" decorative />
+        <div>
+          <p class="font-display text-base font-bold">弈星纪元</p>
+          <p class="font-mono text-[9px] uppercase tracking-[0.2em] text-white/45">Studio Console</p>
+        </div>
+      </div>
+
+      <div class="relative">
+        <p class="font-mono text-[10px] uppercase tracking-[0.22em] text-lemon">Staff only / 员工专用</p>
+        <p class="mt-5 font-display text-[clamp(3rem,6vw,5.5rem)] font-bold leading-[0.88] tracking-[-0.06em]">
+          STUDIO<br />CONSOLE
+        </p>
+        <p class="mt-5 max-w-sm text-sm leading-relaxed text-white/55">
+          独立员工账号、强制 MFA、逐动作权限校验。后台页面 noindex，不进入搜索索引，也不预渲染个人资料。
+        </p>
+      </div>
+
+      <div class="relative grid gap-2">
+        <div
+          v-for="(item, index) in ['口令 + MFA 两步验证', '写操作全量审计', '会话到期自动失效']"
+          :key="item"
+          class="flex items-center gap-3 border-2 border-white/15 px-3 py-2 text-xs text-white/60"
+        >
+          <span class="font-mono text-[9px] text-lemon">{{ String(index + 1).padStart(2, "0") }}</span>
+          {{ item }}
+        </div>
+      </div>
+    </aside>
+
+    <main class="flex flex-col justify-center px-4 py-10 sm:px-8 lg:px-14">
+      <div class="mx-auto w-full max-w-xl">
+        <div class="flex items-center gap-3 lg:hidden">
+          <BrandMark :size="44" decorative />
           <div>
-            <p class="eyebrow">运营后台</p>
-            <p class="font-display text-lg">弈星纪元兽装工作室</p>
+            <p class="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-muted">Studio Console</p>
+            <p class="font-display text-lg font-bold">弈星纪元 · 运营后台</p>
           </div>
         </div>
 
-        <h1 class="mt-8 font-display text-3xl">员工登录</h1>
-        <p class="mt-3 text-sm leading-relaxed text-ink-muted">
-          后台使用独立员工账号与强制 MFA，不继承前台客户登录状态，也没有公开注册入口。
-          登录后所有写操作都会按权限码逐次校验并记录审计。
+        <p class="mt-8 font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-brand-strong lg:mt-0">
+          01 / Sign in
+        </p>
+        <h1 class="mt-2 font-display text-4xl font-bold tracking-[-0.04em] sm:text-5xl">员工登录</h1>
+        <p class="mt-3 max-w-lg text-sm leading-relaxed text-ink-muted">
+          后台不继承前台客户登录状态，也没有公开注册入口。登录后所有写操作按权限码逐次校验并记录审计。
         </p>
 
-        <p v-if="errorText" class="mt-6 rounded-md border border-wine bg-wine-soft px-4 py-3 text-sm text-wine" role="alert">
+        <p
+          v-if="errorText"
+          class="mt-6 border-2 border-wine bg-wine-soft px-4 py-3 text-sm text-wine"
+          role="alert"
+        >
           {{ errorText }}
         </p>
 
         <!-- 第一步：口令 -->
         <SurfaceCard class="mt-6">
           <div class="flex items-center justify-between gap-3">
-            <h2 class="font-display text-xl">第一步 · 口令</h2>
+            <h2 class="font-display text-xl font-bold">第一步 · 口令</h2>
             <StatusBadge
               :tone="auth.step === 'credential' ? 'amber' : 'jade'"
               :label="auth.step === 'credential' ? '进行中' : '已完成'"
@@ -151,23 +190,23 @@ function restart(): void {
         <!-- 首次登录：登记 MFA -->
         <SurfaceCard v-if="auth.step === 'enroll' && enroll" class="mt-6">
           <div class="flex items-center justify-between gap-3">
-            <h2 class="font-display text-xl">第二步 · 首次登记 MFA</h2>
+            <h2 class="font-display text-xl font-bold">第二步 · 首次登记 MFA</h2>
             <StatusBadge tone="wine" label="只显示一次" />
           </div>
 
-          <p class="mt-4 rounded-md border border-wine bg-wine-soft px-4 py-3 text-sm text-wine" role="alert">
-            下面的登记信息与恢复码**只在这一次显示**。关闭或刷新本页后无法再次查看；
+          <p class="mt-4 border-2 border-wine bg-wine-soft px-4 py-3 text-sm text-wine" role="alert">
+            下面的登记信息与恢复码<strong>只在这一次显示</strong>。关闭或刷新本页后无法再次查看；
             恢复码丢失时，MFA 重置必须经过身份核验并留下审计记录。
           </p>
 
           <div class="mt-5 space-y-5">
             <div>
-              <h3 class="text-sm font-medium text-ink-soft">1. 把下面的 otpauth URI 录入验证器</h3>
+              <h3 class="text-sm font-bold text-ink-soft">1. 把下面的 otpauth URI 录入验证器</h3>
               <p class="mt-1 text-xs text-ink-faint">
                 在验证器 App 里选择「手动输入密钥」，粘贴下面整行 URI 即可；不要截图外发。
               </p>
               <pre
-                class="mt-2 max-h-32 overflow-auto rounded-md border border-line bg-canvas-sunk p-3 font-mono text-xs break-all whitespace-pre-wrap"
+                class="mt-2 max-h-32 overflow-auto border-2 border-ink bg-canvas-sunk p-3 font-mono text-xs break-all whitespace-pre-wrap"
                 data-testid="otpauth-uri"
               >{{ enroll.otpauth_uri }}</pre>
               <div class="mt-2 flex flex-wrap items-center gap-3">
@@ -179,12 +218,12 @@ function restart(): void {
             </div>
 
             <div>
-              <h3 class="text-sm font-medium text-ink-soft">2. 保存恢复码（每枚只能用一次）</h3>
+              <h3 class="text-sm font-bold text-ink-soft">2. 保存恢复码（每枚只能用一次）</h3>
               <ul class="mt-2 grid gap-2 sm:grid-cols-2" data-testid="recovery-codes">
                 <li
                   v-for="item in enroll.recovery_codes"
                   :key="item"
-                  class="rounded-xs border border-line bg-surface-muted px-3 py-2 font-mono text-xs"
+                  class="border-2 border-ink bg-surface-muted px-3 py-2 font-mono text-xs"
                 >
                   {{ item }}
                 </li>
@@ -219,7 +258,7 @@ function restart(): void {
         <!-- 第二步：动态验证码或恢复码 -->
         <SurfaceCard v-if="auth.step === 'verify'" class="mt-6">
           <div class="flex items-center justify-between gap-3">
-            <h2 class="font-display text-xl">第二步 · 动态验证码</h2>
+            <h2 class="font-display text-xl font-bold">第二步 · 动态验证码</h2>
             <StatusBadge tone="amber" label="进行中" />
           </div>
           <p class="mt-3 text-sm text-ink-muted">
@@ -251,12 +290,11 @@ function restart(): void {
           </form>
         </SurfaceCard>
 
-        <p class="mt-8 text-xs text-ink-faint">
-          安全提示：后台页面 noindex 且不缓存；不要把验证码、恢复码或 otpauth URI 发给任何人。
-          登录后如果没有某个模块的权限码，导航会隐藏该入口并在菜单下方列出缺少的权限码；
-          无论如何，服务端都会逐动作校验权限。
+        <p class="mt-8 border-t-2 border-ink/15 pt-4 text-xs leading-relaxed text-ink-faint">
+          安全提示：不要把验证码、恢复码或 otpauth URI 发给任何人。没有某个模块的权限码时，
+          导航会隐藏入口并列出缺少的权限码；服务端仍会逐动作校验权限。
         </p>
       </div>
-    </div>
+    </main>
   </div>
 </template>

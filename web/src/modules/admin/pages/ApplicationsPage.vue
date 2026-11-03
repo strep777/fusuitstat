@@ -186,7 +186,7 @@ onMounted(load);
     </div>
 
     <ModuleCard title="申请列表" status="人工审批">
-      <p v-if="decisionError" class="mb-4 rounded-xl bg-wine-soft px-3 py-2 text-sm text-wine" role="alert">
+      <p v-if="decisionError" class="mb-4 border-2 border-wine bg-wine-soft px-3 py-2 text-sm text-wine" role="alert">
         {{ decisionError }}
       </p>
       <DataTable

@@ -23,6 +23,7 @@ import {
 import ImageLightbox from "@/modules/content/components/ImageLightbox.vue";
 import WorkCard from "@/modules/content/components/WorkCard.vue";
 import { useSiteStore } from "@/modules/content/stores/site";
+import { displayTitle, isDemoTitle } from "@/shared/lib/demo-title";
 import { formatPriceFrom } from "@/shared/lib/format";
 import { AppButton, Breadcrumbs, EmptyState, SectionHeading, SkeletonBlock, StatusBadge, SurfaceCard } from "@/shared/ui/base";
 
@@ -51,6 +52,9 @@ const blocked = ref(false);
 const lightboxOpen = ref(false);
 const lightboxIndex = ref(0);
 
+const displayName = computed(() => displayTitle(work.value?.title));
+const demo = computed(() => isDemoTitle(work.value?.title));
+
 const slug = computed(() => {
   const value = route.params.slug;
   const raw = Array.isArray(value) ? value[0] : value;
@@ -70,7 +74,7 @@ const mainImage = computed(() => gallery.value[0] ?? null);
 const breadcrumbs = computed<Array<{ label: string; to?: string }>>(() => [
   { label: "首页", to: "/" },
   { label: "作品集", to: "/works" },
-  { label: work.value?.title ?? "作品详情" },
+  { label: work.value?.title ? displayName.value : "作品详情" },
 ]);
 
 /** 关联系列：作品的 tags 里存放系列 code，与服务端筛选口径一致。 */
@@ -148,7 +152,7 @@ async function load(): Promise<void> {
     const detail = await fetchContentDetail("work", slug.value);
     work.value = detail;
     applyPageHead({
-      title: detail.seo.title || detail.title,
+      title: displayTitle(detail.seo.title || detail.title),
       description: detail.seo.description || detail.summary,
       canonical: detail.seo.canonical,
       ogType: "article",
@@ -287,9 +291,10 @@ watch(() => route.fullPath, load);
               <StatusBadge v-if="work.work_type" tone="amber" :label="work.work_type" />
               <StatusBadge v-if="work.species" tone="neutral" :label="work.species" />
               <StatusBadge v-if="work.is_featured" tone="jade" label="代表作品" />
+              <StatusBadge v-if="demo" tone="neutral" label="演示" />
             </div>
 
-            <h1 class="mt-4 font-display text-3xl leading-tight sm:text-4xl">{{ work.title }}</h1>
+            <h1 class="mt-4 font-display text-3xl leading-tight sm:text-4xl">{{ displayName }}</h1>
 
             <p v-if="work.summary" class="mt-4 max-w-xl text-base leading-relaxed text-ink-muted">
               {{ work.summary }}
@@ -418,7 +423,7 @@ watch(() => route.fullPath, load);
           :images="gallery"
           :open="lightboxOpen"
           :index="lightboxIndex"
-          :title="work.title"
+          :title="displayName"
           @close="lightboxOpen = false"
           @update:index="lightboxIndex = $event"
         />

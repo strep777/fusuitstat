@@ -1,9 +1,9 @@
 <template>
   <RouterLink
     :to="`${locale === 'en-US' ? '/en' : ''}/shop/${product.slug}`"
-    class="group flex flex-col overflow-hidden rounded-2xl border-2 border-ink/10 bg-surface transition duration-300 hover:-translate-y-1 hover:border-brand/40 hover:shadow-lift"
+    class="group flex flex-col overflow-hidden rounded-sm border-2 border-ink bg-surface shadow-[4px_4px_0_var(--color-ink)] transition duration-200 hover:-translate-y-1 hover:shadow-[7px_7px_0_var(--color-ink)]"
   >
-    <div class="relative aspect-square overflow-hidden bg-canvas-sunk">
+    <div class="relative aspect-square overflow-hidden border-b-2 border-ink bg-canvas-sunk">
       <img
         v-if="cover"
         :src="mediaSrc(cover)"
@@ -26,30 +26,30 @@
         <StatusBadge v-if="product.requires_approval" tone="grape" :label="t('productCard.approval')" />
         <span
           v-if="isDemo"
-          class="rounded-full bg-ink/8 px-2.5 py-1 text-[11px] font-bold text-ink-muted"
+          class="rounded-full border-2 border-ink bg-surface px-2 py-0.5 font-mono text-[10px] font-bold text-ink"
         >
           演示
         </span>
       </div>
       <span
         v-if="categoryLabel"
-        class="absolute right-3 top-3 rounded-full bg-ink/85 px-2.5 py-1 text-[11px] font-bold text-canvas backdrop-blur"
+        class="absolute right-0 top-3 border-2 border-r-0 border-ink bg-lemon px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-wide text-[#17121C]"
       >
         {{ categoryLabel }}
       </span>
     </div>
 
     <div class="flex flex-1 flex-col p-4">
-      <p v-if="product.subtitle" class="text-xs font-semibold text-brand-strong">
+      <p v-if="product.subtitle" class="font-mono text-[10px] font-bold uppercase tracking-wide text-brand-strong">
         {{ truncate(product.subtitle, 28) }}
       </p>
-      <h3 class="mt-1 line-clamp-2 font-display text-lg font-extrabold leading-snug">
+      <h3 class="mt-1 line-clamp-2 font-display text-lg font-bold leading-snug">
         {{ displayTitle }}
       </h3>
       <p v-if="kindLabel && !categoryLabel" class="mt-1 text-xs text-ink-faint">{{ kindLabel }}</p>
 
       <div class="mt-auto flex items-end justify-between gap-2 pt-4">
-        <p class="font-display text-xl font-extrabold text-brand-strong">
+        <p class="font-display text-xl font-bold text-brand-strong">
           <template v-if="product.price_from_cents !== null">
             {{ formatMoney(product.price_from_cents, toCurrency(product.currency)) }}
             <span class="text-xs font-semibold text-ink-muted">{{ t("productCard.from") }}</span>
@@ -57,7 +57,7 @@
           <span v-else class="text-sm font-medium text-ink-muted">{{ t("productCard.pricePending") }}</span>
         </p>
         <span
-          class="inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-canvas-sunk text-sm font-bold transition-colors group-hover:bg-brand group-hover:text-white"
+          class="inline-flex size-8 shrink-0 items-center justify-center rounded-full border-2 border-ink bg-surface text-sm font-bold transition-colors group-hover:bg-brand group-hover:text-white"
           aria-hidden="true"
         >
           →

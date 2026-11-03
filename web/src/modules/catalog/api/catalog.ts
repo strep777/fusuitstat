@@ -166,11 +166,7 @@ export function productKindLabel(value: string | null | undefined): string {
 }
 
 /** 演示数据在标题末尾带标记；界面用独立徽章表达，标题保持可读。 */
-export const DEMO_TITLE_MARK = "（演示内容）";
-
-export function displayProductTitle(title: string | null | undefined): string {
-  return (title ?? "").replace(DEMO_TITLE_MARK, "").trim();
-}
+export { DEMO_TITLE_MARK, displayTitle as displayProductTitle } from "@/shared/lib/demo-title";
 
 export interface AvailabilityMeta {
   label: string;

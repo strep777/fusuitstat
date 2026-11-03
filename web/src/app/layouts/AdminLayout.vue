@@ -1,12 +1,11 @@
 <script setup lang="ts">
 /**
- * 后台外壳：侧边导航、当前员工与角色、权限过滤后的菜单、退出登录。
+ * 后台外壳：深色侧栏、分组导航、当前员工与角色、权限过滤、会话提示。
  *
  * 约束（03/11 文档）：
- * - 菜单只显示当前账号有权限的入口；同时把缺少权限的入口列出来并写明权限码，
- *   并明确「界面隐藏不能代替授权，服务端仍会逐动作校验」。
- * - 键盘可用：跳转到主内容、导航可 Tab、退出登录有明确状态。
- * - 不显示任何密钥、手机号明文、地址明文或签名 URL；这里只显示员工登录名与角色。
+ * - 菜单只显示当前账号有权限的入口；缺少权限的入口集中列出并写明权限码。
+ * - 界面隐藏不能代替授权，服务端仍会逐动作校验。
+ * - 不显示密钥、手机号明文、地址明文或签名 URL。
  */
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import { RouterLink, RouterView, useRoute, useRouter } from "vue-router";
@@ -18,7 +17,7 @@ import {
 } from "@/modules/admin/stores/adminAuth";
 import { InlineNotice } from "@/modules/admin/pages/AdminNotFoundPage.vue";
 import { BrandMark, StarLoader } from "@/shared/ui/BrandMark";
-import { AppButton, StatusBadge } from "@/shared/ui/base";
+import { StatusBadge } from "@/shared/ui/base";
 import { formatDateTime } from "@/shared/lib/format";
 import { useToast } from "@/shared/lib/toast";
 
@@ -79,99 +78,147 @@ async function logout(): Promise<void> {
   <div class="min-h-screen bg-canvas">
     <a class="skip-link" href="#admin-main">跳到主要内容</a>
 
-    <header class="sticky top-0 z-30 border-b border-line bg-surface">
-      <div class="flex flex-wrap items-center gap-4 px-4 py-3 lg:px-6">
-        <BrandMark :size="32" decorative />
+    <!-- 移动端遮罩 -->
+    <div
+      v-if="navOpen"
+      class="fixed inset-0 z-40 bg-[#17121C]/60 lg:hidden"
+      aria-hidden="true"
+      @click="navOpen = false"
+    />
+
+    <!-- 深色侧栏：桌面固定，移动端抽屉 -->
+    <aside
+      id="admin-nav"
+      class="fixed inset-y-0 left-0 z-50 flex w-[272px] flex-col border-r-2 border-ink bg-[#17121C] text-[#FFFCF2] transition-transform lg:translate-x-0"
+      :class="navOpen ? 'translate-x-0' : '-translate-x-full'"
+    >
+      <div class="flex h-[72px] shrink-0 items-center gap-3 border-b-2 border-white/15 px-5">
+        <BrandMark :size="34" variant="light" decorative />
         <div class="min-w-0">
-          <p class="eyebrow">运营后台</p>
-          <p class="truncate font-display text-base">弈星纪元兽装工作室</p>
+          <p class="truncate font-display text-sm font-bold">弈星纪元</p>
+          <p class="font-mono text-[9px] uppercase tracking-[0.18em] text-white/45">Studio Console</p>
         </div>
-
-        <div class="ml-auto flex flex-wrap items-center gap-3 text-sm">
-          <div class="hidden text-right sm:block">
-            <p class="font-medium">{{ auth.displayName }}</p>
-            <p class="text-xs text-ink-faint">角色：{{ auth.roleLabel }}</p>
-          </div>
-          <StatusBadge
-            :tone="auth.mfaEnabled ? 'jade' : 'wine'"
-            :label="auth.mfaEnabled ? 'MFA 已启用' : 'MFA 未启用'"
-          />
-          <AppButton
-            v-if="auth.isAuthenticated"
-            size="sm"
-            variant="secondary"
-            :loading="loggingOut"
-            @click="logout"
-          >
-            退出登录
-          </AppButton>
-        </div>
-
         <button
           type="button"
-          class="w-full rounded-sm border border-line-strong px-3 py-2 text-sm text-ink-soft lg:hidden"
-          :aria-expanded="navOpen ? 'true' : 'false'"
-          aria-controls="admin-nav"
-          @click="navOpen = !navOpen"
+          class="ml-auto inline-flex size-9 items-center justify-center border-2 border-white/30 text-white/70 lg:hidden"
+          aria-label="关闭导航"
+          @click="navOpen = false"
         >
-          {{ navOpen ? "收起导航" : "展开导航" }}
+          ✕
         </button>
       </div>
 
-      <p v-if="sessionHint" class="border-t border-amber bg-amber-soft px-4 py-2 text-xs text-amber-strong">
-        {{ sessionHint }}
-      </p>
-    </header>
-
-    <div class="mx-auto flex w-full max-w-[1600px] gap-6 px-4 py-6 lg:px-6">
-      <nav
-        id="admin-nav"
-        aria-label="后台主导航"
-        :class="navOpen ? 'block' : 'hidden lg:block'"
-        class="w-full shrink-0 lg:w-72"
-      >
-        <div class="space-y-5">
+      <nav class="flex-1 overflow-y-auto px-3 py-5" aria-label="后台主导航">
+        <div class="space-y-6">
           <div v-for="group in grouped" :key="group.section">
-            <p class="eyebrow px-2">{{ group.section }}</p>
+            <p class="px-2 font-mono text-[10px] uppercase tracking-[0.18em] text-white/40">
+              {{ group.section }}
+            </p>
             <ul class="mt-2 space-y-1">
-              <li v-for="item in group.items" :key="item.id">
+              <li v-for="(item, index) in group.items" :key="item.id">
                 <RouterLink
                   :to="item.path"
-                  class="block rounded-sm px-3 py-2 text-sm text-ink-soft transition-colors hover:bg-surface-muted hover:text-amber-strong"
-                  active-class="!bg-amber-soft !text-amber-strong font-medium"
+                  class="group flex items-center gap-2.5 border-2 border-transparent px-2.5 py-2 text-sm text-white/65 transition-colors hover:border-white/30 hover:text-white"
+                  active-class="!border-[#FFFCF2] !bg-lemon !text-[#17121C] font-bold"
                   :title="item.description"
                   @click="navOpen = false"
                 >
-                  {{ item.label }}
+                  <span class="font-mono text-[9px] opacity-50">{{ String(index + 1).padStart(2, "0") }}</span>
+                  <span class="truncate">{{ item.label }}</span>
                 </RouterLink>
               </li>
             </ul>
           </div>
 
-          <!-- 权限不足的入口：不静默消失，说明缺哪个权限码 -->
-          <details v-if="nav.denied.length" class="rounded-lg border border-dashed border-line-strong bg-surface-muted px-3 py-2">
-            <summary class="cursor-pointer text-xs font-medium text-ink-muted">
-              有 {{ nav.denied.length }} 个模块当前账号无权限
+          <details v-if="nav.denied.length" class="border-2 border-dashed border-white/20 px-3 py-2">
+            <summary class="cursor-pointer text-xs font-medium text-white/55">
+              有 {{ nav.denied.length }} 个模块无权限
             </summary>
             <ul class="mt-2 space-y-1.5">
-              <li v-for="item in nav.denied" :key="item.id" class="text-xs text-ink-faint">
-                <span class="text-ink-soft">{{ item.label }}</span>
+              <li v-for="item in nav.denied" :key="item.id" class="text-[11px] text-white/40">
+                <span class="text-white/60">{{ item.label }}</span>
                 <span class="ml-1 font-mono">[{{ item.permission }}]</span>
-                <span>缺少权限，入口已隐藏</span>
               </li>
             </ul>
-            <p class="mt-2 text-xs text-ink-faint">
-              服务端仍会逐动作校验权限码：即使直接调用接口，无权限的请求也会被拒绝并记录审计。
+            <p class="mt-2 text-[11px] leading-relaxed text-white/35">
+              隐藏入口不代替授权；服务端仍逐动作校验并记录审计。
             </p>
           </details>
-
-          <p v-else-if="auth.isAuthenticated" class="px-2 text-xs text-ink-faint">
-            当前账号已具备全部模块权限。服务端仍会逐动作校验权限码并记录审计。
+          <p v-else-if="auth.isAuthenticated" class="px-2 text-[11px] leading-relaxed text-white/35">
+            当前账号已具备全部模块权限。服务端仍逐动作校验。
           </p>
         </div>
       </nav>
 
-      <main id="admin-main" class="min-w-0 flex-1 space-y-6">
+      <div class="shrink-0 border-t-2 border-white/15 p-4">
+        <div class="flex items-center justify-between gap-2">
+          <div class="min-w-0">
+            <p class="truncate text-sm font-bold">{{ auth.displayName }}</p>
+            <p class="truncate font-mono text-[10px] text-white/45">{{ auth.roleLabel }}</p>
+          </div>
+          <StatusBadge
+            :tone="auth.mfaEnabled ? 'jade' : 'wine'"
+            :label="auth.mfaEnabled ? 'MFA ON' : 'MFA OFF'"
+          />
+        </div>
+        <div class="mt-3 grid gap-2">
+          <RouterLink
+            to="/"
+            class="flex min-h-[40px] items-center justify-between border-2 border-white/25 px-3 text-xs text-white/70 hover:border-[#FFFCF2] hover:text-white"
+          >
+            返回前台 <span aria-hidden="true">↗</span>
+          </RouterLink>
+          <button
+            v-if="auth.isAuthenticated"
+            type="button"
+            class="flex min-h-[40px] items-center justify-center border-2 border-white/25 px-3 text-xs font-bold text-white/70 hover:border-[#FFFCF2] hover:text-white disabled:opacity-50"
+            :disabled="loggingOut"
+            @click="logout"
+          >
+            {{ loggingOut ? "正在退出…" : "退出登录" }}
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <div class="flex min-h-screen flex-col lg:pl-[272px]">
+      <header class="sticky top-0 z-30 border-b-2 border-ink bg-canvas/95 backdrop-blur">
+        <div class="flex min-h-[64px] items-center gap-3 px-4 sm:px-6">
+          <button
+            type="button"
+            class="inline-flex size-10 items-center justify-center border-2 border-ink bg-surface lg:hidden"
+            :aria-expanded="navOpen ? 'true' : 'false'"
+            aria-controls="admin-nav"
+            aria-label="展开导航"
+            @click="navOpen = true"
+          >
+            ☰
+          </button>
+          <div class="min-w-0">
+            <p class="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-muted">Console / 运营后台</p>
+            <p class="mt-0.5 truncate font-display text-lg font-bold leading-tight">{{ currentTitle }}</p>
+          </div>
+
+          <div class="ml-auto flex items-center gap-2 sm:gap-3">
+            <span class="hidden border-2 border-ink bg-surface px-2.5 py-1 font-mono text-[10px] text-ink-soft sm:inline-flex">
+              {{ auth.roleLabel }} / {{ auth.displayName }}
+            </span>
+            <StatusBadge
+              :tone="auth.mfaEnabled ? 'jade' : 'wine'"
+              :label="auth.mfaEnabled ? 'MFA 已启用' : 'MFA 未启用'"
+            />
+          </div>
+        </div>
+
+        <p
+          v-if="sessionHint"
+          class="border-t-2 border-ink bg-lemon px-4 py-2 font-mono text-[11px] font-bold text-[#17121C] sm:px-6"
+        >
+          {{ sessionHint }}
+        </p>
+      </header>
+
+      <main id="admin-main" class="w-full max-w-[1500px] flex-1 space-y-6 px-4 py-6 sm:px-6 lg:px-8">
         <InlineNotice
           v-if="auth.sessionExpired"
           tone="danger"
@@ -188,23 +235,21 @@ async function logout(): Promise<void> {
           </Suspense>
         </RouterView>
 
-        <footer class="border-t border-line pt-4 text-xs text-ink-faint">
-          <p>
-            当前页面：{{ currentTitle }} · 后台页面 noindex，不进入搜索索引、不预渲染个人资料。
-          </p>
+        <footer class="border-t-2 border-ink/15 pt-4 font-mono text-[10px] uppercase tracking-wide text-ink-faint">
+          当前页面 / {{ currentTitle }} · 后台 noindex，不进入搜索索引与预渲染
         </footer>
       </main>
     </div>
 
     <!-- 轻量提示容器 -->
-    <div class="pointer-events-none fixed bottom-4 right-4 z-40 flex w-full max-w-sm flex-col gap-2" aria-live="polite">
+    <div class="pointer-events-none fixed bottom-4 right-4 z-[60] flex w-full max-w-sm flex-col gap-2" aria-live="polite">
       <div
         v-for="item in toast.items.value"
         :key="item.id"
-        class="pointer-events-auto rounded-lg border bg-surface px-4 py-3 text-sm shadow-lift"
-        :class="item.tone === 'error' ? 'border-wine' : item.tone === 'success' ? 'border-jade' : 'border-line'"
+        class="pointer-events-auto rounded-sm border-2 border-ink bg-surface px-4 py-3 text-sm shadow-[4px_4px_0_var(--color-ink)]"
+        :class="item.tone === 'error' ? 'border-wine' : item.tone === 'success' ? 'border-jade' : 'border-ink'"
       >
-        <p class="font-medium">{{ item.title }}</p>
+        <p class="font-bold">{{ item.title }}</p>
         <p v-if="item.description" class="mt-1 text-xs text-ink-muted">{{ item.description }}</p>
         <button
           v-if="item.actionLabel"

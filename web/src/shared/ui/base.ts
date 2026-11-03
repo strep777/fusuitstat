@@ -16,12 +16,13 @@ export type ButtonSize = "sm" | "md" | "lg";
 
 const VARIANT_CLASS: Record<ButtonVariant, string> = {
   primary:
-    "bg-brand text-white border border-brand hover:bg-brand-hover hover:border-brand-hover active:translate-y-px shadow-quiet",
+    "bg-brand text-white border-2 border-ink shadow-[4px_4px_0_var(--color-ink)] hover:bg-brand-hover hover:-translate-y-0.5 active:translate-x-[2px] active:translate-y-[2px] active:shadow-none",
   secondary:
-    "bg-surface text-ink border-2 border-ink/15 hover:border-brand hover:text-brand-strong hover:bg-brand-soft/40",
-  ghost: "bg-transparent text-ink-soft border border-transparent hover:bg-canvas-sunk hover:text-ink",
-  danger: "bg-wine text-white border border-wine hover:opacity-90",
-  quiet: "bg-canvas-sunk text-ink-soft border border-transparent hover:bg-amber-soft hover:text-amber-strong",
+    "bg-surface text-ink border-2 border-ink shadow-[4px_4px_0_var(--color-ink)] hover:bg-lemon-soft hover:-translate-y-0.5 active:translate-x-[2px] active:translate-y-[2px] active:shadow-none",
+  ghost: "bg-transparent text-ink-soft border-2 border-transparent hover:border-ink hover:bg-lemon-soft",
+  danger:
+    "bg-wine text-white border-2 border-ink shadow-[4px_4px_0_var(--color-ink)] hover:opacity-90 active:translate-x-[2px] active:translate-y-[2px] active:shadow-none",
+  quiet: "bg-canvas-sunk text-ink-soft border-2 border-transparent hover:border-ink hover:bg-lemon-soft",
 };
 
 const SIZE_CLASS: Record<ButtonSize, string> = {
@@ -136,7 +137,7 @@ export const StatusBadge = defineComponent({
         "span",
         {
           class: [
-            "inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-semibold",
+            "inline-flex items-center gap-1 rounded-full border-2 px-2.5 py-1 font-mono text-[11px] font-bold uppercase tracking-wide",
             BADGE_TONE[props.tone],
           ],
         },
@@ -160,10 +161,10 @@ export const SurfaceCard = defineComponent({
         {
           class: [
             "rounded-lg bg-surface",
-            props.bordered ? "border border-line" : "",
+            props.bordered ? "border-2 border-ink" : "",
             props.padded ? "p-5 sm:p-6" : "",
             props.interactive
-              ? "transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lift focus-within:shadow-lift"
+              ? "transition-all duration-200 hover:-translate-y-1 hover:border-ink hover:shadow-[6px_6px_0_var(--color-ink)] focus-within:shadow-[6px_6px_0_var(--color-ink)]"
               : "shadow-quiet",
           ],
         },
@@ -195,10 +196,10 @@ export const SectionHeading = defineComponent({
           {
             class:
               resolvedLevel.value === 1
-                ? "font-display text-4xl leading-[1.08] sm:text-5xl lg:text-6xl"
+                ? "font-display text-4xl leading-[1.04] tracking-[-0.04em] sm:text-5xl lg:text-7xl"
                 : resolvedLevel.value === 3
                   ? "font-display text-xl leading-snug sm:text-2xl"
-                  : "font-display text-3xl leading-tight sm:text-4xl",
+                  : "font-display text-3xl leading-[1.08] tracking-[-0.03em] sm:text-4xl lg:text-5xl",
           },
           props.title,
         ),

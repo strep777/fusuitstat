@@ -1,69 +1,88 @@
 @import "tailwindcss";
 
 /* ------------------------------------------------------------------
-   弈星纪元设计系统 v2（2026-11-04）
-   奶油底 + 珊瑚红 / 薄荷 / 葡萄 / 柠檬；圆润无衬线、胶囊按钮、
-   大圆角与贴纸感装饰。规则来源：文档/11_界面交互与素材规范。
+   弈星纪元设计系统 v3「Studio Pop」（2026-11）
+   纸张底 + 信号橙红 / 柠檬 / 钴蓝 / 薄荷；粗描边、硬投影、编号版式。
+   字体：Hack（MIT，仅拉丁/数字/符号）；中文使用系统黑体栈，不随站分发。
+   规则来源：文档/11_界面交互与素材规范、文档/18_字体与视觉资产许可。
    ------------------------------------------------------------------ */
 
+@font-face {
+  font-family: "Hack";
+  src: url("/fonts/hack/Hack-Regular.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Hack";
+  src: url("/fonts/hack/Hack-Bold.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+}
+
 @theme {
-  --color-canvas: #fff8f0;
-  --color-canvas-sunk: #ffefe4;
+  --color-canvas: #fffcf2;
+  --color-canvas-sunk: #f7efdf;
   --color-surface: #ffffff;
-  --color-surface-muted: #fff3e9;
-  --color-line: #f1dfd2;
-  --color-line-strong: #e4c8b7;
+  --color-surface-muted: #fbf4e8;
+  --color-line: #e6d9c6;
+  --color-line-strong: #c9b69a;
 
-  --color-ink: #2b2033;
-  --color-ink-soft: #4a3d52;
-  --color-ink-muted: #6b5d74;
-  --color-ink-faint: #97899e;
+  --color-ink: #17121c;
+  --color-ink-soft: #3b3346;
+  --color-ink-muted: #665c72;
+  --color-ink-faint: #92879d;
 
-  --color-night: #241a2e;
-  --color-night-soft: #31223d;
-  --color-night-line: #4a3558;
+  --color-night: #17121c;
+  --color-night-soft: #241d2b;
+  --color-night-line: #3a3342;
 
-  /* brand 不随主题变化，保证主按钮白字对比度始终 ≥ 4.5:1。 */
-  --color-brand: #d93a24;
-  --color-brand-strong: #b62b18;
-  --color-brand-hover: #b62b18;
-  --color-brand-soft: #ffe3db;
+  /* 主色固定，保证白字对比 ≥ 4.5:1；亮橙仅作装饰。 */
+  --color-brand: #d93217;
+  --color-brand-strong: #b7240c;
+  --color-brand-hover: #b7240c;
+  --color-brand-soft: #ffe0d7;
 
-  --color-amber: #d93a24;
-  --color-amber-strong: #b62b18;
-  --color-amber-soft: #ffe3db;
-  --color-amber-ink: #7c1f0e;
+  --color-pop: #ff4b2b;
+  --color-cream: #fff3d6;
 
-  --color-star: #f0a000;
-  --color-lemon: #f0a000;
-  --color-lemon-soft: #fff1ce;
-  --color-jade: #0c8f7c;
-  --color-jade-soft: #ddf5ef;
-  --color-grape: #6742e8;
-  --color-grape-soft: #ede7ff;
-  --color-sky: #1d7ed6;
-  --color-sky-soft: #dff0ff;
+  --color-amber: #d93217;
+  --color-amber-strong: #b7240c;
+  --color-amber-soft: #ffe0d7;
+  --color-amber-ink: #7c1a08;
+
+  --color-star: #f5b800;
+  --color-lemon: #ffd43b;
+  --color-lemon-soft: #fff3c2;
+  --color-jade: #008a72;
+  --color-jade-soft: #d9f6ec;
+  --color-grape: #5b3df5;
+  --color-grape-soft: #eee8ff;
+  --color-sky: #2456e6;
+  --color-sky-soft: #e3e9ff;
   --color-wine: #c42b57;
   --color-wine-soft: #ffe0e9;
 
-  --font-sans:
-    "MiSans", "HarmonyOS Sans SC", "OPPO Sans", "PingFang SC", "Noto Sans SC",
-    "Microsoft YaHei UI", "Microsoft YaHei", "Segoe UI", system-ui, sans-serif;
-  --font-display:
-    "SF Pro Rounded", "Nunito", "MiSans", "HarmonyOS Sans SC", "PingFang SC",
-    "Noto Sans SC", "Microsoft YaHei UI", system-ui, sans-serif;
-  --font-mono: ui-monospace, "SFMono-Regular", "Cascadia Mono", Consolas, monospace;
+  /* 随站分发的唯一字体是 MIT 的 Hack（拉丁/数字）。中文没有 MIT 字体，交给系统无衬线回退，不打包。 */
+  --font-sans: "Hack", sans-serif;
+  --font-display: "Hack", sans-serif;
+  --font-mono: "Hack", monospace;
 
-  --radius-xs: 6px;
-  --radius-sm: 10px;
-  --radius-md: 14px;
-  --radius-lg: 20px;
-  --radius-xl: 28px;
-  --radius-2xl: 36px;
+  --radius-xs: 2px;
+  --radius-sm: 2px;
+  --radius-md: 2px;
+  --radius-lg: 2px;
+  --radius-xl: 2px;
+  --radius-2xl: 2px;
 
-  --shadow-quiet: 0 1px 2px rgb(43 32 51 / 0.04), 0 10px 30px -22px rgb(43 32 51 / 0.28);
-  --shadow-lift: 0 3px 8px rgb(43 32 51 / 0.06), 0 24px 50px -30px rgb(43 32 51 / 0.38);
-  --shadow-sticker: 6px 6px 0 rgb(43 32 51 / 0.9);
+  --shadow-quiet: 0 1px 0 rgb(23 18 28 / 0.04);
+  --shadow-lift: 0 18px 40px -26px rgb(23 18 28 / 0.35);
+  --shadow-hard: 4px 4px 0 var(--color-ink);
+  --shadow-hard-lg: 8px 8px 0 var(--color-ink);
+  --shadow-sticker: 8px 8px 0 var(--color-ink);
 
   --ease-out-soft: cubic-bezier(0.22, 0.61, 0.36, 1);
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -82,45 +101,45 @@
 
   html[data-theme="dark"] {
     color-scheme: dark;
-    --color-canvas: #171020;
-    --color-canvas-sunk: #201628;
-    --color-surface: #22182c;
-    --color-surface-muted: #281c33;
-    --color-line: #3a2c46;
-    --color-line-strong: #503d5f;
+    --color-canvas: #141018;
+    --color-canvas-sunk: #1c1622;
+    --color-surface: #1d1724;
+    --color-surface-muted: #241c2c;
+    --color-line: #3a3342;
+    --color-line-strong: #544a60;
 
-    --color-ink: #f7f0fa;
-    --color-ink-soft: #ded2e5;
-    --color-ink-muted: #b3a4bd;
-    --color-ink-faint: #8d7e98;
+    --color-ink: #fff9ee;
+    --color-ink-soft: #ded4e4;
+    --color-ink-muted: #b3a6bc;
+    --color-ink-faint: #8d8196;
 
-    --color-night: #f7f0fa;
-    --color-night-soft: #eadff0;
-    --color-night-line: #cbb8d8;
+    --color-night: #fff9ee;
+    --color-night-soft: #2b2233;
+    --color-night-line: #cbbbd6;
 
     --color-amber: #ff8a73;
-    --color-amber-strong: #ffab98;
-    --color-amber-soft: #3a211f;
+    --color-amber-strong: #ffb3a3;
+    --color-amber-soft: #3a1b15;
     --color-amber-ink: #ffd9cf;
 
-    /* 深色下 soft 面转深，链接色转亮；主按钮仍用固定品牌红。 */
-    --color-brand-strong: #ffab98;
+    --color-brand-strong: #ffb3a3;
     --color-brand-hover: #c0392b;
-    --color-brand-soft: #3a211f;
+    --color-brand-soft: #3a1b15;
 
-    --color-star: #ffc24d;
-    --color-lemon: #ffc24d;
-    --color-lemon-soft: #3a2c10;
+    --color-lemon: #ffd86b;
+    --color-lemon-soft: #3a2f10;
     --color-jade: #5fd8c4;
     --color-jade-soft: #12332d;
     --color-grape: #b7a4ff;
     --color-grape-soft: #241c3d;
-    --color-sky: #7cc2ff;
-    --color-sky-soft: #16283a;
+    --color-sky: #8fb4ff;
+    --color-sky-soft: #16203a;
     --color-wine: #ff8fa8;
     --color-wine-soft: #3a1b26;
 
-    --shadow-sticker: 6px 6px 0 rgb(255 255 255 / 0.25);
+    --shadow-hard: 4px 4px 0 rgb(255 249 238 / 0.55);
+    --shadow-hard-lg: 8px 8px 0 rgb(255 249 238 / 0.35);
+    --shadow-sticker: 8px 8px 0 rgb(255 249 238 / 0.45);
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -146,22 +165,24 @@
   }
 
   ::selection {
-    background: var(--color-amber-soft);
-    color: var(--color-amber-strong);
+    background: var(--color-lemon);
+    color: var(--color-ink);
   }
 
   h1,
   h2,
   h3 {
-    line-height: 1.18;
-    font-weight: 800;
-    letter-spacing: -0.01em;
+    font-family: var(--font-display);
+    line-height: 1.08;
+    font-weight: 700;
+    letter-spacing: -0.035em;
   }
 
   [lang^="zh"] h1,
   [lang^="zh"] h2,
   [lang^="zh"] h3 {
-    letter-spacing: 0;
+    letter-spacing: -0.01em;
+    line-height: 1.14;
   }
 
   img,
@@ -190,25 +211,34 @@
 }
 
 @utility eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-brand-strong);
+}
+
+@utility section-index {
+  font-family: var(--font-mono);
   font-size: 12px;
   font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--color-amber-strong);
+  letter-spacing: 0.12em;
+  color: var(--color-ink-faint);
 }
 
 @utility card-quiet {
   background-color: var(--color-surface);
-  border: 1px solid var(--color-line);
-  border-radius: var(--radius-lg);
+  border: 2px solid var(--color-ink);
+  border-radius: var(--radius-md);
   box-shadow: var(--shadow-quiet);
 }
 
 @utility field-base {
   width: 100%;
   background-color: var(--color-surface);
-  border: 1.5px solid var(--color-line-strong);
-  border-radius: var(--radius-md);
+  border: 2px solid var(--color-line-strong);
+  border-radius: var(--radius-sm);
   padding: 10px 14px;
   font-size: 16px;
   color: var(--color-ink);
@@ -216,32 +246,57 @@
   transition: border-color 160ms var(--ease-out-soft);
 }
 
+.field-base:focus-visible {
+  border-color: var(--color-ink);
+  outline: 3px solid var(--color-lemon);
+  outline-offset: 1px;
+}
+
 @utility link-underline {
   text-decoration: underline;
+  text-decoration-thickness: 2px;
   text-decoration-color: var(--color-line-strong);
-  text-underline-offset: 3px;
+  text-underline-offset: 4px;
   transition: text-decoration-color 160ms var(--ease-out-soft);
 }
 
-/* 点阵与网格底纹：只做背景装饰，不承载信息。 */
+/* 点阵、网格与斜纹：只做背景装饰，不承载信息。 */
 @utility bg-dots {
-  background-image: radial-gradient(rgb(43 32 51 / 0.14) 1px, transparent 1px);
-  background-size: 14px 14px;
+  background-image: radial-gradient(
+    color-mix(in srgb, var(--color-ink) 18%, transparent) 1.2px,
+    transparent 1.2px
+  );
+  background-size: 16px 16px;
 }
 
 @utility bg-grid {
   background-image:
-    linear-gradient(to right, rgb(43 32 51 / 0.06) 1px, transparent 1px),
-    linear-gradient(to bottom, rgb(43 32 51 / 0.06) 1px, transparent 1px);
-  background-size: 32px 32px;
+    linear-gradient(to right, color-mix(in srgb, var(--color-ink) 8%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in srgb, var(--color-ink) 8%, transparent) 1px, transparent 1px);
+  background-size: 36px 36px;
 }
 
-/* 贴纸牌：圆角 + 描边 + 硬阴影，用于入口卡与价格锚点。 */
+@utility bg-stripes {
+  background-image: repeating-linear-gradient(
+    -45deg,
+    color-mix(in srgb, var(--color-ink) 9%, transparent) 0 2px,
+    transparent 2px 10px
+  );
+}
+
+/* 贴纸牌：粗描边 + 硬投影，用于入口卡与价格锚点。 */
 @utility sticker-card {
   background-color: var(--color-surface);
   border: 2px solid var(--color-ink);
-  border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-sticker);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-hard);
+}
+
+/* 粗描边卡片：列表与表单容器。 */
+@utility bold-card {
+  background-color: var(--color-surface);
+  border: 2px solid var(--color-ink);
+  border-radius: var(--radius-lg);
 }
 
 /* 骨架屏与加载态统一节流：等待 < 150ms 不闪动（11 文档）。 */
@@ -329,7 +384,7 @@ html[data-motion="reduced"] * {
   top: 0;
   z-index: 100;
   background: var(--color-surface);
-  border: 1px solid var(--color-line-strong);
+  border: 2px solid var(--color-ink);
   padding: 10px 16px;
   border-radius: var(--radius-sm);
 }

@@ -82,6 +82,10 @@ export default defineConfig({
           env: {
             APP_ENV: "development",
             DATA_DIR: E2E_DATA_DIR,
+            // 浏览器 journey 从同一个 127.0.0.1 发起数百次请求，全站令牌桶会把
+            // 正常用例误判为刷接口。守卫本身由 server/tests/integration/
+            // test_request_guard.py 单独覆盖；这里关闭的是 e2e 进程内的重复计数。
+            SECURITY_GUARD_ENABLED: "false",
             // e2e 每次用例都要真实登录，几十次发送会撞上「同 IP 20 次/小时」的防刷限额。
             // 这里只放宽**测试环境**的限额数值；限流逻辑本身由
             // server/tests/integration/test_sms_rate_limit.py 在服务端固定验证，

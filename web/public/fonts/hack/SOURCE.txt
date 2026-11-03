@@ -1,0 +1,23 @@
+Hack 字体来源与校验
+====================
+
+上游：https://github.com/source-foundry/Hack
+版本：master（Hack v3.003 系列，2026-11 下载）
+许可：MIT（见同目录 LICENSE.md）
+
+文件名与 SHA256
+---------------
+Hack-Regular.ttf  15F55CC0C85A2988D2B4B3A8CDB5D77FDFBAF319E1BB5309D725DB9818FB7125
+Hack-Bold.ttf     5BBF531EFF7F8A0C2559C9A0656718E2828A012A9B1F60B5F54006D59A4DE8D4
+LICENSE.md        1F61BB7C790C59B4B0ECDF304628B94E42AE4C8020094A8C3DA73381AB212623
+
+用途
+----
+- 界面拉丁字母、数字、价格、订单号、编号、技术标签。
+- 中文不随站点分发字体文件，使用系统黑体栈回退；原因见
+  `文档/18_字体与视觉资产许可.md`。
+
+复核
+----
+PowerShell:
+  Get-FileHash web\public\fonts\hack\*.ttf -Algorithm SHA256

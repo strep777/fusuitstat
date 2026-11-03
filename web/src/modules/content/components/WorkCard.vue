@@ -10,6 +10,7 @@ import { computed } from "vue";
 import { RouterLink } from "vue-router";
 
 import type { ContentSummary } from "@/modules/content/api/content";
+import { displayTitle, isDemoTitle } from "@/shared/lib/demo-title";
 import { truncate } from "@/shared/lib/format";
 import { StatusBadge } from "@/shared/ui/base";
 
@@ -29,6 +30,10 @@ const props = withDefaults(
 
 const cover = computed(() => props.work.cover);
 
+/** 演示内容统一去掉标题后缀，改为卡片上的「演示」徽章，避免标题被撑长。 */
+const displayName = computed(() => displayTitle(props.work.title));
+const isDemo = computed(() => isDemoTitle(props.work.title));
+
 const coverAlt = computed(() => {
   const description = cover.value?.alt?.trim();
   if (description) return description;
@@ -47,9 +52,9 @@ const srcset = computed(() =>
 <template>
   <RouterLink
     :to="work.route"
-    class="group flex flex-col overflow-hidden rounded-lg border border-line bg-surface transition-shadow hover:shadow-lift"
+    class="group flex flex-col overflow-hidden rounded-sm border-2 border-ink bg-surface shadow-[4px_4px_0_var(--color-ink)] transition-transform hover:-translate-y-1 hover:shadow-[7px_7px_0_var(--color-ink)]"
   >
-    <div class="aspect-[4/5] overflow-hidden bg-canvas-sunk">
+    <div class="aspect-[4/5] overflow-hidden border-b-2 border-ink bg-canvas-sunk">
       <img
         v-if="cover"
         :src="cover.thumb ?? cover.src"
@@ -72,8 +77,9 @@ const srcset = computed(() =>
         <StatusBadge v-if="work.work_type" tone="amber" :label="work.work_type" />
         <StatusBadge v-if="work.species" tone="neutral" :label="work.species" />
         <StatusBadge v-if="work.is_featured" tone="jade" label="代表作品" />
+        <StatusBadge v-if="isDemo" tone="neutral" label="演示" />
       </div>
-      <h3 class="mt-3 font-display text-lg leading-snug group-hover:text-amber-strong">{{ work.title }}</h3>
+      <h3 class="mt-3 font-display text-lg leading-snug group-hover:text-brand-strong">{{ displayName }}</h3>
       <p v-if="work.summary" class="mt-2 text-sm leading-relaxed text-ink-muted">
         {{ truncate(work.summary, 76) }}
       </p>

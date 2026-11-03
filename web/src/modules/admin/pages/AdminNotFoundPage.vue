@@ -55,7 +55,7 @@ import { defineComponent, h, type PropType, type VNodeChild } from "vue";
 import { SurfaceCard } from "@/shared/ui/base";
 
 const NOTICE_CLASS: Record<string, string> = {
-  info: "border-line bg-surface-muted text-ink-soft",
+  info: "border-ink bg-surface-muted text-ink-soft",
   warn: "border-amber bg-amber-soft text-amber-strong",
   danger: "border-wine bg-wine-soft text-wine",
 };
@@ -75,11 +75,11 @@ export const InlineNotice = defineComponent({
       h(
         "div",
         {
-          class: ["rounded-lg border px-5 py-4 text-sm", NOTICE_CLASS[props.tone] ?? NOTICE_CLASS.info],
+          class: ["border-2 border-l-[6px] px-4 py-3 text-sm", NOTICE_CLASS[props.tone] ?? NOTICE_CLASS.info],
           role: "note",
         },
         [
-          h("p", { class: "font-medium" }, `【${NOTICE_MARK[props.tone] ?? "说明"}】${props.title}`),
+          h("p", { class: "font-mono text-[10px] font-bold uppercase tracking-[0.16em]" }, `[${NOTICE_MARK[props.tone] ?? "说明"}] ${props.title}`),
           props.description ? h("p", { class: "mt-1 text-xs leading-relaxed" }, props.description) : null,
           slots.default ? h("div", { class: "mt-3 flex flex-wrap gap-3" }, slots.default()) : null,
         ],
@@ -97,11 +97,11 @@ export const AdminPageHeader = defineComponent({
   },
   setup(props, { slots }) {
     return () =>
-      h("header", { class: "flex flex-col gap-4 border-b border-line pb-5 lg:flex-row lg:items-end lg:justify-between" }, [
+      h("header", { class: "flex flex-col gap-4 border-b-2 border-ink pb-5 lg:flex-row lg:items-end lg:justify-between" }, [
         h("div", {}, [
-          props.eyebrow ? h("p", { class: "eyebrow" }, props.eyebrow) : null,
-          h("h1", { class: "mt-2 font-display text-2xl leading-snug" }, props.title),
-          props.description ? h("p", { class: "mt-2 max-w-3xl text-sm text-ink-muted" }, props.description) : null,
+          props.eyebrow ? h("p", { class: "font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-brand-strong" }, props.eyebrow) : null,
+          h("h1", { class: "mt-2 font-display text-3xl font-bold tracking-[-0.03em] sm:text-4xl" }, props.title),
+          props.description ? h("p", { class: "mt-2 max-w-3xl text-sm leading-relaxed text-ink-muted" }, props.description) : null,
         ]),
         slots.actions ? h("div", { class: "flex flex-wrap items-center gap-3" }, slots.actions()) : null,
       ]);
@@ -130,7 +130,7 @@ export const FieldList = defineComponent({
         },
         props.items.map((item) =>
           h("div", { class: "min-w-0" }, [
-            h("dt", { class: "text-xs text-ink-faint" }, item.label),
+            h("dt", { class: "font-mono text-[10px] uppercase tracking-wide text-ink-faint" }, item.label),
             h(
               "dd",
               { class: "mt-0.5 break-words text-ink-soft" },
@@ -173,7 +173,7 @@ export const FilterBar = defineComponent({
     return () =>
       h(
         "div",
-        { class: "grid gap-4 rounded-lg border border-line bg-surface p-5 sm:grid-cols-2 lg:grid-cols-4" },
+        { class: "grid gap-4 border-2 border-ink bg-surface p-5 shadow-[4px_4px_0_var(--color-ink)] sm:grid-cols-2 lg:grid-cols-4" },
         children,
       );
   },

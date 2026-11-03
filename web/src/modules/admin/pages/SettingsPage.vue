@@ -62,17 +62,23 @@ const groups = computed(() => {
 });
 
 const columns: TableColumn[] = [
-  { key: "key", label: "配置键" },
-  { key: "value", label: "当前值" },
-  { key: "version", label: "版本", width: "80px" },
-  { key: "updated_at", label: "最近更新", width: "170px", hideOnMobile: true },
-  { key: "updated_by", label: "更新人", width: "120px", hideOnMobile: true },
+  { key: "key", label: "配置键", width: "24%" },
+  { key: "value", label: "当前值", width: "44%" },
+  { key: "version", label: "版本", width: "70px" },
+  { key: "updated_at", label: "最近更新", width: "150px", hideOnMobile: true },
+  { key: "updated_by", label: "更新人", width: "110px", hideOnMobile: true },
 ];
 
 /** 结构化配置在表格里以紧凑 JSON 呈现，避免渲染成 `[object Object]`。 */
 function valueText(value: unknown): string {
   if (typeof value === "object" && value !== null) return JSON.stringify(value);
   return text(value);
+}
+
+/** 长 JSON 只显示可读摘要，完整值在编辑区查看，避免把表格撑出屏幕。 */
+function previewText(value: unknown, limit = 160): string {
+  const raw = valueText(value);
+  return raw.length > limit ? `${raw.slice(0, limit)}…` : raw;
 }
 
 const editTarget = ref<SettingRecord | null>(null);
@@ -234,10 +240,10 @@ onMounted(state.load);
         <span v-if="typeof row.value === 'boolean'">
           <StatusBadge :tone="row.value ? 'jade' : 'neutral'" :label="row.value ? '已启用' : '未启用'" />
         </span>
-        <span v-else-if="typeof row.value === 'object' && row.value !== null" class="block max-h-24 overflow-auto break-all font-mono text-xs">
-          {{ valueText(row.value) }}
+        <span v-else-if="typeof row.value === 'object' && row.value !== null" class="block max-w-[380px] break-all font-mono text-xs" :title="valueText(row.value)">
+          {{ previewText(row.value) }}
         </span>
-        <span v-else class="break-all">{{ text(row.value) }}</span>
+        <span v-else class="block max-w-[380px] break-words" :title="valueText(row.value)">{{ previewText(row.value, 120) }}</span>
       </template>
       <template #cell-updated_at="{ row }">
         <span class="tabular-nums text-xs">{{ formatDateTime(row.updated_at) }}</span>
@@ -313,7 +319,7 @@ onMounted(state.load);
             <ul class="mt-2 space-y-1 text-sm">
               <li v-for="item in group.items" :key="item.key" class="flex items-baseline justify-between gap-3">
                 <span class="font-mono text-xs">{{ item.key }}</span>
-                <span class="shrink-0 break-all text-right text-xs text-ink-muted">{{ valueText(item.value) }}</span>
+                <span class="min-w-0 break-all text-right text-xs text-ink-muted">{{ previewText(item.value, 70) }}</span>
               </li>
             </ul>
           </div>

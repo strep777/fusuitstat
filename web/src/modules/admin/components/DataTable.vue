@@ -170,7 +170,7 @@ function focusFirstRowAction(): void {
 
 <template>
   <div class="space-y-4" :data-state="stateName">
-    <div v-if="loading" class="space-y-3 rounded-lg border border-line bg-surface p-5" role="status" aria-live="polite">
+    <div v-if="loading" class="space-y-3 border-2 border-ink bg-surface p-5 shadow-[4px_4px_0_var(--color-ink)]" role="status" aria-live="polite">
       <SkeletonBlock :lines="2" aria-label="正在加载列表" />
       <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <div v-for="cell in skeletonRows" :key="cell" class="h-8 animate-pulse rounded-xs bg-canvas-sunk" />
@@ -212,33 +212,33 @@ function focusFirstRowAction(): void {
     </EmptyState>
 
     <template v-else>
-      <div class="overflow-x-auto rounded-lg border border-line bg-surface">
+      <div class="overflow-x-auto border-2 border-ink bg-surface shadow-[4px_4px_0_var(--color-ink)]">
         <table ref="tableRef" class="w-full border-collapse text-sm">
           <caption class="sr-only">{{ caption || "运营后台数据列表" }}</caption>
           <thead>
-            <tr class="border-b border-line bg-surface-muted text-xs text-ink-muted">
+            <tr class="border-b-2 border-ink bg-[#FFF1C9] font-mono text-[10px] uppercase tracking-wide text-ink">
               <th
                 v-for="column in columns"
                 :key="column.key"
                 scope="col"
                 :class="[
-                  'px-4 py-3 font-medium',
+                  'px-4 py-3 font-bold',
                   alignClass(column),
                   column.hideOnMobile ? 'hidden lg:table-cell' : '',
                 ]"
                 :style="column.width ? { width: column.width } : undefined"
               >
                 {{ column.label }}
-                <span v-if="column.hint" class="block font-normal text-ink-faint">{{ column.hint }}</span>
+                <span v-if="column.hint" class="block font-normal normal-case tracking-normal text-ink-muted">{{ column.hint }}</span>
               </th>
-              <th scope="col" class="px-4 py-3 text-right font-medium">操作</th>
+              <th scope="col" class="min-w-[140px] whitespace-nowrap px-4 py-3 text-right font-bold">操作</th>
             </tr>
           </thead>
           <tbody>
             <tr
               v-for="(row, index) in rows"
               :key="keyOf(row, index)"
-              class="border-b border-line last:border-b-0 hover:bg-surface-muted/60 focus-within:bg-surface-muted/60"
+              class="border-b border-ink/10 last:border-b-0 hover:bg-lemon-soft/60 focus-within:bg-lemon-soft/60"
             >
               <td
                 v-for="column in columns"
@@ -262,7 +262,7 @@ function focusFirstRowAction(): void {
                   <span v-else class="tabular-nums">{{ String(raw(row, column)) }}</span>
                 </slot>
               </td>
-              <td class="px-4 py-3 text-right align-top">
+              <td class="min-w-[140px] whitespace-nowrap px-4 py-3 text-right align-top">
                 <div class="flex flex-wrap items-center justify-end gap-2">
                   <slot name="actions" :row="row" :index="index" />
                 </div>
@@ -287,7 +287,7 @@ function focusFirstRowAction(): void {
           <button
             v-if="rows.length"
             type="button"
-            class="rounded-xs px-2 py-1 text-ink-faint underline decoration-line-strong underline-offset-2 hover:text-amber-strong"
+            class="px-2 py-1 font-mono text-[10px] uppercase tracking-wide text-ink-faint underline decoration-line-strong underline-offset-2 hover:text-brand-strong"
             @click="focusFirstRowAction"
           >
             跳到行操作

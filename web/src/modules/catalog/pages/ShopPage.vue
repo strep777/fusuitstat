@@ -1,6 +1,6 @@
 <template>
   <div>
-    <section class="border-b-2 border-ink/5 bg-canvas-sunk">
+    <section class="border-b-2 border-ink bg-canvas bg-dots">
       <div class="container-page py-8 lg:py-12">
         <Breadcrumbs :items="[{ label: t('nav.home'), to: '/' }, { label: t('shop.crumb') }]" />
         <div class="mt-6 grid gap-8 lg:grid-cols-[1.2fr_0.8fr] lg:items-end">
@@ -16,15 +16,36 @@
             </template>
           </SectionHeading>
 
-          <div class="flex flex-wrap gap-2">
-            <RouterLink to="/wash" class="rounded-full bg-jade-soft px-4 py-2 text-sm font-bold text-jade hover:bg-jade hover:text-white">
-              洗毛护理
+          <div class="grid gap-2">
+            <RouterLink
+              to="/wash"
+              class="group flex items-center justify-between border-2 border-ink bg-[#DFF3EC] px-4 py-3 shadow-[3px_3px_0_var(--color-ink)] transition-transform hover:-translate-y-0.5"
+            >
+              <span class="flex items-center gap-3">
+                <span class="font-mono text-[10px] font-bold text-[#006B59]">01 / CARE</span>
+                <span class="font-display text-lg font-bold text-[#17121C]">洗毛护理</span>
+              </span>
+              <span class="font-mono text-[#17121C] transition-transform group-hover:translate-x-1" aria-hidden="true">↗</span>
             </RouterLink>
-            <RouterLink to="/props" class="rounded-full bg-grape-soft px-4 py-2 text-sm font-bold text-grape hover:bg-grape hover:text-white">
-              道具工坊
+            <RouterLink
+              to="/props"
+              class="group flex items-center justify-between border-2 border-ink bg-[#EDE7FF] px-4 py-3 shadow-[3px_3px_0_var(--color-ink)] transition-transform hover:-translate-y-0.5"
+            >
+              <span class="flex items-center gap-3">
+                <span class="font-mono text-[10px] font-bold text-[#4A2ED0]">02 / PROPS</span>
+                <span class="font-display text-lg font-bold text-[#17121C]">道具工坊</span>
+              </span>
+              <span class="font-mono text-[#17121C] transition-transform group-hover:translate-x-1" aria-hidden="true">↗</span>
             </RouterLink>
-            <RouterLink to="/merch" class="rounded-full bg-lemon-soft px-4 py-2 text-sm font-bold text-ink hover:bg-lemon">
-              周边商店
+            <RouterLink
+              to="/merch"
+              class="group flex items-center justify-between border-2 border-ink bg-[#FFF1C9] px-4 py-3 shadow-[3px_3px_0_var(--color-ink)] transition-transform hover:-translate-y-0.5"
+            >
+              <span class="flex items-center gap-3">
+                <span class="font-mono text-[10px] font-bold text-[#8A5A00]">03 / MERCH</span>
+                <span class="font-display text-lg font-bold text-[#17121C]">周边商店</span>
+              </span>
+              <span class="font-mono text-[#17121C] transition-transform group-hover:translate-x-1" aria-hidden="true">↗</span>
             </RouterLink>
           </div>
         </div>
@@ -33,15 +54,15 @@
 
     <div class="container-page py-8 lg:py-10">
       <!-- 分类筛选：分类进 URL -->
-      <section class="rounded-2xl border-2 border-ink/10 bg-surface p-4 sm:p-5" :aria-label="t('shop.filterLabel')">
+      <section class="rounded-sm border-2 border-ink bg-surface p-4 shadow-[4px_4px_0_var(--color-ink)] sm:p-5" :aria-label="t('shop.filterLabel')">
         <div class="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
           <button
             type="button"
-            class="min-h-[44px] shrink-0 rounded-full border-2 px-4 text-sm font-bold transition-colors"
+            class="min-h-[44px] shrink-0 rounded-full border-2 px-4 font-mono text-xs font-bold uppercase tracking-wide transition-colors"
             :class="
               filters.category === ''
-                ? 'border-brand bg-brand text-white'
-                : 'border-ink/10 bg-surface text-ink-soft hover:border-brand hover:text-brand-strong'
+                ? 'border-ink bg-brand text-white shadow-[2px_2px_0_var(--color-ink)]'
+                : 'border-ink/15 bg-surface text-ink-soft hover:border-ink hover:text-ink'
             "
             :aria-pressed="filters.category === ''"
             @click="pushQuery({ category: '' })"
@@ -52,11 +73,11 @@
             v-for="option in PRODUCT_CATEGORY_OPTIONS"
             :key="option.value"
             type="button"
-            class="min-h-[44px] shrink-0 rounded-full border-2 px-4 text-sm font-bold transition-colors"
+            class="min-h-[44px] shrink-0 rounded-full border-2 px-4 font-mono text-xs font-bold tracking-wide transition-colors"
             :class="
               filters.category === option.value
-                ? 'border-brand bg-brand text-white'
-                : 'border-ink/10 bg-surface text-ink-soft hover:border-brand hover:text-brand-strong'
+                ? 'border-ink bg-brand text-white shadow-[2px_2px_0_var(--color-ink)]'
+                : 'border-ink/15 bg-surface text-ink-soft hover:border-ink hover:text-ink'
             "
             :aria-pressed="filters.category === option.value"
             @click="pushQuery({ category: option.value })"
@@ -101,7 +122,7 @@
         </div>
       </section>
 
-      <div v-if="loading" class="mt-8 rounded-2xl border-2 border-ink/10 bg-surface p-6">
+      <div v-if="loading" class="mt-8 border-2 border-ink bg-surface p-6 shadow-[4px_4px_0_var(--color-ink)]">
         <SkeletonBlock :lines="4" :aria-label="t('shop.loading')" />
       </div>
 

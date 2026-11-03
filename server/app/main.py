@@ -10,13 +10,16 @@ import logging
 
 from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
 from sqlalchemy import text
+from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from app.api.dependencies import client_ip_of
 from app.platform.config import Settings, get_settings
 from app.platform.db import get_engine, integrity_report
 from app.platform.errors import install_error_handlers
+from app.platform.guard import RequestGuardMiddleware
 from app.platform.ids import iso, new_id, now_ms
 
 logger = logging.getLogger("starium")
@@ -58,6 +61,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             "Permissions-Policy", "camera=(), microphone=(), geolocation=(), payment=(self)"
         )
         response.headers.setdefault("X-Frame-Options", "DENY")
+        response.headers.setdefault("Cross-Origin-Opener-Policy", "same-origin")
+        response.headers.setdefault("Cross-Origin-Resource-Policy", "same-site")
+        if request.url.path.startswith(settings.api_prefix):
+            response.headers.setdefault("X-Robots-Tag", "noindex, nofollow")
         if settings.is_production:
             response.headers.setdefault(
                 "Strict-Transport-Security", "max-age=31536000; includeSubDomains"
@@ -87,6 +94,12 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     _register_routers(app, settings)
     _register_probes(app, settings)
+
+    # 顺序：后添加的中间件在最外层。Guard 必须看到原始请求与最终响应。
+    if settings.is_production:
+        app.add_middleware(TrustedHostMiddleware, allowed_hosts=settings.allowed_hosts)
+    app.add_middleware(GZipMiddleware, minimum_size=1024)
+    app.add_middleware(RequestGuardMiddleware, settings=settings)
     return app
 
 

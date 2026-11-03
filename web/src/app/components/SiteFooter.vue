@@ -1,7 +1,7 @@
 <script setup lang="ts">
 /**
- * 站点页脚：经营信息、规则入口、社交渠道与备案位。
- * 只显示后台已配置的安全协议外链；没有配置的渠道不输出假入口。
+ * 站点页脚：品牌墙、经营信息、规则入口、社交渠道与备案位。
+ * 只显示后台已配置的 https 外链；没有配置的渠道不输出假入口。
  */
 import { computed } from "vue";
 import { RouterLink } from "vue-router";
@@ -48,48 +48,49 @@ const safeSocial = computed(() =>
 </script>
 
 <template>
-  <footer class="mt-24 bg-[#241A2E] text-[#FFF8F0]">
-    <div class="container-page py-14 sm:py-16">
-      <div class="flex flex-col gap-6 border-b border-white/10 pb-10 sm:flex-row sm:items-end sm:justify-between">
-        <div class="flex items-center gap-4">
-          <BrandMark :size="56" variant="light" decorative />
-          <div>
-            <p class="font-display text-2xl font-extrabold">{{ site.brand.brand_name }}</p>
-            <p class="mt-1 text-sm text-white/60">{{ t("common.brandTagline") }}</p>
-          </div>
-        </div>
-        <RouterLink
-          to="/shop"
-          class="inline-flex w-fit items-center gap-2 rounded-full bg-lemon px-5 py-3 text-sm font-bold text-[#241A2E] transition-transform hover:-translate-y-0.5"
-        >
-          逛逛商城 <span aria-hidden="true">→</span>
-        </RouterLink>
-      </div>
-
-      <div class="grid gap-10 pt-10 lg:grid-cols-[1.3fr_1fr_1fr_1fr]">
+  <footer class="mt-24 border-t-2 border-ink bg-[#17121C] text-[#FFFCF2]">
+    <div class="container-page pt-12 sm:pt-16">
+      <div class="grid gap-10 border-b-2 border-white/15 pb-10 lg:grid-cols-[1.1fr_1.9fr] lg:gap-16">
         <div>
-          <p class="max-w-sm text-sm leading-relaxed text-white/70">
+          <div class="flex items-center gap-3">
+            <BrandMark :size="52" variant="light" decorative />
+            <div>
+              <p class="font-display text-2xl font-bold tracking-tight">{{ site.brand.brand_name }}</p>
+              <p class="mt-1 font-mono text-[10px] uppercase tracking-[0.18em] text-white/50">
+                {{ t("common.brandEnglish") }}
+              </p>
+            </div>
+          </div>
+          <p class="mt-5 max-w-sm text-sm leading-relaxed text-white/65">
             {{ t("footer.intro") }}
           </p>
-          <dl class="mt-6 space-y-2 text-sm text-white/70">
+
+          <RouterLink
+            to="/shop"
+            class="mt-6 inline-flex items-center gap-3 border-2 border-[#FFFCF2] bg-lemon px-5 py-3 font-display text-lg font-bold text-[#17121C] shadow-[5px_5px_0_#FFFCF2] transition-all hover:-translate-y-0.5 hover:shadow-[7px_7px_0_#FFFCF2]"
+          >
+            逛逛商城 <span aria-hidden="true">↗</span>
+          </RouterLink>
+
+          <dl class="mt-8 grid gap-2 text-sm text-white/65">
             <div class="flex gap-2">
-              <dt class="shrink-0 text-white/50">{{ t("footer.legalEntity") }}</dt>
+              <dt class="shrink-0 text-white/40">{{ t("footer.legalEntity") }}</dt>
               <dd>{{ site.brand.legal_entity }}</dd>
             </div>
             <div class="flex gap-2">
-              <dt class="shrink-0 text-white/50">{{ t("footer.supportEmail") }}</dt>
+              <dt class="shrink-0 text-white/40">{{ t("footer.supportEmail") }}</dt>
               <dd>
-                <a class="link-underline" :href="`mailto:${site.brand.support_email}`">
+                <a class="underline decoration-white/30 underline-offset-4 hover:text-lemon" :href="`mailto:${site.brand.support_email}`">
                   {{ site.brand.support_email }}
                 </a>
               </dd>
             </div>
             <div class="flex gap-2">
-              <dt class="shrink-0 text-white/50">{{ t("footer.serviceHours") }}</dt>
+              <dt class="shrink-0 text-white/40">{{ t("footer.serviceHours") }}</dt>
               <dd>{{ site.brand.service_hours }}</dd>
             </div>
             <div class="flex gap-2">
-              <dt class="shrink-0 text-white/50">{{ t("footer.responseSla") }}</dt>
+              <dt class="shrink-0 text-white/40">{{ t("footer.responseSla") }}</dt>
               <dd>
                 {{
                   t("footer.responseSlaValue", {
@@ -102,67 +103,69 @@ const safeSocial = computed(() =>
           </dl>
         </div>
 
-        <nav :aria-label="t('footer.browse')">
-          <h2 class="text-xs font-bold uppercase tracking-[0.14em] text-white/45">{{ t("footer.browse") }}</h2>
-          <ul class="mt-4 space-y-2.5 text-sm">
-            <li v-for="link in browseLinks" :key="link.to">
-              <RouterLink class="text-white/75 transition-colors hover:text-lemon" :to="link.to">
-                {{ link.label }}
-              </RouterLink>
-            </li>
-          </ul>
-        </nav>
-
-        <nav :aria-label="t('footer.help')">
-          <h2 class="text-xs font-bold uppercase tracking-[0.14em] text-white/45">{{ t("footer.help") }}</h2>
-          <ul class="mt-4 space-y-2.5 text-sm">
-            <li v-for="link in helpLinks" :key="link.to">
-              <RouterLink class="text-white/75 transition-colors hover:text-lemon" :to="link.to">
-                {{ link.label }}
-              </RouterLink>
-            </li>
-          </ul>
-        </nav>
-
-        <div>
-          <h2 class="text-xs font-bold uppercase tracking-[0.14em] text-white/45">{{ t("footer.legal") }}</h2>
-          <ul class="mt-4 space-y-2.5 text-sm">
-            <li v-for="link in legalLinks" :key="link.to">
-              <RouterLink class="text-white/75 transition-colors hover:text-lemon" :to="link.to">
-                {{ link.label }}
-              </RouterLink>
-            </li>
-            <li>
-              <RouterLink class="text-white/75 transition-colors hover:text-lemon" to="/contact">
-                {{ t("footer.contact") }}
-              </RouterLink>
-            </li>
-            <li>
-              <RouterLink class="text-white/75 transition-colors hover:text-lemon" to="/feedback/new">
-                {{ t("footer.feedback") }}
-              </RouterLink>
-            </li>
-          </ul>
-
-          <div v-if="safeSocial.length" class="mt-6">
-            <h2 class="text-xs font-bold uppercase tracking-[0.14em] text-white/45">{{ t("footer.social") }}</h2>
-            <ul class="mt-3 flex flex-wrap gap-2 text-xs">
-              <li v-for="link in safeSocial" :key="link.code">
-                <a
-                  class="inline-block rounded-full border border-white/15 px-3 py-1.5 text-white/75 transition-colors hover:border-lemon hover:text-lemon"
-                  :href="link.url"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
+        <div class="grid grid-cols-2 gap-8 sm:grid-cols-3">
+          <nav :aria-label="t('footer.browse')">
+            <h2 class="font-mono text-[11px] uppercase tracking-[0.18em] text-lemon">01 / {{ t("footer.browse") }}</h2>
+            <ul class="mt-4 space-y-2.5 text-sm">
+              <li v-for="link in browseLinks" :key="link.to">
+                <RouterLink class="text-white/70 transition-colors hover:text-lemon" :to="link.to">
                   {{ link.label }}
-                </a>
+                </RouterLink>
               </li>
             </ul>
+          </nav>
+
+          <nav :aria-label="t('footer.help')">
+            <h2 class="font-mono text-[11px] uppercase tracking-[0.18em] text-lemon">02 / {{ t("footer.help") }}</h2>
+            <ul class="mt-4 space-y-2.5 text-sm">
+              <li v-for="link in helpLinks" :key="link.to">
+                <RouterLink class="text-white/70 transition-colors hover:text-lemon" :to="link.to">
+                  {{ link.label }}
+                </RouterLink>
+              </li>
+            </ul>
+          </nav>
+
+          <div class="col-span-2 sm:col-span-1">
+            <h2 class="font-mono text-[11px] uppercase tracking-[0.18em] text-lemon">03 / {{ t("footer.legal") }}</h2>
+            <ul class="mt-4 space-y-2.5 text-sm">
+              <li v-for="link in legalLinks" :key="link.to">
+                <RouterLink class="text-white/70 transition-colors hover:text-lemon" :to="link.to">
+                  {{ link.label }}
+                </RouterLink>
+              </li>
+              <li>
+                <RouterLink class="text-white/70 transition-colors hover:text-lemon" to="/contact">
+                  {{ t("footer.contact") }}
+                </RouterLink>
+              </li>
+              <li>
+                <RouterLink class="text-white/70 transition-colors hover:text-lemon" to="/feedback/new">
+                  {{ t("footer.feedback") }}
+                </RouterLink>
+              </li>
+            </ul>
+
+            <div v-if="safeSocial.length" class="mt-6">
+              <h2 class="font-mono text-[11px] uppercase tracking-[0.18em] text-white/45">{{ t("footer.social") }}</h2>
+              <ul class="mt-3 flex flex-wrap gap-2 text-xs">
+                <li v-for="link in safeSocial" :key="link.code">
+                  <a
+                    class="inline-block border-2 border-white/25 px-2.5 py-1 text-white/70 transition-colors hover:border-lemon hover:text-lemon"
+                    :href="link.url"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {{ link.label }}
+                  </a>
+                </li>
+              </ul>
+            </div>
           </div>
         </div>
       </div>
 
-      <div class="mt-12 flex flex-col gap-4 border-t border-white/10 pt-6 text-xs text-white/45 sm:flex-row sm:items-center sm:justify-between">
+      <div class="mt-6 flex flex-col gap-4 text-xs text-white/45 sm:flex-row sm:items-center sm:justify-between">
         <p>
           © {{ year }} {{ site.brand.legal_entity }} · {{ site.brand.brand_name }} · {{ site.brand.domain }}
         </p>
@@ -170,7 +173,7 @@ const safeSocial = computed(() =>
           <label class="inline-flex cursor-pointer items-center gap-2">
             <input
               type="checkbox"
-              class="size-4 accent-amber"
+              class="size-4 accent-lemon"
               :checked="preferences.reducedMotion"
               @change="preferences.setReducedMotion(($event.target as HTMLInputElement).checked)"
             />
@@ -178,15 +181,22 @@ const safeSocial = computed(() =>
           </label>
           <button
             type="button"
-            class="link-underline"
+            class="underline decoration-white/30 underline-offset-4 hover:text-lemon"
             @click="preferences.setTheme(preferences.theme === 'dark' ? 'light' : 'dark')"
           >
             {{ preferences.theme === "dark" ? t("footer.themeToLight") : t("footer.themeToDark") }}
           </button>
         </div>
       </div>
-      <p v-if="site.error" class="mt-4 text-xs text-wine-soft" role="status">
+      <p v-if="site.error" class="mt-3 text-xs text-wine-soft" role="status">
         {{ t("footer.configFallback") }}
+      </p>
+
+      <p
+        class="mt-8 select-none overflow-hidden border-t-2 border-white/15 pt-4 font-display text-[clamp(3rem,11vw,9rem)] font-bold leading-[0.8] tracking-[-0.05em] text-white/10"
+        aria-hidden="true"
+      >
+        STARIUM
       </p>
     </div>
   </footer>

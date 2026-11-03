@@ -1,0 +1,15 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /account
+Disallow: /cart
+Disallow: /checkout
+Disallow: /pay
+Disallow: /payment
+Disallow: /api/
+Disallow: /login
+
+# 蜜罐路径：正常用户与搜索引擎都不应访问。
+Disallow: /api/v1/_hp
+
+Sitemap: https://starium.cn/sitemap.xml

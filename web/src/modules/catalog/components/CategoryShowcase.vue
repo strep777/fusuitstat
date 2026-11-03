@@ -30,7 +30,7 @@ const loading = ref(true);
 const error = ref("");
 
 const toneClass = computed(() =>
-  props.tone === "grape" ? "bg-grape-soft" : "bg-lemon-soft",
+  props.tone === "grape" ? "bg-[#EDE7FF] text-[#17121C]" : "bg-[#FFF1C9] text-[#17121C]",
 );
 
 async function load() {
@@ -52,28 +52,28 @@ onMounted(load);
 
 <template>
   <div>
-    <section class="border-b-2 border-ink/5" :class="toneClass">
+    <section class="border-b-2 border-ink bg-dots" :class="toneClass">
       <div class="container-page grid gap-8 py-12 lg:grid-cols-[1.2fr_0.8fr] lg:items-end lg:py-16">
         <div>
-          <p class="eyebrow">{{ eyebrow }}</p>
-          <h1 class="mt-3 text-balance font-display text-4xl font-extrabold leading-[1.08] sm:text-5xl">
+          <p class="font-mono text-[11px] font-bold uppercase tracking-[0.18em] text-[#17121C]/60">{{ eyebrow }}</p>
+          <h1 class="mt-3 text-balance font-display text-4xl font-bold leading-[0.98] tracking-[-0.045em] sm:text-6xl">
             {{ title }}
           </h1>
-          <p class="mt-4 max-w-2xl text-lg leading-relaxed text-ink-soft">{{ intro }}</p>
+          <p class="mt-4 max-w-2xl text-lg leading-relaxed text-[#4A3D52]">{{ intro }}</p>
           <div class="mt-6 flex flex-wrap gap-3">
             <AppButton :to="`/shop?category=${category}`" variant="primary">在商城中筛选</AppButton>
             <AppButton to="/contact" variant="secondary">想要定制</AppButton>
           </div>
         </div>
-        <div class="sticker-card rotate-1 bg-surface p-6">
-          <p class="text-xs font-extrabold uppercase tracking-[0.22em]" :class="tone === 'grape' ? 'text-grape' : 'text-ink-muted'">
+        <div class="rotate-1 border-2 border-ink bg-surface p-6 text-[#17121C] shadow-[8px_8px_0_var(--color-ink)]">
+          <p class="font-mono text-[10px] font-bold uppercase tracking-[0.22em]" :class="tone === 'grape' ? 'text-[#4A2ED0]' : 'text-[#8A5A00]'">
             在售
           </p>
-          <p class="mt-3 font-display text-5xl font-extrabold">
+          <p class="mt-3 font-display text-6xl font-bold leading-none">
             {{ loading ? "…" : products.length }}
-            <span class="text-base font-bold text-ink-muted">件</span>
+            <span class="text-base font-bold text-[#6B5D74]">件</span>
           </p>
-          <p class="mt-2 text-sm text-ink-muted">{{ gridNote }}</p>
+          <p class="mt-2 text-sm text-[#4A3D52]">{{ gridNote }}</p>
         </div>
       </div>
     </section>
@@ -96,15 +96,15 @@ onMounted(load);
 
     <slot />
 
-    <section class="border-t-2 border-ink/5 bg-surface-muted py-12">
+    <section class="border-t-2 border-ink bg-surface-muted py-12">
       <div class="container-page grid gap-8 lg:grid-cols-[0.8fr_1.2fr]">
         <SectionHeading eyebrow="FAQ" title="购买前确认" description="限量与定制件以服务端审批结果为准。" />
         <div class="space-y-3">
-          <details v-for="item in faqs" :key="item.q" class="group rounded-2xl border-2 border-ink/10 bg-surface p-4">
+          <details v-for="item in faqs" :key="item.q" class="group rounded-sm border-2 border-ink bg-surface p-4">
             <summary class="cursor-pointer list-none font-bold marker:hidden">
               <span class="flex items-center justify-between gap-3">
                 {{ item.q }}
-                <span class="text-brand-strong transition-transform group-open:rotate-45" aria-hidden="true">+</span>
+                <span class="font-mono text-brand-strong transition-transform group-open:rotate-45" aria-hidden="true">+</span>
               </span>
             </summary>
             <p class="mt-2 text-sm leading-relaxed text-ink-muted">{{ item.a }}</p>

@@ -1,0 +1,5 @@
+Contact: mailto:support@starium.cn
+Contact: https://starium.cn/contact
+Expires: 2027-12-31T23:59:59+08:00
+Preferred-Languages: zh-CN, en
+Canonical: https://starium.cn/.well-known/security.txt

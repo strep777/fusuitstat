@@ -63,30 +63,53 @@ export interface MfaResponse {
   mfa_enabled: boolean;
 }
 
+export interface AdminRoleSummary {
+  code: string;
+  name: string;
+  description?: string | null;
+}
+
 export interface AdminMeResponse {
-  staff_id: string;
-  display_name: string;
-  login_name: string;
+  staff: {
+    id: string;
+    login_name: string;
+    display_name: string;
+    email?: string | null;
+    status?: string | null;
+    is_owner?: boolean;
+    mfa_enabled?: boolean;
+    last_login_at?: string | null;
+  };
+  roles: AdminRoleSummary[];
   permissions: string[];
-  roles: string[];
-  session_expires_at: string;
-  mfa_enabled: boolean;
+  session_expires_at: string | null;
+  separation_pairs?: string[][];
 }
 
 /* ------------------------------------------------------------------ *
  * 仪表盘
  * ------------------------------------------------------------------ */
 
+export interface DashboardOrders {
+  awaiting_payment: number | null;
+  fulfilling: number | null;
+  open_after_sales: number | null;
+  pending_invoices: number | null;
+  overdue_unpaid: number | null;
+}
+
 export interface DashboardPayload {
-  /** 数组项可能为 null：表示该模块尚未就绪，界面要如实展示而不是当成 0。 */
-  pending_payment_orders: number | null;
-  pending_refunds: number | null;
-  reconciliation_differences: number | null;
-  open_inquiries: number | null;
-  pending_feedback: number | null;
-  low_stock_skus: number | null;
-  dead_letter_events: number | null;
+  /** 组可能整体为 null：表示该模块尚未就绪，界面要如实展示而不是当成 0。 */
+  orders: DashboardOrders | null;
+  finance: { pending_refunds: number | null; reconciliation_differences: number | null } | null;
+  commissions: { pending_inquiries: number | null } | null;
+  feedback: { pending_reviews: number | null } | null;
+  catalog: { low_stock_skus: number | null } | null;
+  operations: { dead_letter_events: number | null } | null;
   feature_flags: Record<string, boolean> | null;
+  missing_modules?: string[];
+  restricted?: string[];
+  notes?: string[];
   generated_at?: string | null;
 }
 
@@ -771,7 +794,10 @@ export const adminApi = {
   roles: () => api.get<AdminList<RoleRecord>>("/admin/roles"),
 
   /* --- 设置 --- */
-  settings: () => api.get<AdminList<SettingRecord>>("/admin/settings"),
+  settings: async () => {
+    const payload = await api.get<AdminList<SettingRecord> | SettingRecord[]>("/admin/settings");
+    return Array.isArray(payload) ? { items: payload } : payload;
+  },
   updateSetting: (
     key: string,
     input: {

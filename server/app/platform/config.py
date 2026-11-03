@@ -5,6 +5,8 @@
 
 from __future__ import annotations
 
+import contextlib
+import json
 import secrets
 from functools import lru_cache
 from pathlib import Path
@@ -185,6 +187,24 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
     trusted_proxy_ips: str = "127.0.0.1"
 
+    # ---- 防爬虫、并发与请求体（19 文档）----
+    security_guard_enabled: bool = True
+    #: 测试默认关闭全局限额与 UA 拦截，避免误伤功能测试；安全用例显式打开。
+    security_guard_test_mode: bool = False
+    max_concurrent_requests: int = 128
+    concurrency_queue_ms: int = 80
+    max_json_body_bytes: int = 1024 * 1024
+    max_multipart_body_bytes: int = 32 * 1024 * 1024
+    rate_limit_global_per_minute: int = 300
+    rate_limit_read_per_minute: int = 240
+    rate_limit_search_per_minute: int = 90
+    rate_limit_write_per_minute: int = 30
+    rate_limit_admin_per_minute: int = 60
+    crawler_block_enabled: bool = False
+    crawler_blocklist: str = ""
+    admin_ip_allowlist: str = ""
+    public_cache_seconds: int = 15
+
     @field_validator("data_dir")
     @classmethod
     def _resolve_data_dir(cls, value: Path) -> Path:
@@ -327,15 +347,67 @@ class Settings(BaseSettings):
     def trusted_proxies(self) -> list[str]:
         return [item.strip() for item in self.trusted_proxy_ips.split(",") if item.strip()]
 
+    @property
+    def crawler_block_active(self) -> bool:
+        """生产强制开启；测试/开发只在显式配置时开启。"""
+        return self.crawler_block_enabled or self.is_production
+
+    @property
+    def allowed_hosts(self) -> list[str]:
+        """生产 Host 校验：主域、www 与 public_origin 的主机。"""
+        hosts = {"starium.cn", "www.starium.cn"}
+        for origin in (self.public_origin, f"https://{self.brand_domain}"):
+            try:
+                host = origin.split("://", 1)[1].split("/", 1)[0].split(":", 1)[0]
+                if host:
+                    hosts.add(host)
+            except IndexError:
+                continue
+        return sorted(hosts)
+
+    @property
+    def admin_networks(self) -> list[str]:
+        return [item.strip() for item in self.admin_ip_allowlist.split(",") if item.strip()]
+
     def secret(self, name: str) -> str:
-        """读取密钥；开发/测试环境缺失时生成进程内稳定值（不落盘、不写日志）。"""
+        """读取密钥；开发环境缺失时生成并在 ``data_dir`` 内持久化。
+
+        只对 ``development`` 生效：重启后仍能解密本机演示库里的 PII/MFA 密文。
+        ``test`` 保持进程内随机值；生产/预发布必须显式配置，缺失即失败。
+        """
         value = getattr(self, name)
         if value:
             return str(value)
         if self.is_production:
             raise RuntimeError(f"{name.upper()} 未配置")
-        cache = _DEV_SECRETS.setdefault(name, secrets.token_hex(32))
-        return cache
+        if self.app_env == "development":
+            return self._dev_secret(name)
+        return _DEV_SECRETS.setdefault(name, secrets.token_hex(32))
+
+    def _dev_secret(self, name: str) -> str:
+        """本地开发密钥文件：仅本机、不入库、不写日志。"""
+        path = self.data_dir / ".dev-secrets.json"
+        try:
+            self.data_dir.mkdir(parents=True, exist_ok=True)
+            if path.exists():
+                data = json.loads(path.read_text(encoding="utf-8"))
+                if isinstance(data, dict) and isinstance(data.get(name), str) and data[name]:
+                    return data[name]
+            else:
+                data = {}
+        except (OSError, ValueError):
+            # 文件损坏或不可读时回退到进程内值，并尝试覆盖重建。
+            data = {}
+        data[name] = secrets.token_hex(32)
+        try:
+            tmp = path.with_suffix(".tmp")
+            tmp.write_text(json.dumps(data), encoding="utf-8")
+            with contextlib.suppress(OSError):
+                tmp.chmod(0o600)
+            tmp.replace(path)
+        except OSError:
+            _DEV_SECRETS.setdefault(name, data[name])
+        return data[name]
 
 
 _DEV_SECRETS: dict[str, str] = {}

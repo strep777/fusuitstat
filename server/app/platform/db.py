@@ -57,6 +57,12 @@ def create_engine_for(settings: Settings) -> Engine:
         future=True,
         pool_pre_ping=True,
         connect_args=connect_args,
+        # 文件库允许多读并发；写仍由 SQLite 串行化。内存库使用独立池，不能传 pool_size。
+        **(
+            {"pool_size": 20, "max_overflow": 10, "pool_timeout": 5}
+            if url.startswith("sqlite") and "memory" not in url
+            else {}
+        ),
     )
     if url.startswith("sqlite"):
         event.listen(

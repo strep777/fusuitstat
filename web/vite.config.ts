@@ -6,8 +6,30 @@ import { defineConfig, type PluginOption } from "vite";
 
 const apiTarget = process.env.VITE_DEV_API_TARGET ?? "http://127.0.0.1:8000";
 
+/**
+ * 本地开发把 `/admin/*` 交给后台入口，避免刷新后台子路由时落回前台 404。
+ * 生产环境由 Nginx 做同样的 rewrite（见 文档/14）。
+ */
+function adminEntryFallback(): PluginOption {
+  const rewrite = (req: { url?: string }, _res: unknown, next: () => void): void => {
+    if (req.url && req.url.startsWith("/admin") && !req.url.startsWith("/admin.html")) {
+      req.url = "/admin.html";
+    }
+    next();
+  };
+  return {
+    name: "starium-admin-entry-fallback",
+    configureServer(server) {
+      server.middlewares.use(rewrite);
+    },
+    configurePreviewServer(server) {
+      server.middlewares.use(rewrite);
+    },
+  };
+}
+
 export default defineConfig({
-  plugins: [vue(), tailwindcss() as PluginOption],
+  plugins: [vue(), tailwindcss() as PluginOption, adminEntryFallback()],
   resolve: {
     alias: {
       "@": fileURLToPath(new URL("./src", import.meta.url)),

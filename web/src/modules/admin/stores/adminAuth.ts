@@ -12,7 +12,7 @@
 import { defineStore } from "pinia";
 import { computed, ref } from "vue";
 
-import { adminApi, type EnrollPayload } from "@/modules/admin/api/admin";
+import { adminApi, type AdminMeResponse, type EnrollPayload, type MfaResponse } from "@/modules/admin/api/admin";
 import { ApiError, clearCsrfToken, setCsrfToken } from "@/shared/lib/http";
 
 export type AdminLoginStep = "credential" | "enroll" | "verify" | "authenticated";
@@ -163,20 +163,25 @@ export const useAdminAuthStore = defineStore("adminAuth", () => {
     resetChallenge();
   }
 
-  function applySession(payload: {
-    staff_id: string;
-    display_name: string;
-    login_name: string;
-    permissions: string[];
-    roles: string[];
-    session_expires_at: string;
-    mfa_enabled: boolean;
-  }): void {
-    staff.value = { id: payload.staff_id, display_name: payload.display_name, login_name: payload.login_name };
+  /**
+   * 登录响应是扁平结构，`/admin/auth/me` 是 `{staff, roles}` 嵌套结构。
+   * 这里统一归一化，避免刷新后台后显示 `[object Object]` 或丢失员工姓名。
+   */
+  function applySession(payload: MfaResponse | AdminMeResponse): void {
+    const nested = "staff" in payload ? payload.staff : null;
+    const staffId = nested?.id ?? ("staff_id" in payload ? payload.staff_id : "");
+    const displayName = nested?.display_name ?? ("display_name" in payload ? payload.display_name : "");
+    const loginName = nested?.login_name ?? ("login_name" in payload ? payload.login_name : "");
+    const roleNames = (payload.roles ?? []).map((role) =>
+      typeof role === "string" ? role : role.name || role.code,
+    );
+    const mfaEnabledValue = nested?.mfa_enabled ?? ("mfa_enabled" in payload ? payload.mfa_enabled : false);
+
+    staff.value = { id: staffId, display_name: displayName || "未命名员工", login_name: loginName };
     permissions.value = [...payload.permissions];
-    roles.value = [...payload.roles];
+    roles.value = roleNames;
     sessionExpiresAt.value = payload.session_expires_at;
-    mfaEnabled.value = payload.mfa_enabled;
+    mfaEnabled.value = Boolean(mfaEnabledValue);
     sessionExpired.value = false;
     lastError.value = null;
     loaded.value = true;
@@ -248,7 +253,7 @@ export const useAdminAuthStore = defineStore("adminAuth", () => {
     loading.value = true;
     try {
       const payload = await adminApi.me();
-      applySession({ ...payload, permissions: payload.permissions ?? [], roles: payload.roles ?? [] });
+      applySession(payload);
       return true;
     } catch (error) {
       const sessionError = error as Partial<ApiError>;

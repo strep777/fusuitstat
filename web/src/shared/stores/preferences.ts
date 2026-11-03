@@ -4,7 +4,7 @@
  */
 
 import { defineStore } from "pinia";
-import { ref, watch } from "vue";
+import { computed, ref, watch } from "vue";
 
 export type ThemeMode = "light" | "dark" | "system";
 export type Locale = "zh-CN" | "en-US";
@@ -26,13 +26,18 @@ export const usePreferencesStore = defineStore("preferences", () => {
   );
   const locale = ref<Locale>(readStored(LOCALE_KEY, ["zh-CN", "en-US"] as const, "zh-CN"));
 
+  /** 解析 system 后的实际主题，供需要换图的组件（如深色底 Logo）使用。 */
+  const effectiveTheme = computed<"light" | "dark">(() => {
+    if (theme.value !== "system") return theme.value;
+    const prefersDark =
+      typeof matchMedia === "function" && matchMedia("(prefers-color-scheme: dark)").matches;
+    return prefersDark ? "dark" : "light";
+  });
+
   function apply(): void {
     if (typeof document === "undefined") return;
     const root = document.documentElement;
-    const prefersDark =
-      typeof matchMedia === "function" && matchMedia("(prefers-color-scheme: dark)").matches;
-    const effective = theme.value === "system" ? (prefersDark ? "dark" : "light") : theme.value;
-    root.dataset.theme = effective;
+    root.dataset.theme = effectiveTheme.value;
     root.dataset.motion = reducedMotion.value ? "reduced" : "full";
     root.lang = locale.value;
   }
@@ -44,10 +49,7 @@ export const usePreferencesStore = defineStore("preferences", () => {
   }
 
   function toggleTheme(): void {
-    const prefersDark =
-      typeof matchMedia === "function" && matchMedia("(prefers-color-scheme: dark)").matches;
-    const effective = theme.value === "system" ? (prefersDark ? "dark" : "light") : theme.value;
-    setTheme(effective === "dark" ? "light" : "dark");
+    setTheme(effectiveTheme.value === "dark" ? "light" : "dark");
   }
 
   function setReducedMotion(value: boolean): void {
@@ -66,5 +68,15 @@ export const usePreferencesStore = defineStore("preferences", () => {
 
   watch([theme, reducedMotion, locale], apply, { immediate: true });
 
-  return { theme, reducedMotion, locale, apply, setTheme, toggleTheme, setReducedMotion, setLocale };
+  return {
+    theme,
+    effectiveTheme,
+    reducedMotion,
+    locale,
+    apply,
+    setTheme,
+    toggleTheme,
+    setReducedMotion,
+    setLocale,
+  };
 });

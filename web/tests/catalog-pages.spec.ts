@@ -11,6 +11,9 @@ import { createPinia, setActivePinia } from "pinia";
 import { createMemoryHistory, createRouter, type Router } from "vue-router";
 import { afterEach, describe, expect, it, vi, type Mock } from "vitest";
 
+import ProductCard from "@/modules/catalog/components/ProductCard.vue";
+import { useSiteStore } from "@/modules/content/stores/site";
+import { usePreferencesStore } from "@/shared/stores/preferences";
 import SkuPicker from "@/modules/catalog/components/SkuPicker.vue";
 import AccountApplicationsPage from "@/modules/catalog/pages/AccountApplicationsPage.vue";
 import CharacterDetailPage from "@/modules/catalog/pages/CharacterDetailPage.vue";
@@ -108,12 +111,21 @@ async function settle(): Promise<void> {
 async function mountAt(
   component: Parameters<typeof mount>[0],
   path: string,
+  locale: "zh-CN" | "en-US" = "zh-CN",
 ): Promise<{ wrapper: VueWrapper; router: Router }> {
   const router = createTestRouter();
   await router.push(path);
   await router.isReady();
   const pinia = createPinia();
   setActivePinia(pinia);
+  usePreferencesStore().setLocale(locale);
+  if (locale === "en-US") {
+    useSiteStore().settings = { "commerce.policy": {
+      regions: { CN: { currency: "CNY" }, US: { currency: "USD" } },
+      returns_reference: "See the returns policy", cross_border_note: "Duties may apply",
+      shipping_template_note: "Shipping at checkout", invoice_enabled: true,
+    } };
+  }
   const wrapper = mount(component, { global: { plugins: [pinia, router] } });
   await settle();
   return { wrapper, router };
@@ -331,6 +343,8 @@ const CREATED_APPLICATION: StockApplication = {
   sku_label: null,
   reason: "用于线下漫展，需要可拆尾巴",
   measurement_note: null,
+  preferred_date: null,
+  return_method: null,
   review_note: null,
   created_at: "2026-01-05T10:00:00Z",
   reviewed_at: null,
@@ -393,41 +407,21 @@ describe("ShopPage 筛选与 URL 同步", () => {
     expect(wrapper.findAll("img")).toHaveLength(0);
   });
 
-  it("区域定价：标注没有本区币种定价的商品，且不做汇率折算", async () => {
-    // 站点配置声明区域币种：CN=CNY、US=USD（只有币种，没有汇率字段）
+  it("区域定价：向服务端请求本区币种，展示服务端返回的原币价格", async () => {
+    const requests: string[] = [];
     installFetch((url) => {
-      if (url.includes("/content/settings")) {
-        return {
-          body: {
-            "commerce.policy": {
-              returns_reference: "参照平台规则",
-              cross_border_note: "",
-              invoice_enabled: true,
-              shipping_template_note: "",
-              regions: { CN: { currency: "CNY" }, US: { currency: "USD" } },
-            },
-          },
-        };
-      }
       if (url.includes("/products")) {
-        return {
-          body: jsonPage([
-            makeProductSummary({ id: "p-cny", slug: "cny-item", title: "人民币定价商品", currency: "CNY" }),
-            makeProductSummary({ id: "p-usd", slug: "usd-item", title: "美元定价商品", currency: "USD" }),
-          ]),
-        };
+        requests.push(url);
+        return { body: jsonPage([makeProductSummary({ title: "本区商品", currency: "CNY" })]) };
       }
       return { body: {} };
     });
-
     const { wrapper } = await mountAt(ShopPage, "/shop");
-    // 简中浏览区 → 人民币结算；美元定价的商品被如实标注为"没有本区定价"
+    expect(requests.length).toBeGreaterThan(0);
+    expect(requests.every((url) => new URL(url, "http://localhost").searchParams.get("currency") === "CNY")).toBe(true);
     expect(wrapper.text()).toContain("本区结算币种：CNY");
-    expect(wrapper.text()).toContain("该商品没有 CNY 定价");
-    expect(wrapper.text()).toContain("1 件商品没有 CNY 定价");
-    // 价格来自服务端整数分与币种，页面不做任何换算（两种币种各自按原币显示）
     expect(wrapper.text()).toContain("¥1,200 起");
-    expect(wrapper.text()).toContain("$1,200 起");
+    expect(wrapper.text()).not.toContain("$1,200");
   });
 });
 
@@ -563,6 +557,45 @@ describe("CharactersPage 状态筛选", () => {
 // ---------------------------------------------------------------------------
 
 describe("ProductDetailPage", () => {
+  it("英文详情请求美元规格，翻译选择器与审批提示，并保留英文公开链接", async () => {
+    const { calls } = installFetch((url) => {
+      if (url.includes("/products/fursuit-basic")) return { body: makeProductDetail({
+        requires_approval: true, currency: "USD",
+        skus: [makeSku({ currency: "USD", attributes: { size: "M" } })],
+      }) };
+      return { body: {} };
+    });
+    const { wrapper } = await mountAt(ProductDetailPage, "/shop/fursuit-basic", "en-US");
+    expect(calls.some((url) => url.includes("currency=USD"))).toBe(true);
+    expect(wrapper.text()).toContain("Apply for approval before purchasing");
+    expect(wrapper.text()).toContain("Quantity");
+    expect(wrapper.text()).toContain("Size");
+    expect(isDisabled(wrapper, "button", "Add to cart")).toBe(true);
+    expect(wrapper.find('a[href="/en/shop"]').exists()).toBe(true);
+    expect(wrapper.find('a[href="/en/legal/returns"]').exists()).toBe(true);
+    expect(wrapper.text()).not.toContain("购买数量");
+    usePreferencesStore().setLocale("zh-CN");
+    await settle();
+    expect(wrapper.text()).toContain("购买数量");
+    expect(calls.some((url) => url.includes("currency=CNY"))).toBe(true);
+    wrapper.unmount();
+  });
+
+  it("英文售罄和不存在状态保留明确说明与返回入口", async () => {
+    installFetch((url) => url.includes("/products/missing") ? {
+      status: 404, body: { error: { code: "RESOURCE_NOT_FOUND", message: "Missing" } },
+    } : { body: makeProductDetail({ availability: "sold_out", currency: "USD",
+      skus: [makeSku({ currency: "USD", available: true, in_stock: false })] }) });
+    const sold = await mountAt(ProductDetailPage, "/shop/fursuit-basic", "en-US");
+    expect(sold.wrapper.text()).toContain("All variants are sold out");
+    expect(isDisabled(sold.wrapper, "button", "Add to cart")).toBe(true);
+    sold.wrapper.unmount();
+    const missing = await mountAt(ProductDetailPage, "/shop/missing", "en-US");
+    expect(missing.wrapper.text()).toContain("Product not found");
+    expect(missing.wrapper.findAll('a[href="/en/shop"]').some((link) => link.text() === "Back to shop")).toBe(true);
+    missing.wrapper.unmount();
+  });
+
   it("审批制商品显示申请引导，JSON-LD 的价格与库存与页面一致", async () => {
     installFetch((url) => {
       if (url.includes("/products/fursuit-basic")) {
@@ -852,5 +885,29 @@ describe("CharacterDetailPage", () => {
     expect(wrapper.text()).toContain("该角色尚未发布授权摘要");
     expect(wrapper.text()).toContain("按照合同要求执行");
     expect(wrapper.text()).toContain("该角色的故事尚未发布");
+  });
+});
+
+
+describe("区域目录语言与路径", () => {
+  it("英文商品卡保持英文路径与状态文案，切换回中文后同步恢复", async () => {
+    const pinia = createPinia();
+    setActivePinia(pinia);
+    const preferences = usePreferencesStore();
+    preferences.setLocale("en-US");
+    const router = createTestRouter();
+    const wrapper = mount(ProductCard, {
+      props: { product: makeProductSummary({ requires_approval: true }) },
+      global: { plugins: [pinia, router] },
+    });
+    expect(wrapper.find("a").attributes("href")).toBe("/en/shop/fursuit-basic");
+    expect(wrapper.text()).toContain("Application required");
+    expect(wrapper.text()).toContain("In stock");
+    expect(wrapper.text()).not.toContain("需先申请审批");
+    preferences.setLocale("zh-CN");
+    await settle();
+    expect(wrapper.find("a").attributes("href")).toBe("/shop/fursuit-basic");
+    expect(wrapper.text()).toContain("需先申请审批");
+    wrapper.unmount();
   });
 });

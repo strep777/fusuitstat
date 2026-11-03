@@ -36,6 +36,8 @@ class ProductApproval(Dto):
 
 
 class ProductResponse(Dto):
+    price_from_cents: int | None = None
+    currency: str = "CNY"
     id: str
     slug: str
     kind: str
@@ -93,6 +95,9 @@ class ApplicationInput(StrictDto):
     kind: Literal["drop", "accessory", "cleaning", "repair", "fitting", "service"] = "drop"
     reason: str = Field(min_length=4, max_length=1000)
     measurement_note: str | None = Field(default=None, max_length=500)
+    # FR-025 洗毛预约：期望日期（北京时间今日 +2..+60）与返还方式，仅 cleaning 使用。
+    preferred_date: str | None = Field(default=None, pattern=r"^\d{4}-\d{2}-\d{2}$")
+    return_method: Literal["pickup", "ship"] | None = None
 
 
 class ApplicationDecisionInput(StrictDto):
@@ -106,10 +111,14 @@ class ApplicationResponse(Dto):
     id: str
     kind: str
     status: str
+    user_id: str
     product_id: str
     product_title: str | None = None
     product_slug: str | None = None
     reason: str = ""
+    measurement_note: str | None = None
+    preferred_date: str | None = None
+    return_method: str | None = None
     decision_reason: str | None = None
     priority_rank: int | None = None
     purchase_expires_at: str | None = None

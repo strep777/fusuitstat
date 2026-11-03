@@ -1,6 +1,6 @@
 <script setup lang="ts">
 /**
- * 档期与申请：容量、时间窗口、普通申请与候补、掉落申请审批。
+ * 档期与申请：容量、时间窗口、普通申请与候补审批。
  *
  * 约束（07 文档）：名额是权威资源，由服务端在事务内扣减；审批必须写理由，
  * 通过时给出购买窗口；候补与普通申请分开显示，不能混在一起。
@@ -16,8 +16,8 @@ import {
   usePageData,
   type AdminList,
   type FailureView,
+  type ScheduleApplicationRecord,
   type ScheduleRoundRecord,
-  type StockApplicationRecord,
 } from "@/modules/admin/api/admin";
 import DataTable from "@/modules/admin/components/DataTable.vue";
 import type { TableColumn } from "@/modules/admin/components/DataTable.vue";
@@ -33,7 +33,7 @@ const toast = useToast();
 
 const rounds = ref<ScheduleRoundRecord[]>([]);
 const roundsError = ref<FailureView | null>(null);
-const applications = ref<StockApplicationRecord[]>([]);
+const applications = ref<ScheduleApplicationRecord[]>([]);
 const applicationsError = ref<FailureView | null>(null);
 const loading = ref(true);
 
@@ -71,10 +71,9 @@ const editForm = ref({ title: "", start_at: "", end_at: "", capacity: 0, timezon
 const editError = ref("");
 const editPending = ref(false);
 
-const decideTarget = ref<StockApplicationRecord | null>(null);
-const decideMode = ref<"APPROVE" | "REJECT">("APPROVE");
+const decideTarget = ref<ScheduleApplicationRecord | null>(null);
+const decideMode = ref<"SELECTED" | "REJECTED">("SELECTED");
 const decideReason = ref("");
-const purchaseWindowDays = ref(7);
 const priorityRank = ref(1);
 const decideError = ref("");
 const decidePending = ref(false);
@@ -94,7 +93,7 @@ async function loadApplications(): Promise<void> {
     applicationsError.value = null;
     return;
   }
-  const result = await collect<{ apps: AdminList<StockApplicationRecord> }>({
+  const result = await collect<{ apps: AdminList<ScheduleApplicationRecord> }>({
     apps: () => adminApi.scheduleApplications(selectedRoundId.value, { limit: 30 }),
   });
   if (result.ok.apps) {
@@ -163,13 +162,12 @@ async function saveRound(): Promise<void> {
   }
 }
 
-/** 审批掉落申请：通过时按优先级排序，并给出购买窗口。 */
-function openDecide(row: StockApplicationRecord, mode: "APPROVE" | "REJECT"): void {
+/** 审批档期申请：通过后生成排序序号与预留资格（C11）。 */
+function openDecide(row: ScheduleApplicationRecord, mode: "SELECTED" | "REJECTED"): void {
   decideTarget.value = row;
   decideMode.value = mode;
   decideReason.value = "";
-  purchaseWindowDays.value = 7;
-  priorityRank.value = typeof row.priority_rank === "number" ? row.priority_rank : 1;
+  priorityRank.value = typeof row.rank_sequence === "number" ? row.rank_sequence : 1;
   decideError.value = "";
 }
 
@@ -178,8 +176,8 @@ function requestDecideConfirm(): void {
     decideError.value = "请填写至少 6 个字的审批理由，客户与审计都会看到。";
     return;
   }
-  if (decideMode.value === "APPROVE" && (purchaseWindowDays.value < 1 || purchaseWindowDays.value > 30)) {
-    decideError.value = "购买窗口需要在 1–30 天之间。";
+  if (decideMode.value === "SELECTED" && (!Number.isInteger(priorityRank.value) || priorityRank.value < 1)) {
+    decideError.value = "排序序号必须是大于 0 的整数。";
     return;
   }
   decideError.value = "";
@@ -191,17 +189,15 @@ async function submitDecide(): Promise<void> {
   if (!row) return;
   decidePending.value = true;
   try {
-    await adminApi.decideStockApplication(row.id, {
+    await adminApi.decideScheduleApplication(row.id, {
       decision: decideMode.value,
       reason: decideReason.value.trim(),
-      ...(decideMode.value === "APPROVE"
-        ? { priority_rank: Math.round(priorityRank.value), purchase_window_days: Math.round(purchaseWindowDays.value) }
-        : {}),
+      ...(decideMode.value === "SELECTED" ? { rank_sequence: Math.round(priorityRank.value) } : {}),
     });
     toast.success(
-      decideMode.value === "APPROVE" ? "申请已通过" : "申请已拒绝",
-      decideMode.value === "APPROVE"
-        ? `客户需在 ${purchaseWindowDays.value} 天内完成购买，逾期名额自动释放。`
+      decideMode.value === "SELECTED" ? "申请已通过" : "申请已拒绝",
+      decideMode.value === "SELECTED"
+        ? `已生成排序 ${Math.round(priorityRank.value)} 与预留资格；客户可在「我的申请」查看。`
         : "拒绝理由已记录并同步给客户。",
     );
     decideConfirmOpen.value = false;
@@ -239,8 +235,8 @@ onMounted(load);
     </AdminPageHeader>
 
     <InlineNotice
-      title="审批掉落申请会占用名额"
-      description="通过审批时这里的优先级与购买窗口会写入申请记录；客户必须在窗口内购买，逾期名额自动释放，不需要人工回收。"
+      title="审批档期申请会占用名额"
+      description="通过后生成排序序号与预留资格；客户在「我的申请」中查看。名额由服务端在事务内校验，已处理申请不能重复审批。"
     />
 
     <DataTable
@@ -309,8 +305,8 @@ onMounted(load);
               <StatusBadge :tone="applyTone(row.status)" :label="text(row.status, '待处理')" />
             </template>
             <template #actions="{ row }">
-              <AppButton size="sm" @click="openDecide(row, 'APPROVE')">通过</AppButton>
-              <AppButton size="sm" variant="danger" @click="openDecide(row, 'REJECT')">拒绝</AppButton>
+              <AppButton size="sm" @click="openDecide(row, 'SELECTED')">通过</AppButton>
+              <AppButton size="sm" variant="danger" @click="openDecide(row, 'REJECTED')">拒绝</AppButton>
             </template>
           </DataTable>
         </div>
@@ -369,7 +365,7 @@ onMounted(load);
 
         <SurfaceCard v-if="decideTarget">
           <h2 class="font-display text-lg">
-            {{ decideMode === "APPROVE" ? "通过申请" : "拒绝申请" }}：{{ text(decideTarget.applicant_label, "申请人") }}
+            {{ decideMode === "SELECTED" ? "通过申请" : "拒绝申请" }}：{{ text(decideTarget.applicant_label, "申请人") }}
           </h2>
           <p class="mt-2 text-sm text-ink-muted">
             类型：{{ String(decideTarget.kind ?? "").includes("WAITLIST") ? "候补" : "普通申请" }}；系列
@@ -379,20 +375,17 @@ onMounted(load);
             <FieldRow label="审批理由" required for="decide-reason" hint="理由会记录并同步给客户，请写具体依据">
               <input id="decide-reason" v-model="decideReason" type="text" class="field-base" />
             </FieldRow>
-            <div v-if="decideMode === 'APPROVE'" class="grid gap-4 sm:grid-cols-2">
-              <FieldRow label="优先级序号" required for="decide-rank" hint="数字越小越靠前，用于名额冲突排序">
+            <div v-if="decideMode === 'SELECTED'" class="grid gap-4 sm:grid-cols-2">
+              <FieldRow label="排序序号" required for="decide-rank" hint="数字越小越靠前，用于名额冲突排序">
                 <input id="decide-rank" v-model.number="priorityRank" type="number" min="1" step="1" class="field-base tabular-nums" />
-              </FieldRow>
-              <FieldRow label="购买窗口（天）" required for="decide-window">
-                <input id="decide-window" v-model.number="purchaseWindowDays" type="number" min="1" max="30" step="1" class="field-base tabular-nums" />
               </FieldRow>
             </div>
             <p v-if="decideError" class="rounded-md border border-wine bg-wine-soft px-4 py-3 text-sm text-wine" role="alert">
               {{ decideError }}
             </p>
             <div class="flex flex-wrap gap-3">
-              <AppButton :variant="decideMode === 'APPROVE' ? 'primary' : 'danger'" @click="requestDecideConfirm">
-                {{ decideMode === "APPROVE" ? "提交通过" : "提交拒绝" }}
+              <AppButton :variant="decideMode === 'SELECTED' ? 'primary' : 'danger'" @click="requestDecideConfirm">
+                {{ decideMode === "SELECTED" ? "提交通过" : "提交拒绝" }}
               </AppButton>
               <AppButton variant="quiet" @click="decideTarget = null">取消</AppButton>
             </div>
@@ -403,17 +396,17 @@ onMounted(load);
 
     <ConfirmDialog
       v-model="decideConfirmOpen"
-      :title="decideMode === 'APPROVE' ? '通过掉落申请并占用名额' : '拒绝掉落申请'"
+      :title="decideMode === 'SELECTED' ? '通过档期申请并预留名额' : '拒绝档期申请'"
       :target="decideTarget ? `申请人 ${text(decideTarget.applicant_label)} · 类型 ${String(decideTarget.kind ?? '').includes('WAITLIST') ? '候补' : '普通申请'}` : ''"
-      :change="decideMode === 'APPROVE' ? `状态 → 已通过，优先级 ${priorityRank}，购买窗口 ${purchaseWindowDays} 天` : '状态 → 已拒绝'"
-      :amount="decideMode === 'APPROVE' ? `占用 1 个名额 · 窗口 ${purchaseWindowDays} 天` : '不占用名额'"
+      :change="decideMode === 'SELECTED' ? `状态 → 已通过，排序 ${priorityRank}` : '状态 → 已拒绝'"
+      :amount="decideMode === 'SELECTED' ? '占用 1 个名额' : '不占用名额'"
       :consequence="
-        decideMode === 'APPROVE'
-          ? '通过后名额会被占用；客户逾期未购买时名额自动释放。若名额不足，服务端会拒绝这次审批。'
+        decideMode === 'SELECTED'
+          ? '通过后会生成排序与预留资格；名额不足时服务端会拒绝这次审批。'
           : '拒绝会立即通知客户，并记录理由；该申请不能恢复，客户需要重新提交。'
       "
-      :confirm-label="decideMode === 'APPROVE' ? '确认通过并占用名额' : '确认拒绝这次申请'"
-      :tone="decideMode === 'APPROVE' ? 'primary' : 'danger'"
+      :confirm-label="decideMode === 'SELECTED' ? '确认通过并预留名额' : '确认拒绝这次申请'"
+      :tone="decideMode === 'SELECTED' ? 'primary' : 'danger'"
       :pending="decidePending"
       @confirm="submitDecide"
     />

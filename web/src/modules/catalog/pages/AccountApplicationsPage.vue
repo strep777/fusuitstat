@@ -74,6 +74,11 @@ const now = ref(Date.now());
 
 const dirty = computed(() => JSON.stringify(form) !== pristine.value);
 
+/** 洗毛有独立预约页与日期字段，通用申请不提供 cleaning，避免缺日期被服务端拒绝。 */
+const applicationKindOptions = computed(() =>
+  STOCK_APPLICATION_KIND_OPTIONS.filter((option) => option.value !== "cleaning"),
+);
+
 const hasOpenWindow = computed(() =>
   applications.value.some(
     (item) =>
@@ -141,7 +146,10 @@ async function loadOptions(): Promise<void> {
   optionsError.value = null;
   try {
     const payload = await fetchProducts({ limit: 100 });
-    options.value = payload.items.filter((item) => item.requires_approval === true);
+    // 洗毛套餐有独立预约页（/wash）与日期字段，不进入通用申请表单，避免缺日期被服务端拒绝。
+    options.value = payload.items.filter(
+      (item) => item.requires_approval === true && item.service_kind !== "cleaning",
+    );
   } catch (caught) {
     optionsError.value =
       caught instanceof ApiError ? caught.message : "可申请商品加载失败，请稍后重试。";
@@ -193,7 +201,9 @@ async function applyPrefill(): Promise<void> {
   if (productSlug) {
     try {
       const product = await fetchProduct(productSlug);
-      if (product.requires_approval) {
+      if (product.service_kind === "cleaning") {
+        prefillNote.value = "洗毛套餐需要选择期望日期与返还方式，请到「洗毛与护理」页预约。";
+      } else if (product.requires_approval) {
         options.value = [product, ...options.value];
         form.product_id = product.id;
         prefillNote.value = `已选择商品「${product.title}」。`;
@@ -408,12 +418,12 @@ onBeforeUnmount(stopTicker);
             <legend class="text-sm font-medium text-ink-soft">申请类型</legend>
             <div class="flex flex-wrap gap-3">
               <label
-                v-for="option in STOCK_APPLICATION_KIND_OPTIONS"
+                v-for="option in applicationKindOptions"
                 :key="option.value"
-                class="inline-flex min-h-[44px] items-center gap-2 rounded-sm border px-3 text-sm"
+                class="inline-flex min-h-[44px] items-center gap-2 rounded-full border-2 px-4 text-sm"
                 :class="
                   form.kind === option.value
-                    ? 'border-amber bg-amber-soft text-amber-strong'
+                    ? 'border-brand bg-brand-soft text-brand-strong'
                     : 'border-line-strong'
                 "
               >
@@ -531,6 +541,10 @@ onBeforeUnmount(stopTicker);
               <p class="mt-3 text-sm text-ink-muted">{{ truncate(item.reason, 160) }}</p>
               <p v-if="item.measurement_note" class="mt-2 text-xs text-ink-faint">
                 量体说明：{{ truncate(item.measurement_note, 80) }}
+              </p>
+              <p v-if="item.preferred_date" class="mt-2 text-xs text-ink-faint">
+                期望日期：<span class="tabular-nums">{{ item.preferred_date }}</span>
+                · 返还方式：{{ item.return_method === "ship" ? "寄回" : "到店取回" }}
               </p>
 
               <p class="mt-3 text-xs text-ink-muted">

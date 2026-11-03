@@ -39,6 +39,7 @@ def list_products(
     kind: str | None = None,
     category: str | None = None,
     query: str | None = None,
+    currency: str | None = None,
     limit: int = 20,
     offset: int = 0,
 ) -> tuple[list[Any], int]:
@@ -46,17 +47,17 @@ def list_products(
     from app.modules.catalog import service as catalog_service
 
     return catalog_service.list_products(
-        session, kind=kind, category=category, query=query, limit=limit, offset=offset
+        session, kind=kind, category=category, query=query, currency=currency, limit=limit, offset=offset
     )
 
 
 def product_payload(
-    session: Session, product: Any, *, include_skus: bool = True
+    session: Session, product: Any, *, include_skus: bool = True, currency: str | None = None
 ) -> dict[str, Any]:
     """商品公开载荷。SKU 价格与可售状态由服务端裁定。"""
     from app.modules.catalog import service as catalog_service
 
-    return catalog_service.product_payload(session, product, include_skus=include_skus)
+    return catalog_service.product_payload(session, product, include_skus=include_skus, currency=currency)
 
 
 def list_skus(session: Session, *, product_id: str, active_only: bool = True) -> list[Any]:

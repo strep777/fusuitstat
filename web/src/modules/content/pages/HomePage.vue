@@ -1,538 +1,442 @@
 <script setup lang="ts">
 /**
- * 首页。
- *
- * 信息顺序（11 文档页面布局基线）：
- * 导航与接单状态 → 代表作品/品牌短句 → 系列 → 委托步骤 → 商品/角色 → 公告 → 联系与经营信息。
- *
- * 设计来源：森绒物语的温润质感 + 光海印记的信息层级 + 万物通行的规格对比 +
- * 爻光星的画廊网格 + 宇灵制造的系列叙事。首屏可见内容不等加载动画。
+ * 首页：先给结论（做什么、现在能不能接），再给入口（委托/商城/洗毛/道具/周边）。
+ * 文案规则见 11 文档：短句、先结论后条件、不堆形容词。
  */
+
 import { computed, onMounted, ref } from "vue";
 import { RouterLink } from "vue-router";
 
 import { fetchHome, type HomeAggregate } from "@/modules/content/api/content";
 import { useSiteStore } from "@/modules/content/stores/site";
-import { useAuthStore } from "@/modules/identity/stores/auth";
-import { useI18n } from "@/shared/lib/i18n";
+import { useI18n, resolveText } from "@/shared/lib/i18n";
 import { BrandMark, StarLoader } from "@/shared/ui/BrandMark";
 import { AppButton, EmptyState, SectionHeading, StatusBadge, SurfaceCard } from "@/shared/ui/base";
-import { formatCountdown, formatMoney, formatPriceFrom, truncate } from "@/shared/lib/format";
-import { resolveText } from "@/shared/lib/i18n";
+import { formatDate, formatMoney, formatPriceFrom, truncate } from "@/shared/lib/format";
 import { ApiError } from "@/shared/lib/http";
+
+const { locale, t } = useI18n();
+const site = useSiteStore();
 
 const home = ref<HomeAggregate | null>(null);
 const loading = ref(true);
-const error = ref<string | null>(null);
-const site = useSiteStore();
-const auth = useAuthStore();
-const { locale } = useI18n();
+const error = ref<{ code: string; message: string } | null>(null);
 
-/** 首页首屏文案由服务端给出（可能是按语言给出的值）：按当前语言解析，缺语言回退简中。 */
-const heroTagline = computed(() => resolveText(home.value?.hero.tagline, locale.value) || "绒里有星，装配成纪");
-const heroStatement = computed(
-  () =>
-    resolveText(home.value?.hero.statement, locale.value) ||
-    "从设定到实装，一步一步做成可以穿在身上的角色。工作室按季度开放委托名额，先询价、再报价，签合同后进入排期。",
-);
-const heroPrimaryLabel = computed(
-  () => resolveText(home.value?.hero.primary_action.label, locale.value) || "查看委托指南",
-);
-const heroSecondaryLabel = computed(
-  () => resolveText(home.value?.hero.secondary_action.label, locale.value) || "浏览作品集",
-);
-const steps = computed(() =>
-  (home.value?.commission_steps ?? []).map((step) => ({
-    step: step.step,
-    title: resolveText(step.title, locale.value),
-    description: resolveText(step.description, locale.value),
-  })),
+const heroTagline = computed(() => (home.value ? resolveText(home.value.hero.tagline, locale.value) : ""));
+const heroStatement = computed(() =>
+  home.value ? resolveText(home.value.hero.statement, locale.value) : "",
 );
 
-async function load(): Promise<void> {
+const heroPrimary = computed(() => {
+  const action = home.value?.hero.primary_action;
+  return {
+    label: (action && resolveText(action.label, locale.value)) || "提交询价",
+    to: action?.to || "/commission/new",
+  };
+});
+const heroSecondary = computed(() => {
+  const action = home.value?.hero.secondary_action;
+  return {
+    label: (action && resolveText(action.label, locale.value)) || "看看作品",
+    to: action?.to || "/works",
+  };
+});
+
+const schedule = computed(() => home.value?.schedule ?? null);
+const scheduleOpen = computed(() => schedule.value?.status === "open");
+const scheduleLabel = computed(() => {
+  const value = schedule.value;
+  if (!value) return "";
+  if (value.status === "open") return `本期余 ${value.remaining} 席`;
+  if (value.status === "upcoming") return "下期未开放";
+  return "档期已满";
+});
+
+const serviceCards = computed(() => [
+  {
+    eyebrow: "WASH",
+    title: "洗毛护理",
+    body: "到店或寄回，按套装深度清洁。",
+    to: "/wash",
+    tone: "bg-jade-soft text-ink",
+    chip: "text-jade",
+  },
+  {
+    eyebrow: "PROPS",
+    title: "道具工坊",
+    body: "发光角、可动耳、尾巴支架。",
+    to: "/props",
+    tone: "bg-grape-soft text-ink",
+    chip: "text-grape",
+  },
+  {
+    eyebrow: "MERCH",
+    title: "周边商店",
+    body: "徽章、挂件、托特包，少量现货。",
+    to: "/merch",
+    tone: "bg-lemon-soft text-ink",
+    chip: "text-ink",
+  },
+]);
+
+const workImages = computed(() => home.value?.featured_works.items ?? []);
+const seriesCards = computed(() => home.value?.series ?? []);
+const products = computed(() => home.value?.products.items ?? []);
+const news = computed(() => home.value?.news.items ?? []);
+const faq = computed(() => home.value?.faq ?? []);
+
+const steps = computed(() => home.value?.commission_steps ?? []);
+
+async function load() {
   loading.value = true;
   error.value = null;
   try {
     home.value = await fetchHome();
-    if (home.value.schedule) {
-      site.setScheduleSummary(home.value.schedule);
-    }
-  } catch (caught) {
-    error.value = caught instanceof ApiError ? caught.message : "首页内容加载失败。";
+    site.setScheduleSummary(home.value.schedule);
+  } catch (cause) {
+    const apiError = cause instanceof ApiError ? cause : null;
+    error.value = { code: apiError?.code ?? "UNKNOWN", message: apiError?.message ?? "加载失败" };
   } finally {
     loading.value = false;
   }
 }
 
 onMounted(load);
-
-const highlights = computed(() => [
-  { label: "手工定制", value: "全装 / 半装 / 单头" },
-  { label: "交付方式", value: "阶段确认 + 出厂记录" },
-  { label: "购买奖励", value: `${site.loyaltyRules.denominator_yuan} 元 = 1 星绒币` },
-  { label: "人工响应", value: `${site.brand.response_sla.inquiry_workdays} 个工作日` },
-]);
-
-const scheduleBadge = computed(() => {
-  const schedule = home.value?.schedule;
-  if (!schedule) return { tone: "neutral" as const, label: "档期以公告为准" };
-  if (schedule.status === "open") {
-    return { tone: "jade" as const, label: `委托开放中 · 余量 ${schedule.remaining}` };
-  }
-  if (schedule.status === "upcoming") {
-    return { tone: "amber" as const, label: `即将开放 · ${schedule.start_at.slice(0, 10)}` };
-  }
-  return { tone: "neutral" as const, label: "本轮申请已结束" };
-});
 </script>
 
 <template>
   <div>
-    <!-- 首屏：品牌短句与接单状态。深色面使用白色 Logo（素材在深底色下的对比度检查） -->
-    <section class="border-b border-night-line bg-night text-canvas">
-      <div class="container-page grid gap-12 py-16 lg:grid-cols-[1.1fr_0.9fr] lg:py-24">
-        <div class="animate-fade-up">
-          <div class="flex items-center gap-3">
-            <BrandMark :size="56" variant="light" decorative />
-            <div>
-              <p class="eyebrow text-canvas/50">{{ home?.hero.brand_name ?? site.brand.brand_name }}</p>
-              <p class="font-display text-lg">{{ heroTagline }}</p>
-            </div>
-          </div>
+    <!-- 首屏：短标题 + 现在能不能接 -->
+    <section class="relative overflow-hidden border-b-2 border-ink/5 bg-canvas bg-dots">
+      <div
+        class="pointer-events-none absolute -right-24 top-10 size-80 rounded-full bg-brand-soft/70 blur-3xl"
+        aria-hidden="true"
+      />
+      <div
+        class="pointer-events-none absolute -left-28 bottom-0 size-72 rounded-full bg-grape-soft/60 blur-3xl"
+        aria-hidden="true"
+      />
 
-          <h1 class="mt-8 font-display text-4xl leading-[1.15] sm:text-5xl lg:text-6xl">
-            把设定变成<br class="hidden sm:block" />可以穿在身上的角色
+      <div class="container-page relative grid gap-12 py-12 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:py-20">
+        <div>
+          <p class="eyebrow">{{ heroTagline || "兽装定制 · 上海" }}</p>
+          <h1 class="mt-4 font-display text-[2.75rem] font-extrabold leading-[1.05] tracking-tight sm:text-6xl">
+            {{ t("homePage.heroLine1") }}<br />{{ t("homePage.heroLine2") }}
           </h1>
-          <p class="mt-6 max-w-xl text-base leading-relaxed text-canvas/75">
-            {{ heroStatement }}
+          <p class="mt-5 max-w-xl text-lg leading-relaxed text-ink-soft">
+            {{ truncate(heroStatement || "全装、半装、单头与配件，按设定逐件打版。先确认方案，再排期制作。", 92) }}
           </p>
 
-          <div class="mt-8 flex flex-wrap items-center gap-3">
-            <AppButton :to="home?.hero.primary_action.to ?? '/commission/guide'" size="lg">
-              {{ heroPrimaryLabel }}
+          <div class="mt-7 flex flex-wrap gap-3">
+            <AppButton :to="heroPrimary.to" variant="primary" size="lg">
+              {{ heroPrimary.label }}
             </AppButton>
-            <AppButton
-              :to="home?.hero.secondary_action.to ?? '/works'"
-              variant="secondary"
-              size="lg"
-              class="!border-night-line !bg-transparent !text-canvas hover:!border-amber-ink hover:!text-amber-ink"
-            >
-              {{ heroSecondaryLabel }}
+            <AppButton :to="heroSecondary.to" variant="secondary" size="lg">
+              {{ heroSecondary.label }}
             </AppButton>
-            <RouterLink
-              v-if="!auth.isAuthenticated"
-              to="/login"
-              class="link-underline text-sm text-canvas/70 hover:text-amber-ink"
-            >
-              手机号登录后提交询价
+          </div>
+
+          <ul class="mt-8 flex flex-wrap gap-2 text-xs font-semibold">
+            <li class="rounded-full border border-ink/10 bg-surface px-3 py-1.5">手工打版</li>
+            <li class="rounded-full border border-ink/10 bg-surface px-3 py-1.5">可寄送</li>
+            <li class="rounded-full border border-ink/10 bg-surface px-3 py-1.5">星绒币回馈</li>
+            <li class="rounded-full border border-ink/10 bg-surface px-3 py-1.5">人工回复</li>
+          </ul>
+        </div>
+
+        <div class="relative mx-auto w-full max-w-md lg:max-w-none">
+          <div class="relative rounded-[2.5rem] border-2 border-ink/10 bg-[#FFE3DB] p-8 sm:p-10">
+            <div class="flex items-center justify-between">
+              <span class="rounded-full bg-white px-3 py-1 text-xs font-bold text-[#B62B18]">STARIUM</span>
+              <span class="text-xs font-semibold text-[#6B5D74]">上海 · 弈星纪元</span>
+            </div>
+            <div class="mt-6 flex justify-center">
+              <BrandMark :size="196" decorative />
+            </div>
+            <p class="mt-4 text-center font-display text-2xl font-extrabold text-[#2B2033]">一针一线，装配成纪</p>
+            <p class="mt-1 text-center text-sm text-[#6B5D74]">从设定到可以穿的角色</p>
+          </div>
+
+          <div class="sticker-card absolute -right-2 -top-5 w-44 rotate-3 p-4 sm:-right-6">
+            <p class="text-[11px] font-bold uppercase tracking-widest text-ink-muted">档期</p>
+            <div class="mt-2 flex items-center gap-2">
+              <StatusBadge
+                :tone="scheduleOpen ? 'jade' : 'amber'"
+                :label="scheduleLabel || '查看档期'"
+                icon="●"
+              />
+            </div>
+            <p v-if="schedule" class="mt-2 text-xs leading-relaxed text-ink-muted">
+              {{ schedule.title }} · 截止 {{ formatDate(schedule.end_at) }}
+            </p>
+            <RouterLink to="/commission/schedules" class="mt-2 inline-block text-xs font-bold text-brand-strong link-underline">
+              档期详情
             </RouterLink>
           </div>
 
-          <dl class="mt-12 grid grid-cols-2 gap-6 border-t border-night-line pt-8 sm:grid-cols-4">
-            <div v-for="item in highlights" :key="item.label">
-              <dt class="text-xs text-canvas/50">{{ item.label }}</dt>
-              <dd class="mt-1 text-sm font-medium text-canvas/90">{{ item.value }}</dd>
+          <div class="sticker-card absolute -bottom-6 -left-2 w-52 -rotate-2 bg-lemon-soft p-4 sm:-left-6">
+            <p class="text-[11px] font-bold uppercase tracking-widest text-ink-muted">不止兽装</p>
+            <div class="mt-2 flex flex-wrap gap-1.5 text-xs font-bold">
+              <RouterLink to="/wash" class="rounded-full bg-surface px-2.5 py-1 hover:text-brand-strong">洗毛</RouterLink>
+              <RouterLink to="/props" class="rounded-full bg-surface px-2.5 py-1 hover:text-brand-strong">道具</RouterLink>
+              <RouterLink to="/merch" class="rounded-full bg-surface px-2.5 py-1 hover:text-brand-strong">周边</RouterLink>
             </div>
-          </dl>
-        </div>
-
-        <!-- 深色面内的浅色信息卡：像爻光星那样把关键状态前置 -->
-        <div class="flex flex-col gap-4">
-          <SurfaceCard class="!bg-canvas !text-ink">
-            <div class="flex items-center justify-between gap-3">
-              <p class="eyebrow">当前档期</p>
-              <StatusBadge :tone="scheduleBadge.tone" :label="scheduleBadge.label" />
-            </div>
-            <template v-if="home?.schedule">
-              <h2 class="mt-4 font-display text-2xl">{{ home.schedule.title }}</h2>
-              <dl class="mt-4 space-y-2 text-sm text-ink-muted">
-                <div class="flex justify-between gap-4">
-                  <dt>开始</dt>
-                  <dd class="tabular-nums">{{ home.schedule.start_at.slice(0, 10) }}</dd>
-                </div>
-                <div class="flex justify-between gap-4">
-                  <dt>截止</dt>
-                  <dd class="tabular-nums">{{ home.schedule.end_at.slice(0, 10) }}</dd>
-                </div>
-                <div class="flex justify-between gap-4">
-                  <dt>总名额 / 剩余</dt>
-                  <dd class="tabular-nums">
-                    {{ home.schedule.capacity }} / {{ home.schedule.remaining }}
-                  </dd>
-                </div>
-                <div class="flex justify-between gap-4">
-                  <dt>时区</dt>
-                  <dd>{{ home.schedule.timezone }}</dd>
-                </div>
-              </dl>
-              <p class="mt-4 text-xs text-ink-faint">
-                名额、报价有效期与尾款期限都由后台配置；公开排期只展示匿名余量，不含个人信息。
-              </p>
-            </template>
-            <template v-else>
-              <p class="mt-4 text-sm text-ink-muted">
-                当前没有正在开放的档期。开放时间以公告为准，你也可以先提交询价进入沟通。
-              </p>
-            </template>
-            <div class="mt-5 flex flex-wrap gap-3">
-              <AppButton to="/commission/schedules" size="sm" variant="secondary">查看全部档期</AppButton>
-              <AppButton to="/commission/new" size="sm">提交询价</AppButton>
-            </div>
-          </SurfaceCard>
-
-          <div class="grid grid-cols-2 gap-4">
-            <RouterLink
-              to="/fursuits"
-              class="group rounded-lg border border-night-line p-5 transition-colors hover:border-amber-ink"
-            >
-              <p class="eyebrow text-canvas/50">系列规格</p>
-              <p class="mt-2 font-display text-lg text-canvas">对比材质与交付内容</p>
-              <p class="mt-2 text-xs text-canvas/60">包含项与不含项分开列出，起价不承诺未核准交期。</p>
-            </RouterLink>
-            <RouterLink
-              to="/characters"
-              class="group rounded-lg border border-night-line p-5 transition-colors hover:border-amber-ink"
-            >
-              <p class="eyebrow text-canvas/50">角色领养</p>
-              <p class="mt-2 font-display text-lg text-canvas">独占角色只有一只</p>
-              <p class="mt-2 text-xs text-canvas/60">标价、授权范围与领养状态在详情页说明。</p>
-            </RouterLink>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- 加载与错误：首屏以下区块用局部状态，不遮罩整页 -->
-    <div v-if="loading" class="container-page py-20">
-      <StarLoader message="正在读取作品与系列" hint="首次加载可能需要一点时间" />
+    <!-- 业务跑马灯 -->
+    <div class="overflow-hidden border-b-2 border-ink/10 bg-lemon py-3" aria-hidden="true">
+      <div class="animate-marquee flex w-max gap-8 whitespace-nowrap text-sm font-extrabold uppercase tracking-[0.18em] text-[#2B2033]">
+        <span v-for="index in 2" :key="index" class="flex gap-8">
+          <span v-for="word in ['全装', '半装', '单头', '洗毛', '道具', '周边', '上海', '接单中']" :key="`${index}-${word}`">
+            {{ word }} <span class="text-brand">✦</span>
+          </span>
+        </span>
+      </div>
     </div>
-    <div v-else-if="error" class="container-page py-16">
-      <EmptyState
-        tone="error"
-        title="首页内容暂时无法加载"
-        :description="`${error} 网络恢复后可以重试，已填写的内容不会丢失。`"
-      >
-        <AppButton size="sm" @click="load()">重新加载</AppButton>
-        <AppButton size="sm" variant="secondary" to="/contact">联系客服</AppButton>
+
+    <StarLoader v-if="loading" message="正在加载首页" class="container-page py-24" />
+
+    <div v-else-if="error" class="container-page py-20">
+      <EmptyState tone="error" title="首页暂时加载失败" :description="error.message">
+        <AppButton variant="secondary" @click="load">重新加载</AppButton>
       </EmptyState>
     </div>
 
     <template v-else-if="home">
-      <!-- 代表作品：爻光星式画廊网格 -->
-      <section class="container-page py-16 lg:py-20">
-        <SectionHeading
-          eyebrow="Selected works"
-          title="代表作品"
-          description="只展示已取得公开展示授权的成品；每件作品的物种、类型、装师与摄影署名都可核对。"
-        >
-          <template #actions>
-            <AppButton :to="home.featured_works.more" variant="secondary" size="sm">
-              查看全部 {{ home.featured_works.total }} 件
-            </AppButton>
-          </template>
-        </SectionHeading>
+      <!-- 三条业务线 -->
+      <section class="container-page py-14 sm:py-20">
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <SectionHeading eyebrow="SERVICES" title="做装，也做养护" description="三条线独立下单，共用同一套售后。" />
+          <RouterLink to="/shop" class="w-fit text-sm font-bold text-brand-strong link-underline">全部商品 →</RouterLink>
+        </div>
 
-        <div v-if="home.featured_works.items.length" class="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div class="mt-8 grid gap-4 md:grid-cols-3">
           <RouterLink
-            v-for="work in home.featured_works.items"
-            :key="work.id"
-            :to="work.route"
-            class="group block overflow-hidden rounded-lg border border-line bg-surface transition-shadow hover:shadow-lift"
+            v-for="card in serviceCards"
+            :key="card.to"
+            :to="card.to"
+            class="group relative overflow-hidden rounded-2xl border-2 border-ink/10 p-6 transition-transform hover:-translate-y-1"
+            :class="card.tone"
           >
-            <div class="aspect-[4/5] overflow-hidden bg-canvas-sunk">
-              <img
-                v-if="work.cover"
-                :src="work.cover.thumb ?? work.cover.src"
-                :srcset="work.cover.srcset.map((item) => `${item.url} ${item.width}w`).join(', ')"
-                sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
-                :width="work.cover.width"
-                :height="work.cover.height"
-                :alt="work.cover.alt || `${work.title} 成品展示`"
-                loading="lazy"
-                decoding="async"
-                class="size-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
-              />
-              <div v-else class="flex size-full items-center justify-center text-xs text-ink-faint">
-                图片准备中
-              </div>
-            </div>
-            <div class="p-5">
-              <div class="flex items-center gap-2">
-                <StatusBadge v-if="work.species" tone="neutral" :label="work.species" />
-                <StatusBadge v-if="work.work_type" tone="amber" :label="work.work_type" />
-              </div>
-              <h3 class="mt-3 font-display text-lg">{{ work.title }}</h3>
-              <p class="mt-2 text-sm text-ink-muted">{{ truncate(work.summary, 72) }}</p>
-            </div>
+            <p class="text-[11px] font-extrabold uppercase tracking-[0.22em]" :class="card.chip">{{ card.eyebrow }}</p>
+            <h3 class="mt-3 font-display text-2xl font-extrabold">{{ card.title }}</h3>
+            <p class="mt-2 max-w-[22ch] text-sm leading-relaxed text-ink-soft">{{ card.body }}</p>
+            <span class="mt-6 inline-flex items-center gap-1 text-sm font-bold">
+              去看看 <span aria-hidden="true" class="transition-transform group-hover:translate-x-1">→</span>
+            </span>
+            <span class="pointer-events-none absolute -bottom-6 -right-3 text-7xl opacity-15" aria-hidden="true">✦</span>
           </RouterLink>
         </div>
-        <EmptyState
-          v-else
-          class="mt-10"
-          title="作品正在整理中"
-          description="我们不会用他人作品充当案例；已授权的成品整理完成后会在这里公开。"
-        />
       </section>
 
-      <!-- 系列：万物通行式规格对比 -->
-      <section class="border-y border-line bg-surface-muted">
-        <div class="container-page py-16 lg:py-20">
-          <SectionHeading
-            eyebrow="Series"
-            title="系列与规格"
-            description="不同系列在材质、结构与交付内容上差别明确。起价标注包含项与不含项，最终金额以工作人员发布的报价为准。"
-          >
-            <template #actions>
-              <AppButton to="/fursuits" variant="secondary" size="sm">系列对比</AppButton>
-            </template>
-          </SectionHeading>
-
-          <div v-if="home.series.length" class="mt-10 grid gap-6 md:grid-cols-2">
-            <SurfaceCard v-for="item in home.series" :key="item.id" interactive class="flex flex-col">
-              <div class="flex items-start justify-between gap-4">
-                <div>
-                  <p class="eyebrow">{{ item.code }}</p>
-                  <h3 class="mt-2 font-display text-xl">{{ item.title }}</h3>
-                </div>
-                <p class="shrink-0 text-right">
-                  <span class="block font-display text-2xl">{{ formatPriceFrom(item.base_price_cents, item.currency) }}</span>
-                  <span class="text-xs text-ink-faint">仅展示起价</span>
-                </p>
-              </div>
-              <p class="mt-4 text-sm text-ink-muted">{{ truncate(item.summary, 110) }}</p>
-              <dl class="mt-5 grid gap-3 text-sm">
-                <div v-if="item.price_includes?.length">
-                  <dt class="text-xs text-ink-faint">包含</dt>
-                  <dd class="mt-1 flex flex-wrap gap-1.5">
-                    <span
-                      v-for="line in item.price_includes.slice(0, 5)"
-                      :key="line"
-                      class="rounded-xs bg-jade-soft px-2 py-0.5 text-xs text-jade"
-                    >
-                      {{ line }}
-                    </span>
-                  </dd>
-                </div>
-                <div v-if="item.price_excludes?.length">
-                  <dt class="text-xs text-ink-faint">不含</dt>
-                  <dd class="mt-1 flex flex-wrap gap-1.5">
-                    <span
-                      v-for="line in item.price_excludes.slice(0, 5)"
-                      :key="line"
-                      class="rounded-xs bg-canvas-sunk px-2 py-0.5 text-xs text-ink-muted"
-                    >
-                      {{ line }}
-                    </span>
-                  </dd>
-                </div>
-                <div v-if="item.lead_time_note">
-                  <dt class="text-xs text-ink-faint">交期说明</dt>
-                  <dd class="mt-1 text-ink-soft">{{ item.lead_time_note }}</dd>
-                </div>
-              </dl>
-              <div class="mt-6 flex flex-wrap gap-3">
-                <AppButton :to="item.route" size="sm" variant="secondary">查看规格</AppButton>
-                <AppButton to="/commission/new" size="sm">按此系列询价</AppButton>
-              </div>
-            </SurfaceCard>
+      <!-- 代表作品 -->
+      <section v-if="workImages.length" class="border-y-2 border-ink/5 bg-surface-muted py-14 sm:py-20">
+        <div class="container-page">
+          <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <SectionHeading eyebrow="WORKS" title="最近完成" description="每一套都从一张设定图开始。" />
+            <AppButton to="/works" variant="ghost" size="sm">全部作品 →</AppButton>
           </div>
-          <EmptyState
-            v-else
-            class="mt-10"
-            title="系列资料尚未发布"
-            description="系列参数由运营在后台维护并预览后发布；没有核准的参数不会显示。"
-          />
-        </div>
-      </section>
 
-      <!-- 委托步骤：光海印记式清晰流程 -->
-      <section class="container-page py-16 lg:py-20">
-        <SectionHeading
-          eyebrow="How it works"
-          title="委托流程"
-          description="询价是需求沟通记录，报价是有期限的商业提案，订单才承载实际收款与履约。三者分开保存，每一步你都能看到当前状态。"
-        >
-          <template #actions>
-            <AppButton to="/commission/guide" size="sm">阅读完整指南</AppButton>
-          </template>
-        </SectionHeading>
-
-        <ol class="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          <li v-for="step in steps" :key="step.step">
-            <SurfaceCard class="h-full">
-              <p class="font-display text-3xl text-amber">{{ step.step }}</p>
-              <h3 class="mt-3 font-display text-lg">{{ step.title }}</h3>
-              <p class="mt-3 text-sm leading-relaxed text-ink-muted">{{ step.description }}</p>
-            </SurfaceCard>
-          </li>
-        </ol>
-
-        <div class="mt-8 rounded-lg border border-amber bg-amber-soft p-5 text-sm text-amber-strong">
-          报价有效期 {{ site.commissionPolicy.quote_valid_days }} 天、预付款
-          {{ site.commissionPolicy.prepayment_percent }}%、尾款 {{ site.commissionPolicy.balance_due_days }} 天、
-          免费修改 {{ site.commissionPolicy.free_revision_count }} 次。这些数值由后台配置，页面展示与服务端校验使用同一份配置。
-        </div>
-      </section>
-
-      <!-- 商城与角色：UL 式系列叙事 + 光海式入口卡 -->
-      <section class="border-y border-line bg-surface-muted">
-        <div class="container-page py-16 lg:py-20">
-          <SectionHeading
-            eyebrow="Shop & adoption"
-            title="现货、配件与角色领养"
-            description="现货与配件直接购买；需要人工审批的掉落与服务先提交申请，通过后按审批通过列表购买；独占角色以真实库存为准。"
-          >
-            <template #actions>
-              <AppButton :to="home.products.more" variant="secondary" size="sm">进入商城</AppButton>
-              <AppButton to="/characters" size="sm">角色领养</AppButton>
-            </template>
-          </SectionHeading>
-
-          <div v-if="home.products.items.length" class="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          <div class="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             <RouterLink
-              v-for="product in home.products.items"
-              :key="product.id"
-              :to="`/shop/${product.slug}`"
-              class="group flex flex-col overflow-hidden rounded-lg border border-line bg-surface transition-shadow hover:shadow-lift"
+              v-for="work in workImages.slice(0, 3)"
+              :key="work.id"
+              :to="work.route"
+              class="group overflow-hidden rounded-2xl border-2 border-ink/10 bg-surface"
             >
-              <div class="aspect-square overflow-hidden bg-canvas-sunk">
+              <div class="aspect-[4/3] overflow-hidden bg-canvas-sunk">
                 <img
-                  v-if="product.images.length"
-                  :src="product.images[0]!.thumb ?? product.images[0]!.src"
-                  :alt="product.images[0]!.alt || `${product.title} 商品图`"
-                  :width="product.images[0]!.width"
-                  :height="product.images[0]!.height"
+                  v-if="work.cover"
+                  :src="work.cover.src"
+                  :alt="work.cover.alt"
+                  :width="work.cover.width"
+                  :height="work.cover.height"
                   loading="lazy"
-                  decoding="async"
-                  class="size-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                  class="size-full object-cover transition-transform duration-500 group-hover:scale-105"
                 />
-                <div v-else class="flex size-full items-center justify-center text-xs text-ink-faint">
-                  图片准备中
-                </div>
+                <div v-else class="flex size-full items-center justify-center bg-brand-soft text-3xl text-brand/50" aria-hidden="true">✦</div>
               </div>
-              <div class="flex flex-1 flex-col p-4">
-                <StatusBadge
-                  :tone="product.availability === 'available' ? 'jade' : 'neutral'"
-                  :label="product.availability === 'available' ? '有货' : product.availability === 'sold_out' ? '已售罄' : '待上架'"
-                />
-                <h3 class="mt-3 text-sm font-medium">{{ product.title }}</h3>
-                <p class="mt-1 text-xs text-ink-faint">{{ truncate(product.subtitle, 40) }}</p>
-                <p class="mt-auto pt-4 font-display text-lg">
-                  {{ formatMoney(product.price_from_cents, product.currency === "USD" ? "USD" : "CNY") }}
-                  <span class="text-xs text-ink-faint">起</span>
-                </p>
+              <div class="p-5">
+                <p class="text-xs font-semibold uppercase tracking-wide text-brand-strong">{{ work.species }} · {{ work.work_type }}</p>
+                <h3 class="mt-1 font-display text-xl font-extrabold">{{ work.title }}</h3>
+                <p class="mt-1 text-sm text-ink-muted">{{ truncate(work.summary, 42) }}</p>
               </div>
             </RouterLink>
           </div>
-          <EmptyState
-            v-else
-            class="mt-10"
-            title="商城商品正在上架"
-            description="上架前需要完成图片授权、SKU 与库存核对，不用占位商品填充页面。"
-          >
-            <AppButton to="/characters" size="sm" variant="secondary">先看看角色领养</AppButton>
-          </EmptyState>
         </div>
       </section>
 
-      <!-- 公告与常见问题 -->
-      <section class="container-page grid gap-12 py-16 lg:grid-cols-[1.2fr_1fr] lg:py-20">
-        <div>
-          <SectionHeading eyebrow="News" title="工作室公告" description="档期开放、新系列上线与展会安排都发布在这里。">
-            <template #actions>
-              <AppButton :to="home.news.more" variant="secondary" size="sm">全部公告</AppButton>
-            </template>
-          </SectionHeading>
-          <ul v-if="home.news.items.length" class="mt-8 divide-y divide-line border-y border-line">
-            <li v-for="item in home.news.items" :key="item.id">
-              <RouterLink :to="item.route" class="group flex flex-col gap-2 py-5 sm:flex-row sm:items-baseline sm:gap-6">
-                <time class="shrink-0 text-xs tabular-nums text-ink-faint">
-                  {{ (item.published_at ?? item.updated_at ?? "").slice(0, 10) }}
-                </time>
-                <div>
-                  <h3 class="font-display text-base group-hover:text-amber-strong">{{ item.title }}</h3>
-                  <p class="mt-1 text-sm text-ink-muted">{{ truncate(item.summary, 90) }}</p>
-                </div>
-              </RouterLink>
+      <!-- 系列 -->
+      <section v-if="seriesCards.length" class="container-page py-14 sm:py-20">
+        <SectionHeading eyebrow="SERIES" title="选一个起点" description="价格与包含项写清楚，不玩配置迷宫。" />
+        <div class="mt-8 grid gap-4 md:grid-cols-2">
+          <SurfaceCard v-for="item in seriesCards" :key="item.id" class="border-2 border-ink/10 p-6">
+            <div class="flex items-start justify-between gap-4">
+              <div>
+                <h3 class="font-display text-2xl font-extrabold">{{ item.title }}</h3>
+                <p class="mt-1 text-sm text-ink-muted">{{ item.summary }}</p>
+              </div>
+              <p class="shrink-0 text-right">
+                <span class="block text-[11px] font-semibold text-ink-muted">起价</span>
+                <span class="font-display text-xl font-extrabold">{{ formatPriceFrom(item.base_price_cents, item.currency) }}</span>
+              </p>
+            </div>
+            <dl class="mt-5 grid gap-3 text-sm sm:grid-cols-2">
+              <div>
+                <dt class="font-bold text-jade">包含</dt>
+                <dd class="mt-1 text-ink-soft">{{ item.price_includes }}</dd>
+              </div>
+              <div>
+                <dt class="font-bold text-wine">不含</dt>
+                <dd class="mt-1 text-ink-soft">{{ item.price_excludes }}</dd>
+              </div>
+            </dl>
+            <div class="mt-5 flex flex-wrap items-center justify-between gap-3">
+              <p class="text-xs text-ink-muted">交期：{{ item.lead_time_note }}</p>
+              <AppButton :to="item.route" variant="secondary" size="sm">查看规格</AppButton>
+            </div>
+          </SurfaceCard>
+        </div>
+      </section>
+
+      <!-- 流程 -->
+      <section v-if="steps.length" class="border-y-2 border-ink/5 bg-grape-soft py-14 sm:py-20">
+        <div class="container-page">
+          <SectionHeading eyebrow="PROCESS" title="四步开始" description="先谈方案，再谈排期。" />
+          <ol class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <li v-for="(step, index) in steps" :key="step.step" class="rounded-2xl border-2 border-ink/10 bg-surface p-5">
+              <span class="inline-flex size-9 items-center justify-center rounded-full bg-ink font-display text-sm font-extrabold text-canvas">
+                {{ index + 1 }}
+              </span>
+              <h3 class="mt-4 font-display text-lg font-extrabold">{{ resolveText(step.title, locale) }}</h3>
+              <p class="mt-1 text-sm leading-relaxed text-ink-muted">{{ resolveText(step.description, locale) }}</p>
             </li>
-          </ul>
-          <EmptyState v-else class="mt-8" title="暂无公告" description="有新的档期或活动时会在这里发布。" />
-        </div>
-
-        <div>
-          <SectionHeading eyebrow="FAQ" title="常见问题" description="委托前最常被问到的几件事。" />
-          <div v-if="home.faq.length" class="mt-8 space-y-3">
-            <details
-              v-for="item in home.faq"
-              :key="item.id"
-              class="group rounded-lg border border-line bg-surface px-5 py-4 open:shadow-quiet"
-            >
-              <summary class="cursor-pointer list-none font-medium marker:hidden">
-                <span class="flex items-start justify-between gap-4">
-                  {{ item.title }}
-                  <span class="mt-1 shrink-0 text-xs text-ink-faint group-open:hidden" aria-hidden="true">展开</span>
-                  <span class="mt-1 hidden shrink-0 text-xs text-ink-faint group-open:inline" aria-hidden="true">收起</span>
-                </span>
-              </summary>
-              <div class="prose-quiet mt-3 text-sm leading-relaxed text-ink-muted" v-html="item.body_html" />
-            </details>
-          </div>
-          <EmptyState v-else class="mt-8" title="FAQ 尚未发布" description="运营整理完成并预览后会公开。" />
-          <div class="mt-6">
-            <AppButton to="/faq" variant="secondary" size="sm">查看完整 FAQ</AppButton>
+          </ol>
+          <div class="mt-6 flex flex-wrap items-center gap-3 rounded-2xl border-2 border-ink/10 bg-surface px-5 py-4 text-sm">
+            <span class="font-bold text-brand-strong">报价有效期 {{ site.commissionPolicy.quote_valid_days }} 天</span>
+            <span class="text-ink-faint" aria-hidden="true">·</span>
+            <span class="text-ink-soft">定金 {{ site.commissionPolicy.prepayment_percent }}%</span>
+            <span class="text-ink-faint" aria-hidden="true">·</span>
+            <span class="text-ink-soft">尾款 {{ site.commissionPolicy.balance_due_days }} 天内</span>
+            <span class="text-ink-faint" aria-hidden="true">·</span>
+            <span class="text-ink-soft">免费修改 {{ site.commissionPolicy.free_revision_count }} 次</span>
           </div>
         </div>
       </section>
 
-      <!-- 联系与经营信息 -->
-      <section class="border-t border-line bg-night text-canvas">
-        <div class="container-page grid gap-10 py-16 lg:grid-cols-[1.2fr_1fr]">
-          <div>
-            <p class="eyebrow text-canvas/50">Contact</p>
-            <h2 class="mt-3 font-display text-3xl">想开始一个角色？</h2>
-            <p class="mt-4 max-w-xl text-sm leading-relaxed text-canvas/70">
-              先读委托指南了解可接范围与售后，然后提交询价。人工首响时间为
-              {{ site.brand.response_sla.inquiry_workdays }} 个工作日；节假日会另行说明。
-            </p>
-            <div class="mt-8 flex flex-wrap gap-3">
-              <AppButton to="/commission/new" size="lg">提交询价</AppButton>
-              <AppButton
-                to="/contact"
-                variant="secondary"
-                size="lg"
-                class="!border-night-line !bg-transparent !text-canvas hover:!border-amber-ink hover:!text-amber-ink"
-              >
-                联系与反馈
-              </AppButton>
+      <!-- 商城 -->
+      <section v-if="products.length" class="container-page py-14 sm:py-20">
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <SectionHeading eyebrow="SHOP" title="顺手带走" description="现货、道具、周边与洗毛套餐。" />
+          <AppButton to="/shop" variant="ghost" size="sm">逛商城 →</AppButton>
+        </div>
+        <div class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <RouterLink
+            v-for="product in products.slice(0, 4)"
+            :key="product.id"
+            :to="`/shop/${product.slug}`"
+            class="group overflow-hidden rounded-2xl border-2 border-ink/10 bg-surface transition-transform hover:-translate-y-1"
+          >
+            <div class="aspect-square overflow-hidden bg-canvas-sunk">
+              <img
+                v-if="product.images[0]"
+                :src="product.images[0].src"
+                :alt="product.images[0].alt"
+                :width="product.images[0].width"
+                :height="product.images[0].height"
+                loading="lazy"
+                class="size-full object-cover transition-transform duration-500 group-hover:scale-105"
+              />
+              <div v-else class="flex size-full items-center justify-center bg-brand-soft text-3xl" aria-hidden="true">✦</div>
+            </div>
+            <div class="p-4">
+              <p class="text-xs font-semibold text-ink-muted">{{ product.subtitle }}</p>
+              <h3 class="mt-1 line-clamp-1 font-display text-base font-extrabold">{{ product.title }}</h3>
+              <p class="mt-2 font-display text-lg font-extrabold text-brand-strong">
+                {{ formatMoney(product.price_from_cents, product.currency === "USD" ? "USD" : "CNY") }}
+              </p>
+            </div>
+          </RouterLink>
+        </div>
+      </section>
+
+      <!-- 公告 + FAQ -->
+      <section class="border-t-2 border-ink/5 bg-surface-muted py-14 sm:py-20">
+        <div class="container-page grid gap-8 lg:grid-cols-2">
+          <div v-if="news.length">
+            <div class="flex items-end justify-between">
+              <SectionHeading eyebrow="NEWS" title="工作室公告" />
+              <RouterLink to="/news" class="text-sm font-bold text-brand-strong link-underline">全部 →</RouterLink>
+            </div>
+            <ul class="mt-6 space-y-3">
+              <li v-for="item in news.slice(0, 3)" :key="item.id">
+                <RouterLink :to="item.route" class="block rounded-2xl border-2 border-ink/10 bg-surface p-4 hover:border-brand/40">
+                  <p class="text-xs text-ink-faint">{{ formatDate(item.published_at) }}</p>
+                  <p class="mt-1 font-bold">{{ item.title }}</p>
+                  <p class="mt-1 text-sm text-ink-muted">{{ truncate(item.summary, 56) }}</p>
+                </RouterLink>
+              </li>
+            </ul>
+          </div>
+
+          <div v-if="faq.length">
+            <div class="flex items-end justify-between">
+              <SectionHeading eyebrow="FAQ" title="先看这几条" />
+              <RouterLink to="/faq" class="text-sm font-bold text-brand-strong link-underline">全部 →</RouterLink>
+            </div>
+            <div class="mt-6 space-y-2">
+              <details v-for="item in faq.slice(0, 4)" :key="item.id" class="group rounded-2xl border-2 border-ink/10 bg-surface p-4">
+                <summary class="cursor-pointer list-none font-bold marker:hidden">
+                  <span class="flex items-center justify-between gap-3">
+                    {{ item.title }}
+                    <span class="text-brand-strong transition-transform group-open:rotate-45" aria-hidden="true">+</span>
+                  </span>
+                </summary>
+                <div class="prose-quiet mt-2 text-sm" v-html="item.body_html" />
+              </details>
             </div>
           </div>
-          <dl class="grid gap-5 self-center text-sm sm:grid-cols-2">
+        </div>
+      </section>
+
+      <!-- 联系 -->
+      <section class="container-page py-14 sm:py-20">
+        <div class="relative overflow-hidden rounded-[2rem] bg-[#241A2E] px-6 py-10 text-[#FFF8F0] sm:px-10 sm:py-12">
+          <div class="pointer-events-none absolute -right-16 -top-16 size-64 rounded-full bg-brand/30 blur-3xl" aria-hidden="true" />
+          <div class="relative grid gap-8 lg:grid-cols-[1.3fr_1fr]">
             <div>
-              <dt class="text-canvas/50">经营主体</dt>
-              <dd class="mt-1">{{ site.brand.legal_entity }}</dd>
+              <p class="text-xs font-extrabold uppercase tracking-[0.2em] text-[#FFB8A8]">CONTACT</p>
+              <h2 class="mt-3 font-display text-3xl font-extrabold sm:text-4xl">有想法，直接说。</h2>
+              <p class="mt-3 max-w-xl text-sm leading-relaxed text-white/70">
+                询价 3 个工作日内回复，反馈 7 个工作日内回复。工作时段 {{ site.brand.service_hours }}。
+              </p>
+              <div class="mt-6 flex flex-wrap gap-3">
+                <AppButton to="/commission/new" variant="primary">提交询价</AppButton>
+                <AppButton to="/contact" variant="secondary" class="border-white/30 text-white hover:border-white hover:text-white">
+                  联系方式
+                </AppButton>
+              </div>
             </div>
-            <div>
-              <dt class="text-canvas/50">客服邮箱</dt>
-              <dd class="mt-1">
-                <a class="link-underline" :href="`mailto:${site.brand.support_email}`">{{ site.brand.support_email }}</a>
-              </dd>
-            </div>
-            <div>
-              <dt class="text-canvas/50">工作时段</dt>
-              <dd class="mt-1">{{ site.brand.service_hours }}</dd>
-            </div>
-            <div>
-              <dt class="text-canvas/50">反馈首响</dt>
-              <dd class="mt-1">{{ site.brand.response_sla.feedback_workdays }} 个工作日</dd>
-            </div>
-            <div v-if="home.schedule" class="sm:col-span-2">
-              <dt class="text-canvas/50">本轮申请截止</dt>
-              <dd class="mt-1 tabular-nums">
-                {{ home.schedule.end_at.slice(0, 16).replace("T", " ") }} · 剩余
-                {{ formatCountdown(home.schedule.end_at) }}
-              </dd>
-            </div>
-          </dl>
+            <dl class="grid gap-3 text-sm">
+              <div>
+                <dt class="text-white/50">邮箱</dt>
+                <dd class="mt-0.5">
+                  <a class="link-underline" :href="`mailto:${site.brand.support_email}`">{{ site.brand.support_email }}</a>
+                </dd>
+              </div>
+              <div>
+                <dt class="text-white/50">经营主体</dt>
+                <dd class="mt-0.5">{{ site.brand.legal_entity }}</dd>
+              </div>
+              <div>
+                <dt class="text-white/50">积分</dt>
+                <dd class="mt-0.5">每 {{ site.loyaltyRules.denominator_yuan }} 元得 1 星绒币</dd>
+              </div>
+            </dl>
+          </div>
         </div>
       </section>
     </template>
@@ -541,13 +445,8 @@ const scheduleBadge = computed(() => {
 
 <style scoped>
 .prose-quiet :deep(p) {
-  margin-bottom: 0.5rem;
-}
-.prose-quiet :deep(p:last-child) {
-  margin-bottom: 0;
-}
-.prose-quiet :deep(ul) {
-  list-style: disc;
-  padding-left: 1.25rem;
+  margin: 0.35rem 0;
+  color: var(--color-ink-muted);
+  line-height: 1.65;
 }
 </style>

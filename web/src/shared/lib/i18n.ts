@@ -68,7 +68,7 @@ export function translate(key: MessageKey, params?: MessageParams, locale?: Loca
 }
 
 /** 当前语言：优先读偏好 store；在 store 尚未初始化时（如模块级调用）退回默认语言。 */
-function currentLocale(): Locale {
+export function currentLocale(): Locale {
   try {
     return usePreferencesStore().locale;
   } catch {

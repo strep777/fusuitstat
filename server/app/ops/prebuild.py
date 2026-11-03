@@ -16,6 +16,7 @@ import hashlib
 import json
 import logging
 import shutil
+import time
 from pathlib import Path
 from typing import Any
 
@@ -151,7 +152,8 @@ def _collect_dataset(session: Session, *, locales: tuple[str, ...]) -> dict[str,
     files["data/site/sitemap.json"] = content_service.sitemap_urls(session, origin="")
     files["data/site/series.json"] = [
         content_service.series_payload(spec, entry)
-        for spec, entry in content_repo.list_series(session, active_only=True)
+        for locale in locales
+        for spec, entry in content_repo.list_series(session, active_only=True, locale=locale)
     ]
     files["data/site/schedule.json"] = _schedule_payload(session)
     files["data/site/products.json"] = _product_payload(session)
@@ -217,6 +219,18 @@ def _character_payload(session: Session) -> list[dict[str, Any]]:
         }
         for row in rows
     ]
+
+
+def _rename_directory(source: Path, target: Path) -> None:
+    """Windows 索引/防病毒短暂占用时有限重试；持续权限错误仍交给任务失败处理。"""
+    for attempt in range(4):
+        try:
+            source.rename(target)
+            return
+        except PermissionError as exc:
+            if getattr(exc, "winerror", None) not in {5, 32, 33} or attempt == 3:
+                raise
+            time.sleep(0.05 * (2 ** attempt))
 
 
 def _write_dataset(
@@ -285,8 +299,15 @@ def _write_dataset(
         if output_dir.exists():
             if previous.exists():
                 shutil.rmtree(previous, ignore_errors=True)
-            output_dir.rename(previous)
-        staging.rename(output_dir)
+            _rename_directory(output_dir, previous)
+        try:
+            _rename_directory(staging, output_dir)
+        except Exception:
+            # 旧目录已移走时必须恢复正式路径。恢复也失败则保留 previous，
+            # 交由失败任务与人工恢复处理，不能删除最后一份可用快照。
+            if previous.exists() and not output_dir.exists():
+                _rename_directory(previous, output_dir)
+            raise
         if previous.exists():
             shutil.rmtree(previous, ignore_errors=True)
     except Exception:

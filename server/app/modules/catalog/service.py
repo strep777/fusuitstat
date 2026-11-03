@@ -9,13 +9,16 @@
 from __future__ import annotations
 
 import contextlib
+from datetime import date, datetime
 from typing import Any
+from zoneinfo import ZoneInfo
 
 import sqlalchemy as sa
 from sqlalchemy.orm import Session
 
 from app.modules.catalog import repository as repo
 from app.modules.catalog.models import (
+    RETURN_METHODS,
     Character,
     InventoryMovement,
     InventoryReservation,
@@ -36,15 +39,17 @@ def list_products(
     kind: str | None = None,
     category: str | None = None,
     query: str | None = None,
+    currency: str | None = None,
+    series_code: str | None = None,
     limit: int = 20,
     offset: int = 0,
 ) -> tuple[list[Product], int]:
     return repo.list_products(
-        session, kind=kind, category=category, query=query, limit=limit, offset=offset
+        session, kind=kind, category=category, query=query, currency=currency, series_code=series_code, limit=limit, offset=offset
     )
 
 
-def product_payload(session: Session, product: Product, *, include_skus: bool = True) -> dict[str, Any]:
+def product_payload(session: Session, product: Product, *, include_skus: bool = True, currency: str | None = None) -> dict[str, Any]:
     from app.modules.media.ports import public_media_payload
 
     payload: dict[str, Any] = {
@@ -63,6 +68,13 @@ def product_payload(session: Session, product: Product, *, include_skus: bool = 
         "seo_description": product.seo_description,
     }
     skus = repo.list_skus(session, product_id=product.id, active_only=True)
+    if currency:
+        skus = [sku for sku in skus if sku.currency == currency]
+    # 混合币种不能直接取数值最小项后配另一币种；默认展示第一种币种的最低价。
+    display_currency = currency or (skus[0].currency if skus else "CNY")
+    priced_skus = [sku for sku in skus if sku.currency == display_currency]
+    payload["currency"] = display_currency
+    payload["price_from_cents"] = min((sku.price_cents for sku in priced_skus), default=None)
     if include_skus:
         payload["skus"] = [sku_payload(session, sku) for sku in skus]
     images: list[dict[str, Any]] = []
@@ -488,6 +500,48 @@ def release_character(session: Session, *, character_id: str, reason: str) -> No
 
 
 # ------------------------------------------------------------------ 掉落申请（C28）
+_BOOKING_TZ = ZoneInfo("Asia/Shanghai")
+
+
+def _validate_wash_booking(
+    product: Product,
+    *,
+    kind: str,
+    preferred_date: str | None,
+    return_method: str | None,
+) -> None:
+    """校验洗毛预约（FR-025）：仅 cleaning 可带日期/返还方式，日期为北京时间今日 +2..+60。"""
+    if kind != "cleaning":
+        if preferred_date is not None or return_method is not None:
+            raise AppError(
+                "VALIDATION_ERROR",
+                fields={"preferred_date": "只有洗毛服务可以填写预约日期"},
+            )
+        return
+
+    if product.service_kind != "cleaning":
+        raise AppError("VALIDATION_ERROR", fields={"product_id": "该商品不是洗毛服务"})
+    if preferred_date is None:
+        raise AppError("BOOKING_DATE_INVALID", fields={"preferred_date": "请选择期望日期"})
+    try:
+        wanted = date.fromisoformat(preferred_date)
+    except ValueError:
+        raise AppError(
+            "BOOKING_DATE_INVALID", fields={"preferred_date": "日期格式应为 YYYY-MM-DD"}
+        ) from None
+    offset = (wanted - datetime.now(_BOOKING_TZ).date()).days
+    if offset < 2 or offset > 60:
+        raise AppError(
+            "BOOKING_DATE_INVALID",
+            fields={"preferred_date": "期望日期需在北京时间今日 2 天后至 60 天内"},
+        )
+    if return_method not in RETURN_METHODS:
+        raise AppError(
+            "VALIDATION_ERROR",
+            fields={"return_method": "返还方式需选择到店取回或寄回"},
+        )
+
+
 def submit_application(
     session: Session,
     *,
@@ -497,10 +551,15 @@ def submit_application(
     reason: str,
     kind: str = "drop",
     measurement_note: str | None = None,
+    preferred_date: str | None = None,
+    return_method: str | None = None,
 ) -> StockApplication:
     product = repo.get_product(session, product_id)
     if product is None or product.status != "published":
         raise AppError("RESOURCE_NOT_FOUND")
+    _validate_wash_booking(
+        product, kind=kind, preferred_date=preferred_date, return_method=return_method
+    )
     existing = repo.pending_application(session, user_id=user_id, product_id=product_id)
     if existing is not None:
         raise AppError("STATE_CONFLICT", "该商品已有正在处理的申请，请等待审批结果。")
@@ -512,6 +571,8 @@ def submit_application(
         kind=kind,
         reason=reason,
         measurement_note=measurement_note,
+        preferred_date=preferred_date,
+        return_method=return_method,
     )
     session.add(application)
     session.flush()
@@ -591,10 +652,14 @@ def application_payload(session: Session, application: StockApplication) -> dict
         "id": application.id,
         "kind": application.kind,
         "status": application.status,
+        "user_id": application.user_id,
         "product_id": application.product_id,
         "product_title": product.title if product else None,
         "product_slug": product.slug if product else None,
         "reason": application.reason,
+        "measurement_note": application.measurement_note,
+        "preferred_date": application.preferred_date,
+        "return_method": application.return_method,
         "decision_reason": application.decision_reason,
         "priority_rank": application.priority_rank,
         "purchase_expires_at": iso(application.purchase_expires_at),

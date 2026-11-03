@@ -39,6 +39,7 @@ import WorksPage from "@/modules/content/pages/WorksPage.vue";
 import ImageLightbox from "@/modules/content/components/ImageLightbox.vue";
 import { classifyPublicError, type ContentDetail, type ContentSummary, type MediaImage } from "@/modules/content/api/content";
 import { ApiError } from "@/shared/lib/http";
+import { usePreferencesStore } from "@/shared/stores/preferences";
 
 enableAutoUnmount(afterEach);
 
@@ -144,12 +145,13 @@ interface Mounted {
   router: Router;
 }
 
-async function mountAt(component: Component, path: string): Promise<Mounted> {
+async function mountAt(component: Component, path: string, locale: "zh-CN" | "en-US" = "zh-CN"): Promise<Mounted> {
   const router = makeRouter();
   await router.push(path);
   await router.isReady();
   const pinia = createPinia();
   setActivePinia(pinia);
+  usePreferencesStore().setLocale(locale);
   const wrapper = mount(component, { global: { plugins: [router, pinia] } });
   await flushPromises();
   await nextTick();
@@ -237,6 +239,30 @@ describe("空态渲染", () => {
     expect(wrapper.text()).toContain("FAQ 尚未发布");
     expect(wrapper.text()).toContain("问题与答案由运营在后台整理并预览后发布");
     expect(wrapper.findAll("details")).toHaveLength(0);
+  });
+
+  it("英文 FAQ 显示英文搜索与空态，帮助链接保留语言前缀", async () => {
+    api.fetchContentList.mockResolvedValue(listPage([], 0, 1, 50));
+    const { wrapper } = await mountAt(FaqPage, "/faq", "en-US");
+    expect(wrapper.text()).toContain("Frequently asked questions");
+    expect(wrapper.text()).toContain("No FAQs published yet");
+    expect(wrapper.find('a[href="/en/contact"]').exists()).toBe(true);
+    expect(wrapper.find("#faq-keyword").attributes("placeholder")).toContain("quote validity");
+    expect(wrapper.text()).not.toContain("常见问题");
+  });
+
+  it("单条 FAQ 正文重试成功后清除失败计数", async () => {
+    api.fetchContentList.mockResolvedValue(listPage([summary({ kind: "faq", slug: "retry" })], 1));
+    api.fetchContentDetail.mockRejectedValueOnce(new Error("offline"))
+      .mockResolvedValueOnce(detail({ kind: "faq", slug: "retry", body_html: "<p>Recovered answer</p>" }));
+    const { wrapper } = await mountAt(FaqPage, "/faq", "en-US");
+    expect(wrapper.text()).toContain("1 answers could not be loaded");
+    const retry = wrapper.findAll("button").find((button) => button.text() === "Retry this answer");
+    expect(retry).toBeTruthy();
+    await retry!.trigger("click");
+    await flushPromises();
+    expect(wrapper.text()).toContain("Recovered answer");
+    expect(wrapper.text()).not.toContain("answers could not be loaded");
   });
 
   it("FAQ 搜索在同一批数据上过滤并显示命中数", async () => {

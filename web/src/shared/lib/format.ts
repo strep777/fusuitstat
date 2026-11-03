@@ -72,18 +72,23 @@ export function formatRelative(value: string | number | Date | null | undefined)
 }
 
 /** 倒计时文本。付款到期、报价有效期、名额预留共用。 */
-export function formatCountdown(deadline: string | number | null | undefined, now = Date.now()): string {
+export function formatCountdown(deadline: string | number | null | undefined, now = Date.now(), locale: "zh-CN" | "en-US" = "zh-CN"): string {
   if (deadline === null || deadline === undefined || deadline === "") return "—";
   const target = typeof deadline === "number" ? deadline : new Date(deadline).getTime();
   if (Number.isNaN(target)) return "—";
   let remaining = Math.floor((target - now) / 1000);
-  if (remaining <= 0) return "已到期";
+  if (remaining <= 0) return locale === "en-US" ? "Expired" : "已到期";
   const days = Math.floor(remaining / 86400);
   remaining -= days * 86400;
   const hours = Math.floor(remaining / 3600);
   remaining -= hours * 3600;
   const minutes = Math.floor(remaining / 60);
   const seconds = remaining - minutes * 60;
+  if (locale === "en-US") {
+    if (days > 0) return `${days}d ${hours}h`;
+    if (hours > 0) return `${hours}h ${minutes}m`;
+    return `${minutes}m ${String(seconds).padStart(2, "0")}s`;
+  }
   if (days > 0) return `${days} 天 ${hours} 小时`;
   if (hours > 0) return `${hours} 小时 ${minutes} 分`;
   return `${minutes} 分 ${String(seconds).padStart(2, "0")} 秒`;

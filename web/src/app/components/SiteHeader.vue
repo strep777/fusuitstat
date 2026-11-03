@@ -19,6 +19,9 @@ const router = useRouter();
 const auth = useAuthStore();
 const site = useSiteStore();
 const preferences = usePreferencesStore();
+const logoVariant = computed<"dark" | "light">(() =>
+  preferences.effectiveTheme === "dark" ? "light" : "dark",
+);
 const { t, locale, setLocale } = useI18n();
 
 interface NavItem {
@@ -52,11 +55,11 @@ async function switchLocale(): Promise<void> {
 const navItems = computed<NavItem[]>(() => {
   const items: NavItem[] = [
     { label: t("nav.works"), to: "/works" },
-    { label: t("nav.series"), to: "/fursuits" },
     { label: t("nav.commission"), to: "/commission/guide" },
-    { label: t("nav.characters"), to: "/characters" },
     { label: t("nav.shop"), to: "/shop" },
-    { label: t("nav.news"), to: "/news" },
+    { label: t("nav.wash"), to: "/wash" },
+    { label: t("nav.props"), to: "/props" },
+    { label: t("nav.merch"), to: "/merch" },
     { label: t("nav.about"), to: "/about" },
   ];
   return items.filter((item) => !item.feature || site.featureEnabled(item.feature));
@@ -103,31 +106,33 @@ const commissionLabel = computed(() => {
 
 <template>
   <header
-    class="sticky top-0 z-40 border-b transition-colors duration-200"
+    class="sticky top-0 z-40 border-b-2 border-ink/5 transition-colors duration-200"
     :class="
       scrolled
-        ? 'border-line bg-canvas/95 backdrop-blur supports-[backdrop-filter]:bg-canvas/80'
-        : 'border-transparent bg-canvas'
+        ? 'bg-canvas/92 backdrop-blur-md supports-[backdrop-filter]:bg-canvas/80'
+        : 'bg-canvas'
     "
   >
-    <div class="container-page flex h-16 items-center gap-4 sm:h-20">
-      <RouterLink to="/" class="flex items-center gap-3" :aria-label="t('nav.brandHome')">
-        <BrandMark :size="40" variant="dark" decorative class="shrink-0" />
+    <div class="container-page flex h-16 items-center gap-3 sm:h-20">
+      <RouterLink to="/" class="flex shrink-0 items-center gap-2.5" :aria-label="t('nav.brandHome')">
+        <BrandMark :size="40" :variant="logoVariant" decorative class="shrink-0" />
         <span class="flex flex-col leading-tight">
-          <span class="font-display text-base font-semibold tracking-tight sm:text-lg">
+          <span class="font-display text-lg font-extrabold tracking-tight">
             {{ t("common.brandShort") }}
           </span>
-          <span class="hidden text-[11px] text-ink-faint sm:block">{{ t("common.brandEnglish") }}</span>
+          <span class="hidden text-[10px] font-semibold uppercase tracking-[0.12em] text-ink-faint sm:block">
+            {{ t("common.brandEnglish") }}
+          </span>
         </span>
       </RouterLink>
 
-      <nav class="ml-4 hidden items-center gap-1 lg:flex" :aria-label="t('nav.mainLabel')">
+      <nav class="ml-3 hidden items-center gap-0.5 lg:flex" :aria-label="t('nav.mainLabel')">
         <RouterLink
           v-for="item in navItems"
           :key="item.to"
           :to="item.to"
-          class="rounded-sm px-3 py-2 text-sm text-ink-soft transition-colors hover:bg-surface-muted hover:text-ink"
-          active-class="text-ink font-medium"
+          class="rounded-full px-3 py-2 text-[13px] font-semibold text-ink-soft transition-colors hover:bg-surface-muted hover:text-ink"
+          active-class="bg-ink !text-canvas hover:!bg-ink hover:!text-canvas"
         >
           {{ item.label }}
         </RouterLink>
@@ -136,7 +141,7 @@ const commissionLabel = computed(() => {
       <div class="ml-auto flex items-center gap-2">
         <RouterLink
           to="/commission/schedules"
-          class="hidden items-center gap-2 rounded-full border border-line px-3 py-1.5 text-xs text-ink-muted transition-colors hover:border-amber hover:text-amber-strong sm:inline-flex"
+          class="hidden items-center gap-1.5 rounded-full border border-jade/25 bg-jade-soft px-3 py-1.5 text-xs font-semibold text-jade transition-colors hover:border-jade sm:inline-flex"
         >
           <span
             class="size-1.5 rounded-full"
@@ -151,7 +156,7 @@ const commissionLabel = computed(() => {
           v-if="englishAvailable"
           type="button"
           lang="en-US"
-          class="hidden size-11 items-center justify-center rounded-sm border border-line text-xs font-medium text-ink-muted transition-colors hover:border-amber hover:text-amber-strong sm:inline-flex"
+          class="hidden size-11 items-center justify-center rounded-full border border-line-strong bg-surface text-xs font-bold text-ink-muted transition-colors hover:border-amber hover:text-amber-strong sm:inline-flex"
           :aria-label="`${t('common.language')}：${nextLocale === 'en-US' ? t('common.languageEn') : t('common.languageZh')}`"
           @click="switchLocale()"
         >
@@ -160,7 +165,7 @@ const commissionLabel = computed(() => {
 
         <button
           type="button"
-          class="inline-flex size-11 items-center justify-center rounded-sm border border-line text-ink-muted transition-colors hover:border-amber hover:text-amber-strong"
+          class="inline-flex size-11 items-center justify-center rounded-full border border-line-strong bg-surface text-ink-muted transition-colors hover:border-amber hover:text-amber-strong"
           :aria-label="preferences.theme === 'dark' ? t('nav.themeToLight') : t('nav.themeToDark')"
           :aria-pressed="preferences.theme === 'dark'"
           @click="preferences.toggleTheme()"
@@ -171,7 +176,7 @@ const commissionLabel = computed(() => {
         <RouterLink
           v-if="auth.isAuthenticated"
           to="/account"
-          class="hidden items-center gap-2 rounded-sm border border-line px-3 py-2 text-sm text-ink-soft transition-colors hover:border-amber sm:inline-flex"
+          class="hidden items-center gap-2 rounded-full border border-line-strong bg-surface px-3 py-2 text-sm text-ink-soft transition-colors hover:border-amber sm:inline-flex"
         >
           <PointsIcon :size="18" :label="`${auth.displayName}${t('nav.unread', { count: auth.unread })}`" />
           <span class="max-w-[8rem] truncate">{{ auth.displayName }}</span>
@@ -183,14 +188,14 @@ const commissionLabel = computed(() => {
             {{ auth.unread > 99 ? "99+" : auth.unread }}
           </span>
         </RouterLink>
-        <AppButton v-else to="/login" variant="secondary" size="sm" class="hidden sm:inline-flex">
+        <AppButton v-else to="/login" variant="primary" size="sm" class="hidden sm:inline-flex">
           {{ t("nav.login") }}
         </AppButton>
 
         <button
           ref="menuButton"
           type="button"
-          class="inline-flex size-11 items-center justify-center rounded-sm border border-line text-ink-soft lg:hidden"
+          class="inline-flex size-11 items-center justify-center rounded-full border border-line-strong bg-surface text-ink-soft lg:hidden"
           :aria-expanded="menuOpen"
           aria-controls="site-mobile-menu"
           :aria-label="menuOpen ? t('nav.closeMenu') : t('nav.openMenu')"
@@ -204,35 +209,35 @@ const commissionLabel = computed(() => {
     <div
       v-if="menuOpen"
       id="site-mobile-menu"
-      class="border-t border-line bg-surface lg:hidden"
+      class="border-t border-line bg-surface shadow-lift lg:hidden"
     >
-      <nav class="container-page grid gap-1 py-4" :aria-label="t('nav.mobileLabel')">
+      <nav class="container-page grid grid-cols-2 gap-2 py-4" :aria-label="t('nav.mobileLabel')">
         <RouterLink
           v-for="item in navItems"
           :key="item.to"
           :to="item.to"
-          class="rounded-sm px-3 py-3 text-base text-ink-soft hover:bg-surface-muted"
+          class="rounded-2xl bg-surface-muted px-4 py-3 text-base font-semibold text-ink-soft hover:bg-amber-soft hover:text-amber-strong"
         >
           {{ item.label }}
         </RouterLink>
-        <div class="hairline my-2" />
+        <div class="col-span-2 hairline my-1" />
         <RouterLink
           v-if="auth.isAuthenticated"
           to="/account"
-          class="rounded-sm px-3 py-3 text-base text-ink-soft hover:bg-surface-muted"
+          class="rounded-2xl px-4 py-3 text-base text-ink-soft hover:bg-surface-muted"
         >
           {{ t("nav.account") }}
         </RouterLink>
-        <RouterLink v-else to="/login" class="rounded-sm px-3 py-3 text-base text-ink-soft hover:bg-surface-muted">
+        <RouterLink v-else to="/login" class="rounded-2xl px-4 py-3 text-base text-ink-soft hover:bg-surface-muted">
           {{ t("nav.loginMobile") }}
         </RouterLink>
-        <RouterLink to="/contact" class="rounded-sm px-3 py-3 text-base text-ink-soft hover:bg-surface-muted">
+        <RouterLink to="/contact" class="rounded-2xl px-4 py-3 text-base text-ink-soft hover:bg-surface-muted">
           {{ t("nav.contact") }}
         </RouterLink>
         <button
           v-if="englishAvailable"
           type="button"
-          class="rounded-sm px-3 py-3 text-left text-base text-ink-soft hover:bg-surface-muted"
+          class="rounded-2xl px-4 py-3 text-left text-base text-ink-soft hover:bg-surface-muted"
           @click="switchLocale()"
         >
           {{ nextLocale === "en-US" ? t("common.languageEn") : t("common.languageZh") }}

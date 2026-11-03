@@ -61,6 +61,7 @@ export const ADMIN_NAV: readonly AdminNavItem[] = [
   { id: "media", label: "素材库", path: "/admin/media", permission: ADMIN_PERMISSIONS.media, section: "内容与商品", description: "授权信息、扫描状态、替代文本、引用关系" },
   { id: "products", label: "商品与库存", path: "/admin/products", permission: ADMIN_PERMISSIONS.catalogWrite, section: "内容与商品", description: "商品、SKU、价格、库存调整与低库存" },
   { id: "characters", label: "角色领养", path: "/admin/characters", permission: ADMIN_PERMISSIONS.catalogWrite, section: "内容与商品", description: "独占角色内容、授权规则与售出展示" },
+  { id: "applications", label: "服务与掉落申请", path: "/admin/applications", permission: ADMIN_PERMISSIONS.catalogWrite, section: "内容与商品", description: "洗毛预约与掉落申请的审批、购买窗口与拒绝理由" },
   { id: "quotes", label: "询价与报价", path: "/admin/quotes", permission: ADMIN_PERMISSIONS.quoteReview, section: "交易与履约", description: "分派、补件、发布报价版本、拒绝理由" },
   { id: "schedules", label: "档期与申请", path: "/admin/schedules", permission: ADMIN_PERMISSIONS.schedule, section: "交易与履约", description: "容量、时间窗口、普通申请与候补、审批" },
   { id: "commissions", label: "制作单", path: "/admin/commissions", permission: ADMIN_PERMISSIONS.production, section: "交易与履约", description: "节点更新、私密相册、确认记录、变更单" },

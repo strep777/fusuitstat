@@ -16,12 +16,14 @@ from app.platform.ids import new_id, now_ms
 from app.platform.orm import Base, PkMixin, TimestampMixin, VersionMixin
 
 PRODUCT_KINDS = ("stock_goods", "exclusive_character", "commission", "service")
+PRODUCT_CATEGORIES = ("stock", "accessory", "props", "merch", "service", "character")
 PRODUCT_STATUSES = ("draft", "published", "archived")
 RESERVATION_STATES = ("ACTIVE", "CONSUMED", "RELEASED", "EXPIRED")
 MOVEMENT_ACTIONS = ("RESERVE", "RELEASE", "CONSUME", "RESTOCK", "ADJUST", "RETURN_IN")
 APPLICATION_STATUSES = ("SUBMITTED", "NEEDS_INFO", "APPROVED", "REJECTED", "CONVERTED", "EXPIRED")
 CHARACTER_STATES = ("available", "reserved", "adopted", "kept")
 SERVICE_KINDS = ("cleaning", "repair", "accessory", "fitting")
+RETURN_METHODS = ("pickup", "ship")
 
 
 class Product(PkMixin, TimestampMixin, VersionMixin, Base):
@@ -180,6 +182,9 @@ class StockApplication(PkMixin, TimestampMixin, VersionMixin, Base):
     status: Mapped[str] = mapped_column(sa.String(20), nullable=False, default="SUBMITTED")
     reason: Mapped[str] = mapped_column(sa.String(1000), nullable=False, default="")
     measurement_note: Mapped[str | None] = mapped_column(sa.String(500))
+    # 洗毛预约（FR-025）：期望日期 YYYY-MM-DD 与返还方式 pickup/ship；其他申请为空。
+    preferred_date: Mapped[str | None] = mapped_column(sa.String(10))
+    return_method: Mapped[str | None] = mapped_column(sa.String(10))
     decided_by: Mapped[str | None] = mapped_column(sa.String(48))
     decided_at: Mapped[int | None] = mapped_column(sa.BigInteger)
     decision_reason: Mapped[str | None] = mapped_column(sa.String(400))
@@ -191,6 +196,10 @@ class StockApplication(PkMixin, TimestampMixin, VersionMixin, Base):
         sa.CheckConstraint(
             "status IN ('SUBMITTED','NEEDS_INFO','APPROVED','REJECTED','CONVERTED','EXPIRED')",
             name="ck_application_status",
+        ),
+        sa.CheckConstraint(
+            "return_method IS NULL OR return_method IN ('pickup','ship')",
+            name="ck_application_return_method",
         ),
         sa.Index("ix_applications_product_status", "product_id", "status"),
         sa.Index("ix_applications_user", "user_id", "status"),
@@ -204,10 +213,12 @@ __all__ = [
     "InventoryMovement",
     "InventoryReservation",
     "MOVEMENT_ACTIONS",
+    "PRODUCT_CATEGORIES",
     "PRODUCT_KINDS",
     "PRODUCT_STATUSES",
     "Product",
     "RESERVATION_STATES",
+    "RETURN_METHODS",
     "SERVICE_KINDS",
     "Sku",
     "StockApplication",

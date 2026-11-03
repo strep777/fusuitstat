@@ -66,6 +66,8 @@ export interface ProductSummary {
   subtitle: string;
   kind: string;
   category: string | null;
+  /** 服务细类：cleaning / repair / accessory / fitting */
+  service_kind?: string | null;
   price_from_cents: number | null;
   currency: string;
   availability: string;
@@ -89,6 +91,7 @@ export interface ProductDetail extends ProductSummary {
 }
 
 export type ProductQuery = {
+  currency?: "CNY" | "USD";
   kind?: string;
   category?: string;
   q?: string;
@@ -99,6 +102,7 @@ export type ProductQuery = {
 export async function fetchProducts(query: ProductQuery = {}): Promise<Page<ProductSummary>> {
   return api.get<Page<ProductSummary>>("/products", {
     query: {
+      currency: query.currency,
       kind: query.kind,
       category: query.category,
       q: query.q,
@@ -108,8 +112,8 @@ export async function fetchProducts(query: ProductQuery = {}): Promise<Page<Prod
   });
 }
 
-export async function fetchProduct(slug: string): Promise<ProductDetail> {
-  return api.get<ProductDetail>(`/products/${encodeURIComponent(slug)}`);
+export async function fetchProduct(slug: string, currency?: "CNY" | "USD"): Promise<ProductDetail> {
+  return api.get<ProductDetail>(`/products/${encodeURIComponent(slug)}`, { query: { currency } });
 }
 
 export interface CatalogOption {
@@ -118,13 +122,14 @@ export interface CatalogOption {
 }
 
 /**
- * 商城分类（03 文档：现货/配件/周边；服务按 C28 启用）。
+ * 商城分类（03 文档：现货/配件/道具/周边；服务按 C28 启用）。
  * 取值同时用于 URL query 与 API 的 `category` 参数，后端按同一份清单实现；
  * **标签**走词条表（`t()`），因此分类本身在英文站也会显示英文。
  */
 export const PRODUCT_CATEGORY_OPTIONS: CatalogOption[] = [
   { value: "stock", label: "现货" },
   { value: "accessory", label: "配件" },
+  { value: "props", label: "道具" },
   { value: "merch", label: "周边" },
   { value: "service", label: "服务" },
 ];
@@ -133,6 +138,7 @@ export const PRODUCT_CATEGORY_OPTIONS: CatalogOption[] = [
 const PRODUCT_CATEGORY_KEYS: Record<string, MessageKey> = {
   stock: "catalog.categoryStock",
   accessory: "catalog.categoryAccessory",
+  props: "catalog.categoryProps",
   merch: "catalog.categoryMerch",
   service: "catalog.categoryService",
 };
@@ -159,6 +165,13 @@ export function productKindLabel(value: string | null | undefined): string {
   return value;
 }
 
+/** 演示数据在标题末尾带标记；界面用独立徽章表达，标题保持可读。 */
+export const DEMO_TITLE_MARK = "（演示内容）";
+
+export function displayProductTitle(title: string | null | undefined): string {
+  return (title ?? "").replace(DEMO_TITLE_MARK, "").trim();
+}
+
 export interface AvailabilityMeta {
   label: string;
   tone: BadgeTone;
@@ -172,12 +185,12 @@ export function productAvailabilityMeta(
   availability: string | null | undefined,
 ): AvailabilityMeta {
   if (availability === "available") {
-    return { label: "有货", tone: "jade", schemaOrg: "InStock", purchasable: true };
+    return { label: translate("productCard.available"), tone: "jade", schemaOrg: "InStock", purchasable: true };
   }
   if (availability === "sold_out") {
-    return { label: "已售罄", tone: "neutral", schemaOrg: "OutOfStock", purchasable: false };
+    return { label: translate("productCard.soldOut"), tone: "neutral", schemaOrg: "OutOfStock", purchasable: false };
   }
-  return { label: "待上架", tone: "neutral", schemaOrg: "PreOrder", purchasable: false };
+  return { label: translate("productCard.comingSoon"), tone: "neutral", schemaOrg: "PreOrder", purchasable: false };
 }
 
 // ---------------------------------------------------------------------------
@@ -339,7 +352,7 @@ export async function removeCartItem(skuId: string): Promise<Cart> {
 // 掉落与服务申请（需登录；C28：审批通过后才能购买）
 // ---------------------------------------------------------------------------
 
-export type StockApplicationKind = "drop" | "service";
+export type StockApplicationKind = "drop" | "service" | "cleaning" | "repair" | "accessory" | "fitting";
 
 export interface StockApplicationInput {
   product_id: string;
@@ -347,6 +360,10 @@ export interface StockApplicationInput {
   kind: string;
   reason: string;
   measurement_note?: string | null;
+  /** 洗毛预约：北京时间今日 +2 至 +60 天（YYYY-MM-DD） */
+  preferred_date?: string | null;
+  /** 洗毛返还方式：到店取回 pickup / 寄回 ship */
+  return_method?: "pickup" | "ship" | null;
 }
 
 export interface StockApplication {
@@ -360,6 +377,8 @@ export interface StockApplication {
   sku_label: string | null;
   reason: string;
   measurement_note: string | null;
+  preferred_date: string | null;
+  return_method: string | null;
   review_note: string | null;
   created_at: string;
   reviewed_at: string | null;
@@ -403,6 +422,7 @@ export async function fetchStockApplication(id: string): Promise<StockApplicatio
 
 export const STOCK_APPLICATION_KIND_OPTIONS: CatalogOption[] = [
   { value: "drop", label: "掉落商品" },
+  { value: "cleaning", label: "洗毛预约" },
   { value: "service", label: "服务" },
 ];
 
@@ -473,46 +493,46 @@ export interface SpecEntry {
  * 常见规格键的中文label。未登记的键显示原始键名（下划线转空格），
  * 既不隐藏后台新增字段，也不猜测它的业务含义。
  */
-const SPEC_KEY_LABELS: Record<string, string> = {
-  applicable: "适用场景",
-  after_sales: "售后",
-  body: "身体",
-  cleaning: "清洁",
-  cooling: "散热",
-  customization: "可定制项",
-  delivery: "交付形态",
-  delivery_items: "交付内容",
-  excludes: "不含",
-  eyes: "眼部与视野",
-  feet: "脚部",
-  fit: "适配体型",
-  frame: "支撑结构",
-  fur: "毛料",
-  hands: "手部",
-  head: "头部",
-  includes: "包含",
-  lead_time: "交期",
-  lead_time_note: "交期说明",
-  lining: "内衬",
-  material: "材质",
-  notes: "说明",
-  options: "选配",
-  packaging: "包装",
-  padding: "填充",
-  scenario: "适用场景",
-  size: "尺寸",
-  storage: "存放",
-  structure: "结构",
-  tail: "尾部",
-  ventilation: "透气",
-  vision: "视野",
-  warranty: "保修",
-  weight: "重量",
+const SPEC_KEY_LABELS: Record<string, MessageKey> = {
+  applicable: "catalogSpecs.applicable",
+  after_sales: "catalogSpecs.after_sales",
+  body: "catalogSpecs.body",
+  cleaning: "catalogSpecs.cleaning",
+  cooling: "catalogSpecs.cooling",
+  customization: "catalogSpecs.customization",
+  delivery: "catalogSpecs.delivery",
+  delivery_items: "catalogSpecs.delivery_items",
+  excludes: "catalogSpecs.excludes",
+  eyes: "catalogSpecs.eyes",
+  feet: "catalogSpecs.feet",
+  fit: "catalogSpecs.fit",
+  frame: "catalogSpecs.frame",
+  fur: "catalogSpecs.fur",
+  hands: "catalogSpecs.hands",
+  head: "catalogSpecs.head",
+  includes: "catalogSpecs.includes",
+  lead_time: "catalogSpecs.lead_time",
+  lead_time_note: "catalogSpecs.lead_time_note",
+  lining: "catalogSpecs.lining",
+  material: "catalogSpecs.material",
+  notes: "catalogSpecs.notes",
+  options: "catalogSpecs.options",
+  packaging: "catalogSpecs.packaging",
+  padding: "catalogSpecs.padding",
+  scenario: "catalogSpecs.scenario",
+  size: "catalogSpecs.size",
+  storage: "catalogSpecs.storage",
+  structure: "catalogSpecs.structure",
+  tail: "catalogSpecs.tail",
+  ventilation: "catalogSpecs.ventilation",
+  vision: "catalogSpecs.vision",
+  warranty: "catalogSpecs.warranty",
+  weight: "catalogSpecs.weight",
 };
 
 export function specKeyLabel(key: string): string {
   const known = SPEC_KEY_LABELS[key];
-  if (known) return known;
+  if (known) return translate(known);
   return key.replace(/[_-]+/g, " ").trim();
 }
 

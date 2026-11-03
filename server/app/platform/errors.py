@@ -64,6 +64,7 @@ ERROR_CODES: dict[str, int] = {
     "REFUND_LIMIT_EXCEEDED": _S_409,
     # C02/C24：该区域没有该币种定价 → 不按汇率折算，明确拒绝（422 让客户端按字段提示引导用户）。
     "CURRENCY_NOT_SUPPORTED": _S_422,
+    "BOOKING_DATE_INVALID": _S_422,
     "POINTS_INSUFFICIENT": _S_409,
     "FEEDBACK_DUPLICATE": _S_409,
     "FEEDBACK_LIMIT_EXCEEDED": _S_429,
@@ -95,6 +96,7 @@ DEFAULT_MESSAGES: dict[str, str] = {
     "UPLOAD_NOT_READY": "文件尚未处理完成，请稍后重试。",
     "UPLOAD_REJECTED": "文件未通过安全检查，请更换文件。",
     "UPLOAD_LIMIT_EXCEEDED": "文件超出大小或数量限制。",
+    "BOOKING_DATE_INVALID": "期望日期需在北京时间今日 2 天后至 60 天内，请重新选择。",
     "QUOTE_EXPIRED": "报价已过期，请重新申请。",
     "QUOTE_CHANGED": "报价已更新，请查看最新版本后重新确认。",
     "SCHEDULE_CLOSED": "该档期当前未开放申请。",

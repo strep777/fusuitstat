@@ -6,7 +6,7 @@
  * 这里没有修改订单已付金额的入口。
  */
 import { computed, onMounted, ref, watch } from "vue";
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 
 import {
   actionErrorMessage,
@@ -28,6 +28,7 @@ import { formatMoneyExact, formatDateTime } from "@/shared/lib/format";
 import { useToast } from "@/shared/lib/toast";
 
 const route = useRoute();
+const router = useRouter();
 const auth = useAdminAuthStore();
 const toast = useToast();
 
@@ -40,6 +41,10 @@ const form = ref({
   summary: "",
   status: "DRAFT",
   currency: "CNY",
+  kind: "stock_goods",
+  category: "",
+  service_kind: "",
+  requires_approval: false,
 });
 
 const version = ref(0);
@@ -87,6 +92,10 @@ function fill(record: ProductRecord): void {
   form.value.summary = String((record as Dict).summary ?? "");
   form.value.status = String(record.status ?? "DRAFT");
   form.value.currency = String(record.currency ?? "CNY");
+  form.value.kind = String(record.kind ?? "stock_goods");
+  form.value.category = String(record.category ?? "");
+  form.value.service_kind = String(record.service_kind ?? "");
+  form.value.requires_approval = record.requires_approval === true;
   version.value = typeof record.version === "number" ? record.version : 0;
   dirty.value = false;
 }
@@ -125,11 +134,14 @@ async function saveProduct(): Promise<void> {
         slug: form.value.slug.trim(),
         summary: form.value.summary,
         status: form.value.status,
-        currency: form.value.currency,
+        kind: form.value.kind,
+        category: form.value.category || null,
+        service_kind: form.value.service_kind || null,
+        requires_approval: form.value.requires_approval,
       });
       toast.success("商品草稿已创建", "接着添加 SKU 与库存，再上架。");
+      await router.replace({ name: "admin-product-edit", params: { id: created.id } });
       await load();
-      fill(created);
       return;
     }
     const updated = await adminApi.updateProduct(productId.value, {
@@ -137,6 +149,9 @@ async function saveProduct(): Promise<void> {
       slug: form.value.slug.trim(),
       summary: form.value.summary,
       status: form.value.status,
+      category: form.value.category || null,
+      service_kind: form.value.service_kind || null,
+      requires_approval: form.value.requires_approval,
       version: version.value,
     });
     fill(updated);
@@ -214,7 +229,16 @@ const stockPreview = computed(() => {
 });
 
 watch(
-  () => [form.value.title, form.value.slug, form.value.summary, form.value.status, form.value.currency],
+  () => [
+    form.value.title,
+    form.value.slug,
+    form.value.summary,
+    form.value.status,
+    form.value.kind,
+    form.value.category,
+    form.value.service_kind,
+    form.value.requires_approval,
+  ],
   () => {
     dirty.value = true;
   },
@@ -270,6 +294,44 @@ onMounted(load);
             <FieldRow label="摘要" for="p-summary">
               <textarea id="p-summary" v-model="form.summary" rows="2" class="field-base resize-y" maxlength="300" />
             </FieldRow>
+            <div class="grid gap-4 sm:grid-cols-2">
+              <FieldRow label="类型" for="p-kind" :hint="isNew ? '创建后不可修改' : '类型创建后不可修改'">
+                <select id="p-kind" v-model="form.kind" class="field-base" :disabled="!isNew">
+                  <option value="stock_goods">现货商品</option>
+                  <option value="exclusive_character">角色领养</option>
+                  <option value="commission">委托服务</option>
+                  <option value="service">服务</option>
+                </select>
+              </FieldRow>
+              <FieldRow label="分类" for="p-category" hint="决定出现在商城、道具还是周边">
+                <select id="p-category" v-model="form.category" class="field-base">
+                  <option value="">不归类</option>
+                  <option value="stock">现货</option>
+                  <option value="accessory">配件</option>
+                  <option value="props">道具</option>
+                  <option value="merch">周边</option>
+                  <option value="service">服务</option>
+                  <option value="character">角色</option>
+                </select>
+              </FieldRow>
+            </div>
+            <div class="grid gap-4 sm:grid-cols-2">
+              <FieldRow label="服务类型" for="p-service-kind" hint="洗毛套餐必须选择「洗毛」">
+                <select id="p-service-kind" v-model="form.service_kind" class="field-base">
+                  <option value="">不适用</option>
+                  <option value="cleaning">洗毛</option>
+                  <option value="repair">修补</option>
+                  <option value="accessory">配件制作</option>
+                  <option value="fitting">试穿调整</option>
+                </select>
+              </FieldRow>
+              <FieldRow label="购买方式" for="p-approval" hint="洗毛与限量掉落需要先审批">
+                <label class="flex min-h-11 items-center gap-2 rounded-sm border-2 border-ink/10 px-3 text-sm">
+                  <input id="p-approval" v-model="form.requires_approval" type="checkbox" class="size-4 accent-brand" />
+                  需要先申请审批
+                </label>
+              </FieldRow>
+            </div>
             <div class="grid gap-4 sm:grid-cols-2">
               <FieldRow label="币种" for="p-currency">
                 <select id="p-currency" v-model="form.currency" class="field-base">

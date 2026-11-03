@@ -1086,15 +1086,41 @@
         "summary": "Get Work Facets",
         "description": "作品筛选维度。筛选条件可刷新恢复（category/series/species/q/page）。",
         "operationId": "get_work_facets_api_v1_content_work_facets_get",
+        "parameters": [
+          {
+            "name": "locale",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "zh-CN",
+                "en-US"
+              ],
+              "type": "string",
+              "default": "zh-CN",
+              "title": "Locale"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "Successful Response",
             "content": {
               "application/json": {
                 "schema": {
-                  "additionalProperties": true,
                   "type": "object",
+                  "additionalProperties": true,
                   "title": "Response Get Work Facets Api V1 Content Work Facets Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
                 }
               }
             }
@@ -1109,15 +1135,41 @@
         ],
         "summary": "List Series Public",
         "operationId": "list_series_public_api_v1_content_series_get",
+        "parameters": [
+          {
+            "name": "locale",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "zh-CN",
+                "en-US"
+              ],
+              "type": "string",
+              "default": "zh-CN",
+              "title": "Locale"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "Successful Response",
             "content": {
               "application/json": {
                 "schema": {
-                  "additionalProperties": true,
                   "type": "object",
+                  "additionalProperties": true,
                   "title": "Response List Series Public Api V1 Content Series Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
                 }
               }
             }
@@ -1140,6 +1192,20 @@
             "schema": {
               "type": "string",
               "title": "Slug"
+            }
+          },
+          {
+            "name": "locale",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "zh-CN",
+                "en-US"
+              ],
+              "type": "string",
+              "default": "zh-CN",
+              "title": "Locale"
             }
           }
         ],
@@ -1271,6 +1337,20 @@
               "default": false,
               "title": "Featured"
             }
+          },
+          {
+            "name": "locale",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "zh-CN",
+                "en-US"
+              ],
+              "type": "string",
+              "default": "zh-CN",
+              "title": "Locale"
+            }
           }
         ],
         "responses": {
@@ -1321,6 +1401,20 @@
             "schema": {
               "type": "string",
               "title": "Slug"
+            }
+          },
+          {
+            "name": "locale",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "zh-CN",
+                "en-US"
+              ],
+              "type": "string",
+              "default": "zh-CN",
+              "title": "Locale"
             }
           }
         ],
@@ -1438,15 +1532,41 @@
         "summary": "Home Aggregate",
         "description": "首页聚合。\n\n信息顺序固定（11 文档页面布局基线）：导航与接单状态 → 代表作品/品牌短句 →\n系列 → 委托步骤 → 商品/角色 → 公告 → 联系与经营信息。一次请求渲染首屏以下\n全部区块，首屏内容不为等待图片或全部请求而被遮罩阻挡。",
         "operationId": "home_aggregate_api_v1_site_home_get",
+        "parameters": [
+          {
+            "name": "locale",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "zh-CN",
+                "en-US"
+              ],
+              "type": "string",
+              "default": "zh-CN",
+              "title": "Locale"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "Successful Response",
             "content": {
               "application/json": {
                 "schema": {
-                  "additionalProperties": true,
                   "type": "object",
+                  "additionalProperties": true,
                   "title": "Response Home Aggregate Api V1 Site Home Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
                 }
               }
             }
@@ -1591,6 +1711,26 @@
             }
           },
           {
+            "name": "currency",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "CNY",
+                    "USD"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Currency"
+            }
+          },
+          {
             "name": "q",
             "in": "query",
             "required": false,
@@ -1692,6 +1832,26 @@
             "schema": {
               "type": "string",
               "title": "Slug"
+            }
+          },
+          {
+            "name": "currency",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "CNY",
+                    "USD"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Currency"
             }
           }
         ],
@@ -21567,6 +21727,22 @@
       },
       "ProductResponse": {
         "properties": {
+          "price_from_cents": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Price From Cents"
+          },
+          "currency": {
+            "type": "string",
+            "title": "Currency",
+            "default": "CNY"
+          },
           "id": {
             "type": "string",
             "title": "Id"

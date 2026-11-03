@@ -170,6 +170,10 @@ export interface ProductRecord extends Dict {
   sku_count?: number | null;
   price_from_cents?: number | null;
   currency?: string | null;
+  kind?: string | null;
+  category?: string | null;
+  service_kind?: string | null;
+  requires_approval?: boolean | null;
 }
 
 export interface SkuRecord extends Dict {
@@ -227,6 +231,41 @@ export interface StockApplicationRecord extends Dict {
   priority_rank?: number | null;
   created_at?: string | null;
   version?: number | null;
+}
+
+export interface ScheduleApplicationRecord extends Dict {
+  id: string;
+  round_id?: string | null;
+  user_id?: string | null;
+  inquiry_id?: string | null;
+  kind?: string | null;
+  status?: string | null;
+  rank_sequence?: number | null;
+  reason?: string | null;
+  decision_reason?: string | null;
+  applicant_label?: string | null;
+  series?: string | null;
+  created_at?: string | null;
+  decided_at?: string | null;
+}
+
+export interface CatalogApplicationRecord extends Dict {
+  id: string;
+  kind: string;
+  status: string;
+  user_id: string;
+  product_id: string;
+  product_title?: string | null;
+  product_slug?: string | null;
+  reason?: string | null;
+  measurement_note?: string | null;
+  preferred_date?: string | null;
+  return_method?: string | null;
+  decision_reason?: string | null;
+  priority_rank?: number | null;
+  purchase_expires_at?: string | null;
+  created_at?: string | null;
+  decided_at?: string | null;
 }
 
 export interface ScheduleRoundRecord extends Dict {
@@ -526,12 +565,12 @@ export const adminApi = {
 
   /* --- 申请（掉落与服务） --- */
   stockApplications: (query?: ListQuery) =>
-    api.get<AdminList<StockApplicationRecord>>("/admin/stock-applications", { query }),
+    api.get<AdminList<CatalogApplicationRecord>>("/admin/stock-applications", { query }),
   decideStockApplication: (
     id: string,
-    input: { decision: "APPROVE" | "REJECT"; reason: string; priority_rank?: number; purchase_window_days?: number },
+    input: { decision: "APPROVED" | "REJECTED" | "NEEDS_INFO"; reason: string; priority_rank?: number; purchase_window_days?: number },
   ) =>
-    api.post<StockApplicationRecord>(`/admin/stock-applications/${encodeURIComponent(id)}/decide`, input, {
+    api.post<CatalogApplicationRecord>(`/admin/stock-applications/${encodeURIComponent(id)}/decide`, input, {
       idempotencyKey: newIdempotencyKey(),
     }),
 
@@ -579,8 +618,15 @@ export const adminApi = {
   updateScheduleRound: (id: string, input: Dict & { version: number }) =>
     api.patch<ScheduleRoundRecord>(`/admin/schedule-rounds/${encodeURIComponent(id)}`, input),
   scheduleApplications: (roundId: string, query?: ListQuery) =>
-    api.get<AdminList<StockApplicationRecord>>(`/admin/schedule-rounds/${encodeURIComponent(roundId)}/applications`, {
+    api.get<AdminList<ScheduleApplicationRecord>>(`/admin/schedule-rounds/${encodeURIComponent(roundId)}/applications`, {
       query,
+    }),
+  decideScheduleApplication: (
+    id: string,
+    input: { decision: "SHORTLISTED" | "SELECTED" | "REJECTED"; reason: string; rank_sequence?: number },
+  ) =>
+    api.post<ScheduleApplicationRecord>(`/admin/schedule-applications/${encodeURIComponent(id)}/decision`, input, {
+      idempotencyKey: newIdempotencyKey(),
     }),
 
   commissionProjects: (query?: ListQuery) =>

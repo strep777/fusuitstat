@@ -156,6 +156,15 @@ class CrossBorder(Policy):
     note: LocalizedText = ""
 
 
+class RegionShipping(Shipping):
+    """区域运费必须明确提供币种与金额，不把人民币默认值复制成美元。"""
+    currency: Literal["CNY", "USD"]
+    flat_cents: Nonnegative
+    free_threshold_cents: Nonnegative
+    remote_region_surcharge_cents: Nonnegative
+    max_cents: Nonnegative
+
+
 class RegionZone(Policy):
     """区域交易（C02/C24）：某个区域用哪种货币定价与结算。
 
@@ -165,6 +174,14 @@ class RegionZone(Policy):
 
     currency: Literal["CNY", "USD"]
     label: LocalizedText = ""
+    shipping: RegionShipping | None = None
+    cross_border: CrossBorder | None = None
+
+    @model_validator(mode="after")
+    def shipping_currency_matches(self) -> "RegionZone":
+        if self.shipping and self.shipping.currency != self.currency:
+            raise ValueError("区域运费模板币种必须与结算币种一致")
+        return self
 
 
 class CommercePolicy(Policy):

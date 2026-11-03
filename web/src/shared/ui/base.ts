@@ -3,6 +3,7 @@
  *
  * 约束（11 文档）：按钮触控范围至少 44×44px；不能靠颜色单独表达售罄/已付款/错误；
  * 禁用按钮旁说明原因；每个数据区域都有 loading/empty/error/forbidden/not-found/success 状态。
+ * 视觉 v2：胶囊按钮、圆润无衬线标题、珊瑚红主色，深色主题共用品牌按钮色。
  */
 
 import { computed, defineComponent, h, type PropType, type VNodeChild } from "vue";
@@ -15,18 +16,18 @@ export type ButtonSize = "sm" | "md" | "lg";
 
 const VARIANT_CLASS: Record<ButtonVariant, string> = {
   primary:
-    "bg-amber text-white border border-amber hover:bg-amber-strong active:bg-amber-strong shadow-quiet",
+    "bg-brand text-white border border-brand hover:bg-brand-hover hover:border-brand-hover active:translate-y-px shadow-quiet",
   secondary:
-    "bg-surface text-ink border border-line-strong hover:border-amber hover:text-amber-strong",
-  ghost: "bg-transparent text-ink-soft border border-transparent hover:bg-surface-muted",
+    "bg-surface text-ink border-2 border-ink/15 hover:border-brand hover:text-brand-strong hover:bg-brand-soft/40",
+  ghost: "bg-transparent text-ink-soft border border-transparent hover:bg-canvas-sunk hover:text-ink",
   danger: "bg-wine text-white border border-wine hover:opacity-90",
-  quiet: "bg-canvas-sunk text-ink-soft border border-transparent hover:bg-amber-soft",
+  quiet: "bg-canvas-sunk text-ink-soft border border-transparent hover:bg-amber-soft hover:text-amber-strong",
 };
 
 const SIZE_CLASS: Record<ButtonSize, string> = {
-  sm: "min-h-[44px] px-3 text-sm",
-  md: "min-h-[44px] px-5 text-sm",
-  lg: "min-h-[52px] px-7 text-base",
+  sm: "min-h-[44px] px-4 text-sm",
+  md: "min-h-[46px] px-6 text-sm",
+  lg: "min-h-[54px] px-8 text-base",
 };
 
 export const AppButton = defineComponent({
@@ -47,7 +48,7 @@ export const AppButton = defineComponent({
   emits: ["click"],
   setup(props, { slots, emit }) {
     const classes = computed(() => [
-      "inline-flex items-center justify-center gap-2 rounded-sm font-medium transition-colors duration-150",
+      "inline-flex items-center justify-center gap-2 rounded-full font-semibold transition-all duration-150",
       "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2",
       VARIANT_CLASS[props.variant],
       SIZE_CLASS[props.size],
@@ -108,14 +109,17 @@ export const AppButton = defineComponent({
   },
 });
 
-export type BadgeTone = "neutral" | "amber" | "jade" | "wine" | "night";
+export type BadgeTone = "neutral" | "amber" | "jade" | "wine" | "night" | "grape" | "sky" | "lemon";
 
 const BADGE_TONE: Record<BadgeTone, string> = {
-  neutral: "bg-surface-muted text-ink-muted border-line",
-  amber: "bg-amber-soft text-amber-strong border-amber",
-  jade: "bg-jade-soft text-jade border-jade",
-  wine: "bg-wine-soft text-wine border-wine",
+  neutral: "bg-surface-muted text-ink-muted border-line-strong",
+  amber: "bg-amber-soft text-amber-ink border-amber/30",
+  jade: "bg-jade-soft text-jade border-jade/30",
+  wine: "bg-wine-soft text-wine border-wine/30",
   night: "bg-night text-canvas border-night-line",
+  grape: "bg-grape-soft text-grape border-grape/30",
+  sky: "bg-sky-soft text-sky border-sky/30",
+  lemon: "bg-lemon-soft text-amber-ink border-lemon/40",
 };
 
 export const StatusBadge = defineComponent({
@@ -132,7 +136,7 @@ export const StatusBadge = defineComponent({
         "span",
         {
           class: [
-            "inline-flex items-center gap-1 rounded-xs border px-2 py-0.5 text-xs font-medium",
+            "inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-semibold",
             BADGE_TONE[props.tone],
           ],
         },
@@ -159,7 +163,7 @@ export const SurfaceCard = defineComponent({
             props.bordered ? "border border-line" : "",
             props.padded ? "p-5 sm:p-6" : "",
             props.interactive
-              ? "transition-shadow duration-200 hover:shadow-lift focus-within:shadow-lift"
+              ? "transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lift focus-within:shadow-lift"
               : "shadow-quiet",
           ],
         },
@@ -185,14 +189,16 @@ export const SectionHeading = defineComponent({
     });
     return () =>
       h("header", { class: props.align === "center" ? "text-center" : "" }, [
-        props.eyebrow ? h("p", { class: "eyebrow mb-2" }, props.eyebrow) : null,
+        props.eyebrow ? h("p", { class: "eyebrow mb-3" }, props.eyebrow) : null,
         h(
           `h${resolvedLevel.value}`,
           {
             class:
               resolvedLevel.value === 1
-                ? "font-display text-3xl leading-tight sm:text-4xl lg:text-5xl"
-                : "font-display text-2xl leading-snug sm:text-3xl",
+                ? "font-display text-4xl leading-[1.08] sm:text-5xl lg:text-6xl"
+                : resolvedLevel.value === 3
+                  ? "font-display text-xl leading-snug sm:text-2xl"
+                  : "font-display text-3xl leading-tight sm:text-4xl",
           },
           props.title,
         ),
@@ -201,14 +207,14 @@ export const SectionHeading = defineComponent({
               "p",
               {
                 class: [
-                  "mt-3 text-sm leading-relaxed text-ink-muted sm:text-base",
+                  "mt-3 text-base leading-relaxed text-ink-muted",
                   props.align === "center" ? "mx-auto max-w-2xl" : "max-w-2xl",
                 ],
               },
               props.description,
             )
           : null,
-        slots.actions ? h("div", { class: "mt-5 flex flex-wrap gap-3" }, slots.actions()) : null,
+        slots.actions ? h("div", { class: "mt-6 flex flex-wrap gap-3" }, slots.actions()) : null,
       ]);
   },
 });
@@ -231,14 +237,14 @@ export const EmptyState = defineComponent({
       h(
         "div",
         {
-          class: "flex flex-col items-center gap-3 rounded-lg border border-dashed border-line-strong bg-surface-muted px-6 py-10 text-center",
+          class: "flex flex-col items-center gap-3 rounded-2xl border border-dashed border-line-strong bg-surface-muted px-6 py-12 text-center",
           role: props.tone === "error" ? "alert" : "status",
         },
         [
           h("p", { class: "eyebrow" }, marker[props.tone] ?? ""),
-          h("p", { class: "font-display text-lg" }, props.title),
+          h("p", { class: "font-display text-xl font-bold" }, props.title),
           props.description ? h("p", { class: "max-w-md text-sm text-ink-muted" }, props.description) : null,
-          slots.default ? h("div", { class: "mt-1 flex flex-wrap justify-center gap-3" }, slots.default()) : null,
+          slots.default ? h("div", { class: "mt-2 flex flex-wrap justify-center gap-3" }, slots.default()) : null,
         ],
       );
   },
@@ -258,7 +264,7 @@ export const SkeletonBlock = defineComponent({
         { class: "space-y-3", role: "status", "aria-label": props.ariaLabel },
         Array.from({ length: props.lines }, (_, index) =>
           h("div", {
-            class: "h-4 animate-pulse rounded-xs bg-canvas-sunk",
+            class: "h-4 animate-pulse rounded-md bg-canvas-sunk",
             style: { width: index === props.lines - 1 ? "62%" : "100%" },
           }),
         ),
@@ -280,7 +286,7 @@ export const FieldRow = defineComponent({
       h("div", { class: "space-y-1.5" }, [
         h(
           "label",
-          { class: "flex items-baseline gap-2 text-sm font-medium text-ink-soft", for: props.for || undefined },
+          { class: "flex items-baseline gap-2 text-sm font-semibold text-ink-soft", for: props.for || undefined },
           [props.label, props.required ? h("span", { class: "text-wine text-xs" }, "必填") : null],
         ),
         props.hint ? h("p", { class: "text-xs text-ink-faint" }, props.hint) : null,

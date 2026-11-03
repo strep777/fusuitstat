@@ -30,6 +30,7 @@ from app.modules.content.schemas import (
     DisplayAuthorizationPage,
     DisplayRetractInput,
     DisplayRetractResponse,
+    LocaleLiteral,
     PaginationQuery,
     PublishInput,
     SeriesSpecInput,
@@ -88,26 +89,28 @@ def get_feature_flags(ctx: ContextDep) -> dict[str, bool]:
 
 
 @public_router.get("/content/work/facets", response_model=dict)
-def get_work_facets(ctx: ContextDep) -> dict[str, Any]:
+def get_work_facets(ctx: ContextDep, locale: LocaleLiteral = "zh-CN") -> dict[str, Any]:
     """作品筛选维度。筛选条件可刷新恢复（category/series/species/q/page）。"""
+    _check_public_locale(ctx, locale)
     return {
-        "work_types": [{"value": value, "count": count} for value, count in repo.work_type_facets(ctx.session)],
-        "species": [{"value": value, "count": count} for value, count in repo.species_facets(ctx.session)],
+        "work_types": [{"value": value, "count": count} for value, count in repo.work_type_facets(ctx.session, locale=locale)],
+        "species": [{"value": value, "count": count} for value, count in repo.species_facets(ctx.session, locale=locale)],
         "series": [
             {
                 "value": spec.code,
                 "count": 0,
                 "label": entry.title,
             }
-            for spec, entry in repo.list_series(ctx.session, active_only=True)
+            for spec, entry in repo.list_series(ctx.session, active_only=True, locale=locale)
         ],
     }
 
 
 @public_router.get("/content/series", response_model=dict)
-def list_series_public(ctx: ContextDep) -> dict[str, Any]:
+def list_series_public(ctx: ContextDep, locale: LocaleLiteral = "zh-CN") -> dict[str, Any]:
+    _check_public_locale(ctx, locale)
     items = []
-    for spec, entry in repo.list_series(ctx.session, active_only=True):
+    for spec, entry in repo.list_series(ctx.session, active_only=True, locale=locale):
         items.append(
             {
                 **svc.series_payload(spec, entry),
@@ -120,8 +123,9 @@ def list_series_public(ctx: ContextDep) -> dict[str, Any]:
 
 
 @public_router.get("/content/series/{slug}", response_model=dict)
-def get_series_public(slug: str, ctx: ContextDep) -> dict[str, Any]:
-    entry = repo.get_published(ctx.session, kind="series", slug=slug)
+def get_series_public(slug: str, ctx: ContextDep, locale: LocaleLiteral = "zh-CN") -> dict[str, Any]:
+    _check_public_locale(ctx, locale)
+    entry = repo.get_published(ctx.session, kind="series", slug=slug, locale=locale)
     if entry is None:
         raise AppError("RESOURCE_NOT_FOUND")
     spec = repo.get_series_for_entry(ctx.session, entry.id)
@@ -133,7 +137,7 @@ def get_series_public(slug: str, ctx: ContextDep) -> dict[str, Any]:
     payload["spec"] = (
         svc.series_payload(spec, entry) if spec is not None else None
     )
-    faqs, _total = repo.list_published(ctx.session, kind="faq", limit=8)
+    faqs, _total = repo.list_published(ctx.session, kind="faq", locale=locale, limit=8)
     payload["faqs"] = [_with_cover(ctx.session, row) for row in faqs]
     return payload
 
@@ -148,11 +152,14 @@ def list_content(
     series: str | None = None,
     q: str | None = None,
     featured: bool = False,
+    locale: LocaleLiteral = "zh-CN",
 ) -> ContentPage:
     _validate_kind(kind)
+    _check_public_locale(ctx, locale)
     rows, total = repo.list_published(
         ctx.session,
         kind=kind,
+        locale=locale,
         species=species,
         work_type=work_type,
         series=series,
@@ -167,9 +174,10 @@ def list_content(
 
 
 @public_router.get("/content/{kind}/{slug}", response_model=ContentEntryDetail)
-def get_content(kind: str, slug: str, ctx: ContextDep) -> ContentEntryDetail:
+def get_content(kind: str, slug: str, ctx: ContextDep, locale: LocaleLiteral = "zh-CN") -> ContentEntryDetail:
     _validate_kind(kind)
-    entry = repo.get_published(ctx.session, kind=kind, slug=slug)
+    _check_public_locale(ctx, locale)
+    entry = repo.get_published(ctx.session, kind=kind, slug=slug, locale=locale)
     if entry is None:
         raise AppError("RESOURCE_NOT_FOUND")
     payload = svc.entry_payload(entry, include_body=True)
@@ -178,6 +186,11 @@ def get_content(kind: str, slug: str, ctx: ContextDep) -> ContentEntryDetail:
     )
     payload["gallery"] = _gallery(ctx.session, entry)
     return ContentEntryDetail(**payload)
+
+
+def _check_public_locale(ctx: Any, locale: str) -> None:
+    if locale == "en-US":
+        svc.require_feature(ctx.session, "en_locale")
 
 
 def _validate_kind(kind: str) -> None:
@@ -216,33 +229,30 @@ def retract_my_display_authorization(
 
 # ------------------------------------------------------------------ 站点聚合
 @public_router.get("/site/home", response_model=dict)
-def home_aggregate(ctx: ContextDep) -> dict[str, Any]:
+def home_aggregate(ctx: ContextDep, locale: LocaleLiteral = "zh-CN") -> dict[str, Any]:
     """首页聚合。
 
     信息顺序固定（11 文档页面布局基线）：导航与接单状态 → 代表作品/品牌短句 →
     系列 → 委托步骤 → 商品/角色 → 公告 → 联系与经营信息。一次请求渲染首屏以下
     全部区块，首屏内容不为等待图片或全部请求而被遮罩阻挡。
     """
+    _check_public_locale(ctx, locale)
     session = ctx.session
-    works, work_total = repo.list_published(session, kind="work", limit=6, featured_only=True)
+    works, work_total = repo.list_published(session, kind="work", locale=locale, limit=6, featured_only=True)
     if not works:
-        works, work_total = repo.list_published(session, kind="work", limit=6)
-    news, news_total = repo.list_published(session, kind="news", limit=4)
-    series_rows = repo.list_series(session, active_only=True)
-    faq_rows, _faq_total = repo.list_published(session, kind="faq", limit=6)
+        works, work_total = repo.list_published(session, kind="work", locale=locale, limit=6)
+    news, news_total = repo.list_published(session, kind="news", locale=locale, limit=4)
+    series_rows = repo.list_series(session, active_only=True, locale=locale)
+    faq_rows, _faq_total = repo.list_published(session, kind="faq", locale=locale, limit=6)
 
     from app.modules.catalog import ports as catalog_ports
     
-    products, product_total = catalog_ports.list_products(session, limit=4)
-    product_items: list[dict[str, Any]] = []
-    for product in products:
-        item = catalog_ports.product_payload(session, product, include_skus=False)
-        skus = catalog_ports.list_skus(session, product_id=product.id, active_only=True)
-        prices = [sku.price_cents for sku in skus]
-        item["price_from_cents"] = min(prices) if prices else None
-        item["currency"] = skus[0].currency if skus else "CNY"
-        item.pop("skus", None)
-        product_items.append(item)
+    policy = svc.setting_value(session, "commerce.policy", {}) or {}
+    zone = "US" if locale == "en-US" else "CN"
+    currency = (policy.get("regions", {}).get(zone) or {}).get("currency", policy.get("currency", "CNY"))
+    products, product_total = catalog_ports.list_products(session, currency=currency, limit=4)
+    product_items = [catalog_ports.product_payload(session, product, include_skus=False, currency=currency)
+                     for product in products]
 
     try:
         from app.modules.commissions import ports as commission_ports

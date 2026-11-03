@@ -1,61 +1,75 @@
 @import "tailwindcss";
 
 /* ------------------------------------------------------------------
-   弈星纪元设计系统
-   来源：文档/11_界面交互与素材规范（暖白底 + 深灰文字 + 琥珀强调）
-   参考站借鉴：森绒物语的温润质感、光海印记的信息层级、万物通行的
-   规格对比、爻光星的画廊网格、宇灵制造的系列叙事与客户见证。
+   弈星纪元设计系统 v2（2026-11-04）
+   奶油底 + 珊瑚红 / 薄荷 / 葡萄 / 柠檬；圆润无衬线、胶囊按钮、
+   大圆角与贴纸感装饰。规则来源：文档/11_界面交互与素材规范。
    ------------------------------------------------------------------ */
 
 @theme {
-  /* 品牌语义色。黑色剪影 Logo 在浅色面上成立；深色面使用白色版 Logo。 */
-  --color-canvas: #faf8f3;
-  --color-canvas-sunk: #f2eee6;
+  --color-canvas: #fff8f0;
+  --color-canvas-sunk: #ffefe4;
   --color-surface: #ffffff;
-  --color-surface-muted: #f6f3ec;
-  --color-line: #e6e0d4;
-  --color-line-strong: #d5ccba;
+  --color-surface-muted: #fff3e9;
+  --color-line: #f1dfd2;
+  --color-line-strong: #e4c8b7;
 
-  --color-ink: #252322;
-  --color-ink-soft: #4a453f;
-  --color-ink-muted: #67615a;
-  --color-ink-faint: #8b847a;
+  --color-ink: #2b2033;
+  --color-ink-soft: #4a3d52;
+  --color-ink-muted: #6b5d74;
+  --color-ink-faint: #97899e;
 
-  --color-night: #141311;
-  --color-night-soft: #221f1c;
-  --color-night-line: #3a352f;
+  --color-night: #241a2e;
+  --color-night-soft: #31223d;
+  --color-night-line: #4a3558;
 
-  --color-amber: #9a5b23;
-  --color-amber-strong: #7d481a;
-  --color-amber-soft: #f6e7d5;
-  --color-amber-ink: #f0d9bd;
+  /* brand 不随主题变化，保证主按钮白字对比度始终 ≥ 4.5:1。 */
+  --color-brand: #d93a24;
+  --color-brand-strong: #b62b18;
+  --color-brand-hover: #b62b18;
+  --color-brand-soft: #ffe3db;
 
-  --color-star: #c8912f;
-  --color-jade: #2f6f5e;
-  --color-jade-soft: #e2f0ea;
-  --color-wine: #8c2f39;
-  --color-wine-soft: #f8e6e7;
+  --color-amber: #d93a24;
+  --color-amber-strong: #b62b18;
+  --color-amber-soft: #ffe3db;
+  --color-amber-ink: #7c1f0e;
+
+  --color-star: #f0a000;
+  --color-lemon: #f0a000;
+  --color-lemon-soft: #fff1ce;
+  --color-jade: #0c8f7c;
+  --color-jade-soft: #ddf5ef;
+  --color-grape: #6742e8;
+  --color-grape-soft: #ede7ff;
+  --color-sky: #1d7ed6;
+  --color-sky-soft: #dff0ff;
+  --color-wine: #c42b57;
+  --color-wine-soft: #ffe0e9;
 
   --font-sans:
-    "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", "PingFang SC", "Hiragino Sans GB",
-    "Microsoft YaHei", "Noto Sans SC", sans-serif;
+    "MiSans", "HarmonyOS Sans SC", "OPPO Sans", "PingFang SC", "Noto Sans SC",
+    "Microsoft YaHei UI", "Microsoft YaHei", "Segoe UI", system-ui, sans-serif;
   --font-display:
-    "Songti SC", "STSong", "Noto Serif SC", "Source Han Serif SC", Georgia, ui-serif, serif;
+    "SF Pro Rounded", "Nunito", "MiSans", "HarmonyOS Sans SC", "PingFang SC",
+    "Noto Sans SC", "Microsoft YaHei UI", system-ui, sans-serif;
   --font-mono: ui-monospace, "SFMono-Regular", "Cascadia Mono", Consolas, monospace;
 
-  --radius-xs: 3px;
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 16px;
-  --radius-xl: 24px;
+  --radius-xs: 6px;
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+  --radius-2xl: 36px;
 
-  --shadow-quiet: 0 1px 2px rgb(37 35 34 / 0.05), 0 8px 24px -16px rgb(37 35 34 / 0.18);
-  --shadow-lift: 0 2px 6px rgb(37 35 34 / 0.06), 0 20px 44px -28px rgb(37 35 34 / 0.32);
+  --shadow-quiet: 0 1px 2px rgb(43 32 51 / 0.04), 0 10px 30px -22px rgb(43 32 51 / 0.28);
+  --shadow-lift: 0 3px 8px rgb(43 32 51 / 0.06), 0 24px 50px -30px rgb(43 32 51 / 0.38);
+  --shadow-sticker: 6px 6px 0 rgb(43 32 51 / 0.9);
 
   --ease-out-soft: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-/* 深色候选主题（C23：浅色默认，深色候选）。手动切换或系统偏好均可生效。 */
+/* 深色候选主题（C23：浅色默认，深色候选）。 */
 @layer base {
   :root {
     color-scheme: light;
@@ -68,32 +82,45 @@
 
   html[data-theme="dark"] {
     color-scheme: dark;
-    --color-canvas: #101010;
-    --color-canvas-sunk: #171614;
-    --color-surface: #1a1917;
-    --color-surface-muted: #201e1b;
-    --color-line: #302d29;
-    --color-line-strong: #423e38;
+    --color-canvas: #171020;
+    --color-canvas-sunk: #201628;
+    --color-surface: #22182c;
+    --color-surface-muted: #281c33;
+    --color-line: #3a2c46;
+    --color-line-strong: #503d5f;
 
-    --color-ink: #f4f1ea;
-    --color-ink-soft: #d8d3c9;
-    --color-ink-muted: #a9a298;
-    --color-ink-faint: #837c72;
+    --color-ink: #f7f0fa;
+    --color-ink-soft: #ded2e5;
+    --color-ink-muted: #b3a4bd;
+    --color-ink-faint: #8d7e98;
 
-    --color-night: #faf8f3;
-    --color-night-soft: #ece7dd;
-    --color-night-line: #d8d2c6;
+    --color-night: #f7f0fa;
+    --color-night-soft: #eadff0;
+    --color-night-line: #cbb8d8;
 
-    --color-amber: #e0a165;
-    --color-amber-strong: #efb87f;
-    --color-amber-soft: #2c231a;
-    --color-amber-ink: #2a1f14;
+    --color-amber: #ff8a73;
+    --color-amber-strong: #ffab98;
+    --color-amber-soft: #3a211f;
+    --color-amber-ink: #ffd9cf;
 
-    --color-star: #e5b45c;
-    --color-jade: #7dc3ac;
-    --color-jade-soft: #16241f;
-    --color-wine: #e58e97;
-    --color-wine-soft: #2a191b;
+    /* 深色下 soft 面转深，链接色转亮；主按钮仍用固定品牌红。 */
+    --color-brand-strong: #ffab98;
+    --color-brand-hover: #c0392b;
+    --color-brand-soft: #3a211f;
+
+    --color-star: #ffc24d;
+    --color-lemon: #ffc24d;
+    --color-lemon-soft: #3a2c10;
+    --color-jade: #5fd8c4;
+    --color-jade-soft: #12332d;
+    --color-grape: #b7a4ff;
+    --color-grape-soft: #241c3d;
+    --color-sky: #7cc2ff;
+    --color-sky-soft: #16283a;
+    --color-wine: #ff8fa8;
+    --color-wine-soft: #3a1b26;
+
+    --shadow-sticker: 6px 6px 0 rgb(255 255 255 / 0.25);
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -107,15 +134,14 @@
     color: var(--color-ink);
     font-family: var(--font-sans);
     font-size: 16px;
-    line-height: 1.6;
+    line-height: 1.65;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
   }
 
-  /* 键盘可用（NFR-06）：统一可见焦点环，不用颜色单独表达状态。 */
   :focus-visible {
-    outline: 2px solid var(--color-amber);
-    outline-offset: 2px;
+    outline: 3px solid var(--color-brand);
+    outline-offset: 3px;
     border-radius: var(--radius-xs);
   }
 
@@ -127,11 +153,11 @@
   h1,
   h2,
   h3 {
-    line-height: 1.25;
-    font-weight: 600;
+    line-height: 1.18;
+    font-weight: 800;
+    letter-spacing: -0.01em;
   }
 
-  /* 中文标题不使用全站字距（11 文档）。 */
   [lang^="zh"] h1,
   [lang^="zh"] h2,
   [lang^="zh"] h3 {
@@ -165,10 +191,10 @@
 
 @utility eyebrow {
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--color-ink-faint);
+  color: var(--color-amber-strong);
 }
 
 @utility card-quiet {
@@ -181,12 +207,13 @@
 @utility field-base {
   width: 100%;
   background-color: var(--color-surface);
-  border: 1px solid var(--color-line-strong);
-  border-radius: var(--radius-sm);
-  padding: 10px 12px;
+  border: 1.5px solid var(--color-line-strong);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
   font-size: 16px;
   color: var(--color-ink);
   min-height: 44px;
+  transition: border-color 160ms var(--ease-out-soft);
 }
 
 @utility link-underline {
@@ -194,6 +221,27 @@
   text-decoration-color: var(--color-line-strong);
   text-underline-offset: 3px;
   transition: text-decoration-color 160ms var(--ease-out-soft);
+}
+
+/* 点阵与网格底纹：只做背景装饰，不承载信息。 */
+@utility bg-dots {
+  background-image: radial-gradient(rgb(43 32 51 / 0.14) 1px, transparent 1px);
+  background-size: 14px 14px;
+}
+
+@utility bg-grid {
+  background-image:
+    linear-gradient(to right, rgb(43 32 51 / 0.06) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(43 32 51 / 0.06) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+/* 贴纸牌：圆角 + 描边 + 硬阴影，用于入口卡与价格锚点。 */
+@utility sticker-card {
+  background-color: var(--color-surface);
+  border: 2px solid var(--color-ink);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-sticker);
 }
 
 /* 骨架屏与加载态统一节流：等待 < 150ms 不闪动（11 文档）。 */
@@ -221,11 +269,20 @@
 @keyframes starium-fade-up {
   from {
     opacity: 0;
-    transform: translate3d(0, 10px, 0);
+    transform: translate3d(0, 12px, 0);
   }
   to {
     opacity: 1;
     transform: none;
+  }
+}
+
+@keyframes starium-marquee {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-50%, 0, 0);
   }
 }
 
@@ -234,17 +291,22 @@
 }
 
 .animate-orbit {
-  animation: starium-orbit 12s linear infinite;
+  animation: starium-orbit 14s linear infinite;
 }
 
 .animate-fade-up {
   animation: starium-fade-up 420ms var(--ease-out-soft) both;
 }
 
+.animate-marquee {
+  animation: starium-marquee 28s linear infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-breathe,
   .animate-orbit,
-  .animate-fade-up {
+  .animate-fade-up,
+  .animate-marquee {
     animation: none !important;
   }
 }
@@ -252,7 +314,8 @@
 /* 减弱动效开关：用户在站内主动关闭时同样生效（NFR-06）。 */
 html[data-motion="reduced"] .animate-breathe,
 html[data-motion="reduced"] .animate-orbit,
-html[data-motion="reduced"] .animate-fade-up {
+html[data-motion="reduced"] .animate-fade-up,
+html[data-motion="reduced"] .animate-marquee {
   animation: none !important;
 }
 

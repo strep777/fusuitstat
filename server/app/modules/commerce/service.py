@@ -175,7 +175,8 @@ def cross_border_estimate(
     - 只按运营配置的比例给出预估，**不计入应付合计**（关税通常由收件人清关时缴纳）；
     - 未配置比例时 `duty_estimate_cents` 为 ``None``，页面必须说明「以清关为准」而不是显示 0。
     """
-    cross = policy.get("cross_border") or {}
+    region = (policy.get("regions") or {}).get(zone_for_region(region_code)) or {}
+    cross = region.get("cross_border") or policy.get("cross_border") or {}
     enabled = bool(cross.get("enabled", False))
     code = (region_code or "").upper()
     is_cross_border = bool(code) and not code.startswith(DOMESTIC_REGION_PREFIX)
@@ -197,7 +198,12 @@ def compute_shipping_cents(
     policy: dict[str, Any], *, goods_cents: int, region_code: str
 ) -> int:
     """按配送范围与模板计算运费；只使用整数分。"""
-    shipping = policy["shipping"]
+    region = (policy.get("regions") or {}).get(zone_for_region(region_code)) or {}
+    shipping = region.get("shipping")
+    if not shipping:
+        if region.get("currency", policy.get("currency", "CNY")) != policy.get("currency", "CNY"):
+            raise AppError("FEATURE_DISABLED", "该区域尚未配置运费，暂不可结算。")
+        shipping = policy["shipping"]
     if goods_cents <= 0:
         return 0
     mode = str(shipping.get("mode", "flat"))
@@ -362,6 +368,20 @@ def _apply_pricing(
 ) -> dict[str, Any]:
     policy = commerce_policy(session)
     goods_cents, currency = _aggregate_lines(lines)
+    # 区域与币种（C02/C24）：结算币种由**收货区域**决定；SKU 币种必须与区域币种一致，
+    # 否则该商品在这个区域没有定价——**不换算汇率**，直接拒绝并说明。
+    zone = zone_for_region(region_code)
+    expected_currency = zone_currency(policy, zone=zone)
+    mismatched = sorted(
+        {str(line["currency"]).upper() for line in lines if str(line["currency"]).upper() != expected_currency}
+    )
+    if mismatched:
+        raise AppError(
+            "CURRENCY_NOT_SUPPORTED",
+            f"该收货区域以 {expected_currency} 结算，购物车中的商品只有 "
+            f"{'、'.join(mismatched)} 定价；本站不按汇率折算，请分别下单或联系客服。",
+            fields={"currency": expected_currency},
+        )
     if coupon_code:
         require_feature(session, "coupons")
     discount_cents, applied_code = coupon_discount_cents(
@@ -384,20 +404,6 @@ def _apply_pricing(
         )
     points_discount_cents = int(points_quote["applied_cents"]) if points_quote else 0
     total_cents = _validate_amounts(goods_cents, discount_cents, shipping_cents, points_discount_cents)
-    # 区域与币种（C02/C24）：结算币种由**收货区域**决定；SKU 币种必须与区域币种一致，
-    # 否则该商品在这个区域没有定价——**不换算汇率**，直接拒绝并说明。
-    zone = zone_for_region(region_code)
-    expected_currency = zone_currency(policy, zone=zone)
-    mismatched = sorted(
-        {str(line["currency"]).upper() for line in lines if str(line["currency"]).upper() != expected_currency}
-    )
-    if mismatched:
-        raise AppError(
-            "CURRENCY_NOT_SUPPORTED",
-            f"该收货区域以 {expected_currency} 结算，购物车中的商品只有 "
-            f"{'、'.join(mismatched)} 定价；本站不按汇率折算，请分别下单或联系客服。",
-            fields={"currency": expected_currency},
-        )
     # 跨境预估（只展示，不进应付合计）：关税与进口税费由清关确定。
     cross = cross_border_estimate(
         policy,

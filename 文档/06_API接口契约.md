@@ -50,7 +50,8 @@ HTTP：400 格式错误，401 未认证，403 无权限/CSRF，404 无可访问�
 | POST `/me/closure-requests` | 本人+二次验证 | 注销申请，返回需处理的合法阻碍 |
 | GET/POST `/me/addresses`、PATCH/DELETE `/me/addresses/:id` | 本人 | 地址 CRUD；删除不改订单快照 |
 | GET `/content/:kind`、GET `/content/:kind/:slug` | 公开 | 仅已发布；作品、公告、系列、FAQ |
-| GET `/products`、GET `/products/:slug` | 公开 | SKU、可售展示、规格 |
+| GET `/products`、GET `/products/:slug` | 公开 | SKU、可售展示、规格；`category` 接受 stock/accessory/props/merch/service/character |
+| POST `/stock-applications`、GET `/stock-applications` | 本人 | 掉落/道具/洗毛预约；洗毛额外接受期望日期与返还方式 |
 | GET `/characters`、GET `/characters/:slug` | 公开 | 角色过滤、授权信息与状态 |
 | GET `/schedule-rounds` | 公开 | 开放时间、匿名余量摘要 |
 | POST `/uploads` | 本人/员工+限流 | 建临时上传，返回受限地址/表单 |
@@ -87,7 +88,21 @@ HTTP：400 格式错误，401 未认证，403 无权限/CSRF，404 无可访问�
 
 商品与申请（C28）：`GET /admin/stock-applications` 支持 `status`、`product_id`、`kind` 过滤与 `order_by_priority=true`——后者按**购买优先级**排序（已审批在前、`priority_rank` 小者优先、同排名按审批时间先到先得），这就是「审批通过列表作为购买优先级」的运营视图；`POST /admin/stock-applications/:id/decide` 通过审批时可给出 `priority_rank` 与购买窗口天数。
 
+### 洗毛预约（FR-025）
+
+`POST /stock-applications` 的洗毛分支要求商品 `status=published` 且 `service_kind=cleaning`，请求：
+
+```json
+{"product_id":"prod_example","sku_id":"sku_example","kind":"cleaning","reason":"全装，长毛，局部打结","preferred_date":"2026-11-20","return_method":"ship"}
+```
+
+`preferred_date` 为 `YYYY-MM-DD`，必须落在提交日（Asia/Shanghai）+2 至 +60 天；非法格式或越界返回 422，业务码 `BOOKING_DATE_INVALID`。`return_method` 只接受 `pickup`（到店取回）或 `ship`（寄回，地址在订单阶段另行提供）。`GET /stock-applications` 与后台列表的响应新增 `preferred_date`、`return_method` 字段；历史记录两字段为 `null`。预约不锁库存、不生成付款项；审批通过后才可进入报价与下单。
+
 ## 关键请求与响应
+
+### 商品区域价格
+
+`GET /products` 与 `GET /products/:slug` 接受可选 `currency=CNY|USD`；其他币种返回 422。列表只包含存在该币种已启用 SKU 的已发布商品，分页总数使用同一过滤条件；售罄 SKU 仍可浏览。响应 `currency`、`price_from_cents`、`availability` 与 `skus` 对应同一币种，不比较不同币种的数字大小。详情没有目标币种规格时返回空 `skus`、空最低价与不可购买状态。省略币种保留兼容读取，不代表允许混币种结算。
 
 ### 手机验证码
 
@@ -123,7 +138,7 @@ HTTP：400 格式错误，401 未认证，403 无权限/CSRF，404 无可访问�
 
 ## 稳定业务错误码
 
-`AUTH_REQUIRED、CSRF_INVALID、SMS_RATE_LIMITED、SMS_CODE_INVALID、SMS_CODE_EXPIRED、SMS_CHALLENGE_USED、RESOURCE_NOT_FOUND、VERSION_CONFLICT、STATE_CONFLICT、IDEMPOTENCY_CONFLICT、UPLOAD_NOT_READY、QUOTE_EXPIRED、QUOTE_CHANGED、SCHEDULE_CLOSED、NO_CAPACITY、STOCK_NOT_ENOUGH、PRICE_CHANGED、PAYMENT_PENDING、PAYMENT_UNKNOWN、REFUND_LIMIT_EXCEEDED、POINTS_INSUFFICIENT、FEEDBACK_DUPLICATE、PROVIDER_UNAVAILABLE`。
+`AUTH_REQUIRED、CSRF_INVALID、SMS_RATE_LIMITED、SMS_CODE_INVALID、SMS_CODE_EXPIRED、SMS_CHALLENGE_USED、RESOURCE_NOT_FOUND、VERSION_CONFLICT、STATE_CONFLICT、IDEMPOTENCY_CONFLICT、UPLOAD_NOT_READY、QUOTE_EXPIRED、QUOTE_CHANGED、SCHEDULE_CLOSED、NO_CAPACITY、STOCK_NOT_ENOUGH、PRICE_CHANGED、PAYMENT_PENDING、PAYMENT_UNKNOWN、REFUND_LIMIT_EXCEEDED、POINTS_INSUFFICIENT、FEEDBACK_DUPLICATE、PROVIDER_UNAVAILABLE、BOOKING_DATE_INVALID`。
 
 前端根据 code 展示已定义行为，不对 message 字符串做逻辑分支。人工可读 message 不包含 SQL、内部路径和第三方原始响应。
 

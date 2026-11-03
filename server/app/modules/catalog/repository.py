@@ -40,6 +40,7 @@ def list_products(
     series_code: str | None = None,
     query: str | None = None,
     published_only: bool = True,
+    currency: str | None = None,
     limit: int = 20,
     offset: int = 0,
 ) -> tuple[list[Product], int]:
@@ -55,6 +56,11 @@ def list_products(
     if query:
         like = f"%{query}%"
         conditions.append(sa.or_(Product.title.like(like), Product.subtitle.like(like)))
+    if currency:
+        # 区域定价（C02/C24）：**只返回该币种有在售 SKU 的商品**——币种不隐式换算，
+        # 没有本区定价的商品不是"暂不可售"，而是"这个区域没有它的价格"。
+        # 统计口径与列表一致（都用同一 EXISTS 条件），避免"共 N 件"与实际条数不符。
+        conditions.append(has_sku_in_currency(currency))
     count = int(
         session.scalar(sa.select(sa.func.count()).select_from(Product).where(*conditions)) or 0
     )
@@ -68,6 +74,39 @@ def list_products(
         )
     )
     return rows, count
+
+
+def has_sku_in_currency(currency: str) -> sa.ColumnElement[bool]:
+    """商品是否存在"上架且在售"的该币种 SKU（区域过滤与统计共用同一条件）。"""
+
+    return (
+        sa.select(sa.literal(1))
+        .select_from(Sku)
+        .where(
+            Sku.product_id == Product.id,
+            Sku.currency == currency,
+            Sku.is_active.is_(True),
+        )
+        .exists()
+    )
+
+
+def count_products_without_currency(
+    session: Session, *, currency: str, kind: str | None = None, category: str | None = None, query: str | None = None
+) -> int:
+    """**没有**该币种定价的在售商品数量：用于在页面上如实说明"另有 N 件未展示"。"""
+    conditions: list[sa.ColumnElement[bool]] = [Product.status == "published"]
+    if kind:
+        conditions.append(Product.kind == kind)
+    if category:
+        conditions.append(Product.category == category)
+    if query:
+        like = f"%{query}%"
+        conditions.append(sa.or_(Product.title.like(like), Product.subtitle.like(like)))
+    conditions.append(sa.not_(has_sku_in_currency(currency)))
+    return int(
+        session.scalar(sa.select(sa.func.count()).select_from(Product).where(*conditions)) or 0
+    )
 
 
 def product_categories(session: Session) -> list[tuple[str, int]]:

@@ -3,7 +3,7 @@
  * 路径与 06 文档一致；所有公开读取只返回已发布内容。
  */
 
-import { type LocalizedText } from "@/shared/lib/i18n";
+import { currentLocale, translate, type LocalizedText } from "@/shared/lib/i18n";
 import { ApiError, api } from "@/shared/lib/http";
 
 export type ContentKind =
@@ -93,11 +93,11 @@ export async function fetchContentList(
   kind: ContentKind,
   query: Record<string, string | number | undefined> = {},
 ): Promise<Page<ContentSummary>> {
-  return api.get<Page<ContentSummary>>(`/content/${kind}`, { query });
+  return api.get<Page<ContentSummary>>(`/content/${kind}`, { query: { ...query, locale: currentLocale() } });
 }
 
 export async function fetchContentDetail(kind: ContentKind, slug: string): Promise<ContentDetail> {
-  return api.get<ContentDetail>(`/content/${kind}/${slug}`);
+  return api.get<ContentDetail>(`/content/${kind}/${slug}`, { query: { locale: currentLocale() } });
 }
 
 export interface SeriesSpec {
@@ -118,11 +118,11 @@ export interface SeriesDetail extends ContentDetail {
 }
 
 export async function fetchSeriesList(): Promise<Page<SeriesDetail>> {
-  return api.get<Page<SeriesDetail>>("/content/series", { query: { limit: 20 } });
+  return api.get<Page<SeriesDetail>>("/content/series", { query: { limit: 20, locale: currentLocale() } });
 }
 
 export async function fetchSeries(slug: string): Promise<SeriesDetail> {
-  return api.get<SeriesDetail>(`/content/series/${slug}`);
+  return api.get<SeriesDetail>(`/content/series/${slug}`, { query: { locale: currentLocale() } });
 }
 
 export interface WorkFacets {
@@ -132,7 +132,7 @@ export interface WorkFacets {
 }
 
 export async function fetchWorkFacets(): Promise<WorkFacets> {
-  return api.get<WorkFacets>("/content/work/facets");
+  return api.get<WorkFacets>("/content/work/facets", { query: { locale: currentLocale() } });
 }
 
 export interface CommissionPolicy {
@@ -261,7 +261,7 @@ export interface ScheduleSummary {
 }
 
 export async function fetchHome(): Promise<HomeAggregate> {
-  return api.get<HomeAggregate>("/site/home");
+  return api.get<HomeAggregate>("/site/home", { query: { locale: currentLocale() } });
 }
 
 export async function fetchPublicSettings(): Promise<PublicSettings> {
@@ -309,18 +309,18 @@ export interface PublicErrorState {
  * 404 → not-found（下架内容不公开）、403 → forbidden（不透露对象是否存在）、
  * 401 → 引导登录并保留当前路径；其余按可重试错误处理。
  */
-export function classifyPublicError(caught: unknown, fallback = "内容加载失败，请稍后重试。"): PublicErrorState {
+export function classifyPublicError(caught: unknown, fallback = translate("publicContent.loadError")): PublicErrorState {
   if (caught instanceof ApiError) {
     if (caught.status === 404 || caught.code === "RESOURCE_NOT_FOUND") {
-      return { kind: "not-found", code: caught.code, message: "这条内容不存在，或者已经被下架。" };
+      return { kind: "not-found", code: caught.code, message: translate("publicContent.notFound") };
     }
     if (caught.status === 403 || caught.code === "FORBIDDEN" || caught.code === "PERMISSION_DENIED") {
-      return { kind: "forbidden", code: caught.code, message: "当前账号没有查看这条内容的权限。" };
+      return { kind: "forbidden", code: caught.code, message: translate("publicContent.forbidden") };
     }
     if (caught.needsLogin) {
-      return { kind: "login", code: caught.code, message: "登录后才能继续查看这条内容。" };
+      return { kind: "login", code: caught.code, message: translate("publicContent.login") };
     }
-    return { kind: "error", code: caught.code, message: caught.message || fallback };
+    return { kind: "error", code: caught.code, message: currentLocale() === "en-US" ? fallback : caught.message || fallback };
   }
   return { kind: "error", code: "", message: fallback };
 }

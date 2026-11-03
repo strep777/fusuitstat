@@ -8,12 +8,83 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path
 
 import pytest
 import sqlalchemy as sa
 
 from app.platform.ids import new_id, now_ms
 from app.platform.reliability import OutboxEvent
+
+
+def test_prebuild_failed_directory_swap_restores_previous_output(db, tmp_path, monkeypatch):
+    from app.ops.prebuild import MANIFEST_NAME, run_prebuild
+
+    output = tmp_path / "prebuild"
+    assert run_prebuild(db, output_dir=output)["status"] == "DONE"
+    before = (output / MANIFEST_NAME).read_bytes()
+    original_rename = Path.rename
+
+    def fail_new_directory(source, target):
+        if source.name.startswith(".prebuild.staging-"):
+            raise PermissionError("simulated directory swap failure")
+        return original_rename(source, target)
+
+    monkeypatch.setattr(Path, "rename", fail_new_directory)
+    result = run_prebuild(db, output_dir=output)
+    assert result["status"] == "FAILED"
+    assert (output / MANIFEST_NAME).read_bytes() == before
+
+
+def test_prebuild_retries_transient_windows_directory_lock(db, tmp_path, monkeypatch):
+    from app.ops import prebuild
+
+    output = tmp_path / "prebuild"
+    assert prebuild.run_prebuild(db, output_dir=output)["status"] == "DONE"
+    before = (output / prebuild.MANIFEST_NAME).read_bytes()
+    original_rename = Path.rename
+    attempts = []
+    delays = []
+
+    def locked_once(source, target):
+        if source.name.startswith(".prebuild.staging-"):
+            attempts.append(source)
+            if len(attempts) == 1:
+                error = PermissionError("simulated Windows sharing violation")
+                error.winerror = 32
+                raise error
+        return original_rename(source, target)
+
+    monkeypatch.setattr(Path, "rename", locked_once)
+    monkeypatch.setattr(prebuild.time, "sleep", delays.append)
+    assert prebuild.run_prebuild(db, output_dir=output)["status"] == "DONE"
+    assert len(attempts) == 2 and delays == [0.05]
+    assert (output / prebuild.MANIFEST_NAME).read_bytes() != before
+
+
+def test_prebuild_permanent_windows_lock_stops_retrying_and_restores_output(db, tmp_path, monkeypatch):
+    from app.ops import prebuild
+
+    output = tmp_path / "prebuild"
+    assert prebuild.run_prebuild(db, output_dir=output)["status"] == "DONE"
+    before = (output / prebuild.MANIFEST_NAME).read_bytes()
+    original_rename = Path.rename
+    attempts = []
+    delays = []
+
+    def locked(source, target):
+        if source.name.startswith(".prebuild.staging-"):
+            attempts.append(source)
+            error = PermissionError("simulated Windows access denied")
+            error.winerror = 5
+            raise error
+        return original_rename(source, target)
+
+    monkeypatch.setattr(Path, "rename", locked)
+    monkeypatch.setattr(prebuild.time, "sleep", delays.append)
+    assert prebuild.run_prebuild(db, output_dir=output)["status"] == "FAILED"
+    assert len(attempts) == 4 and delays == [0.05, 0.1, 0.2]
+    assert (output / prebuild.MANIFEST_NAME).read_bytes() == before
 
 
 def _publish_entry(db, *, slug: str, title: str, kind: str = "news"):

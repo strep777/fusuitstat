@@ -283,6 +283,14 @@ def test_cross_border_estimate_is_honest_and_not_charged(
     assert domestic.json()["duty_estimate_cents"] is None
     assert domestic.json()["estimate_available"] is False
 
+    # 独立美元运费为测试前置配置；不得沿用人民币模板金额。
+    _patch_policy(db, regions={
+        "CN": {"currency": "CNY"},
+        "US": {"currency": "USD", "shipping": {
+            "currency": "USD", "flat_cents": 2500, "free_threshold_cents": 0,
+            "remote_region_surcharge_cents": 0, "max_cents": 0,
+        }},
+    })
     overseas = create_address(db, user_id=invoicing["user"].id, region_code="US-CA", city="Los Angeles")
     # C02/C24：海外区以 USD 结算，因此跨境预估用例必须用**美元定价**的 SKU；
     # 用人民币定价的商品在海外区会被结算直接拒绝（见 test_region_currency.py）。
@@ -338,6 +346,14 @@ def test_cross_border_is_frozen_on_the_order(db: Session, client: TestClient, in
     """下单时冻结跨境判定与预估：之后改配置不改历史订单的说法。"""
     from tests.conftest import create_address, create_sku
 
+    # 独立美元运费为测试前置配置；不得沿用人民币模板金额。
+    _patch_policy(db, regions={
+        "CN": {"currency": "CNY"},
+        "US": {"currency": "USD", "shipping": {
+            "currency": "USD", "flat_cents": 2500, "free_threshold_cents": 0,
+            "remote_region_surcharge_cents": 0, "max_cents": 0,
+        }},
+    })
     overseas = create_address(db, user_id=invoicing["user"].id, region_code="US-CA", city="Los Angeles")
     # 海外区以 USD 结算：跨境订单必须用美元定价的 SKU（不按汇率折算）。
     usd_sku = create_sku(

@@ -81,7 +81,7 @@ test.describe("公开浏览 · 桌面与移动视口", () => {
 
     // HomePage.vue:79-81 的 h1（源码里有 <br>，这里按文本前缀匹配）。
     await expect(page.getByRole("heading", { level: 1 })).toContainText("把设定变成");
-    await expect(page.getByRole("heading", { name: "代表作品" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "最近完成" })).toBeVisible();
     // 首屏加载动画必须已经消失（StarLoader message="正在读取作品与系列"）。
     await expect(page.getByText("正在读取作品与系列")).toHaveCount(0);
     // 首页不允许出现加载失败态（HomePage.vue:189 的 EmptyState tone="error"）。

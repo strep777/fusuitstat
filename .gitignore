@@ -16,6 +16,8 @@ htmlcov/
 .uv-cache/
 .pnpm-store/
 .tmp/
+# start.sh / start.bat 的运行日志
+.logs/
 var-testtmp/
 server/.pytest-tmp/
 server/.pytmp/

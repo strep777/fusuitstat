@@ -6,7 +6,7 @@
 
 from __future__ import annotations
 
-from typing import Annotated, Any
+from typing import Annotated, Any, Literal
 
 from fastapi import APIRouter, Depends, Query
 
@@ -43,6 +43,7 @@ def list_products(
     kind: str | None = None,
     category: str | None = None,
     series_code: str | None = None,
+    currency: Literal["CNY", "USD"] | None = None,
     q: str | None = None,
     page: Annotated[int, Query(ge=1)] = 1,
     limit: Annotated[int, Query(ge=1, le=100)] = 20,
@@ -52,10 +53,12 @@ def list_products(
         kind=kind,
         category=category,
         query=q,
+        currency=currency,
+        series_code=series_code,
         limit=limit,
         offset=(page - 1) * limit,
     )
-    items = [ProductResponse(**svc.product_payload(ctx.session, row, include_skus=True)) for row in rows]
+    items = [ProductResponse(**svc.product_payload(ctx.session, row, include_skus=True, currency=currency)) for row in rows]
     return CatalogPage(
         items=items, total=total, page=page, limit=limit, has_more=page * limit < total, next_cursor=None
     )
@@ -71,11 +74,11 @@ def product_facets(ctx: ContextDep) -> dict[str, Any]:
 
 
 @public_router.get("/products/{slug}", response_model=ProductResponse)
-def get_product(slug: str, ctx: ContextDep) -> ProductResponse:
+def get_product(slug: str, ctx: ContextDep, currency: Literal["CNY", "USD"] | None = None) -> ProductResponse:
     product = repo.get_product_by_slug(ctx.session, slug)
     if product is None:
         raise AppError("RESOURCE_NOT_FOUND")
-    payload = svc.product_payload(ctx.session, product, include_skus=True)
+    payload = svc.product_payload(ctx.session, product, include_skus=True, currency=currency)
     # 需要审批的商品：告知当前用户是否已有审批通过记录（购买优先级）。
     if product.requires_approval and ctx.principal.id and ctx.principal.kind == "customer":
         approved = svc.approved_application_for(
@@ -151,6 +154,8 @@ def submit_application(
         reason=payload.reason,
         kind=payload.kind,
         measurement_note=payload.measurement_note,
+        preferred_date=payload.preferred_date,
+        return_method=payload.return_method,
     )
     audit.record(
         ctx.session,
@@ -159,7 +164,12 @@ def submit_application(
         action="stock_application.submit",
         resource_type="stock_application",
         resource_id=application.id,
-        after={"product_id": payload.product_id, "kind": payload.kind},
+        after={
+            "product_id": payload.product_id,
+            "kind": payload.kind,
+            "preferred_date": payload.preferred_date,
+            "return_method": payload.return_method,
+        },
         ip=ctx.client_ip,
     )
     return ApplicationResponse(**svc.application_payload(ctx.session, application))

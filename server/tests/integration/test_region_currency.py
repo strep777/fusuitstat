@@ -134,6 +134,18 @@ def test_usd_priced_sku_is_blocked_for_domestic_address(db: Session, client: Tes
 def test_usd_priced_sku_settles_in_usd_for_overseas_address(
     db: Session, client: TestClient
 ) -> None:
+    from app.modules.content.repository import get_setting
+    from app.modules.content.service import ensure_default_settings, update_setting
+
+    ensure_default_settings(db)
+    row = get_setting(db, "commerce.policy")
+    assert row is not None
+    regions = {**row.value["regions"], "US": {"currency": "USD", "shipping": {
+        "currency": "USD", "flat_cents": 2500, "free_threshold_cents": 0,
+        "remote_region_surcharge_cents": 0, "max_cents": 0,
+    }}}
+    update_setting(db, key="commerce.policy", value={"regions": regions},
+                   version=row.version, actor_id=None, reason="测试独立美元运费")
     fixture = _user_with_sku(db, client, currency="USD")
     overseas = create_address(db, user_id=fixture["user"].id, region_code="US-CA", city="Los Angeles")
     db.commit()
@@ -149,6 +161,18 @@ def test_usd_priced_sku_settles_in_usd_for_overseas_address(
     # 金额仍是整数分，且没有任何"换算后的"字段
     assert isinstance(body["total_cents"], int)
     assert body["goods_cents"] == 10000
+    assert body["shipping_cents"] == 2500
+
+
+def test_overseas_checkout_without_shipping_template_is_disabled(db: Session, client: TestClient) -> None:
+    fixture = _user_with_sku(db, client, currency="USD")
+    overseas = create_address(db, user_id=fixture["user"].id, region_code="US-CA")
+    db.commit()
+    response = client.post("/api/v1/checkout/preview", json={
+        "items": [{"sku_id": fixture["sku"].id, "quantity": 1}], "address_id": overseas.id,
+    })
+    assert response.status_code == 403
+    assert response.json()["error"]["code"] == "FEATURE_DISABLED"
 
 
 # ------------------------------------------------------------------ 配置校验
@@ -201,3 +225,36 @@ def test_public_settings_expose_regions_without_rates(db: Session, client: TestC
     assert regions["US"]["currency"] == "USD"
     # 公开配置里只有"区域 → 币种"，**没有**任何汇率字段（不隐式换算）
     assert "rate" not in str(regions).lower() and "汇率" not in str(regions)
+
+
+# 区域运费是独立金额，不是汇率换算；测试值只用于用例。
+def test_region_shipping_and_duty_use_separate_templates() -> None:
+    policy = _policy()
+    policy["regions"] = {
+        "CN": {"currency": "CNY", "shipping": {"mode": "flat", "flat_cents": 1200,
+            "free_threshold_cents": 0, "remote_region_codes": [], "remote_region_surcharge_cents": 0, "max_cents": 0}},
+        "US": {"currency": "USD", "shipping": {"mode": "flat", "flat_cents": 2500,
+            "free_threshold_cents": 100000, "remote_region_codes": ["US-AK"], "remote_region_surcharge_cents": 700, "max_cents": 0},
+            "cross_border": {"enabled": True, "duty_percent": 8, "note": {"en-US": "Test estimate"}}},
+    }
+    assert commerce_service.compute_shipping_cents(policy, goods_cents=10000, region_code="CN-31") == 1200
+    assert commerce_service.compute_shipping_cents(policy, goods_cents=10000, region_code="US-CA") == 2500
+    assert commerce_service.compute_shipping_cents(policy, goods_cents=10000, region_code="US-AK") == 3200
+    assert commerce_service.compute_shipping_cents(policy, goods_cents=100000, region_code="US-CA") == 0
+    estimate = commerce_service.cross_border_estimate(policy, goods_cents=10000, region_code="US-CA")
+    assert estimate["duty_estimate_cents"] == 800
+    assert estimate["duty_note"] == {"en-US": "Test estimate"}
+
+
+def test_region_shipping_requires_explicit_values_and_matching_currency() -> None:
+    from pydantic import ValidationError
+
+    from app.modules.content.policies import RegionZone
+    with pytest.raises(ValidationError):
+        RegionZone.model_validate({"currency": "USD", "shipping": {}})
+    shipping = {"currency": "USD", "flat_cents": 2500, "free_threshold_cents": 0,
+                "remote_region_surcharge_cents": 0, "max_cents": 0}
+    zone = RegionZone.model_validate({"currency": "USD", "shipping": shipping})
+    assert zone.shipping is not None and zone.shipping.flat_cents == 2500
+    with pytest.raises(ValidationError):
+        RegionZone.model_validate({"currency": "CNY", "shipping": shipping})

@@ -22,6 +22,7 @@ const MediaPage = () => import("@/modules/admin/pages/MediaPage.vue");
 const ProductsPage = () => import("@/modules/admin/pages/ProductsPage.vue");
 const ProductEditPage = () => import("@/modules/admin/pages/ProductEditPage.vue");
 const CharactersPage = () => import("@/modules/admin/pages/CharactersPage.vue");
+const ApplicationsPage = () => import("@/modules/admin/pages/ApplicationsPage.vue");
 const QuotesPage = () => import("@/modules/admin/pages/QuotesPage.vue");
 const SchedulesPage = () => import("@/modules/admin/pages/SchedulesPage.vue");
 const CommissionsPage = () => import("@/modules/admin/pages/CommissionsPage.vue");
@@ -77,6 +78,7 @@ const routes: RouteRecordRaw[] = [
       page("products/new", "admin-product-new", "新建商品", ADMIN_PERMISSIONS.catalogWrite, ProductEditPage),
       page("products/:id", "admin-product-edit", "编辑商品", ADMIN_PERMISSIONS.catalogWrite, ProductEditPage),
       page("characters", "admin-characters", "角色领养", ADMIN_PERMISSIONS.catalogWrite, CharactersPage),
+      page("applications", "admin-applications", "服务与掉落申请", ADMIN_PERMISSIONS.catalogWrite, ApplicationsPage),
       page("quotes", "admin-quotes", "询价与报价", ADMIN_PERMISSIONS.quoteReview, QuotesPage),
       page("schedules", "admin-schedules", "档期与申请", ADMIN_PERMISSIONS.schedule, SchedulesPage),
       page("commissions", "admin-commissions", "制作单", ADMIN_PERMISSIONS.production, CommissionsPage),

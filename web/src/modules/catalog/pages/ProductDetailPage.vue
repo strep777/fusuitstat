@@ -1,3 +1,211 @@
+<template>
+  <div class="container-page py-10 lg:py-14">
+    <Breadcrumbs
+      :items="[
+        { label: t('nav.home'), to: publicPath('/') },
+        { label: t('nav.shop'), to: publicPath('/shop') },
+        { label: detail?.title ?? t('productDetail.title') },
+      ]"
+    />
+
+    <div v-if="loading" class="py-16">
+      <StarLoader :message="t('productDetail.loading')" />
+    </div>
+
+    <EmptyState
+      v-else-if="notFound"
+      class="mt-10"
+      tone="not-found"
+      :title="t('productDetail.missing')"
+      :description="t('productDetail.missingDescription')"
+    >
+      <AppButton :to="publicPath('/shop')" size="sm">{{ t('productDetail.backShop') }}</AppButton>
+    </EmptyState>
+
+    <EmptyState
+      v-else-if="forbidden"
+      class="mt-10"
+      tone="forbidden"
+      :title="t('productDetail.forbidden')"
+      :description="t('productDetail.forbiddenDescription')"
+    >
+      <AppButton :to="withQuery(publicPath('/login'), { returnTo: route.fullPath })" size="sm">{{ t('productDetail.login') }}</AppButton>
+      <AppButton :to="publicPath('/shop')" size="sm" variant="secondary">{{ t('productDetail.backShop') }}</AppButton>
+    </EmptyState>
+
+    <EmptyState
+      v-else-if="error"
+      class="mt-10"
+      tone="error"
+      :title="t('productDetail.error')"
+      :description="t('productDetail.errorDescription', { error })"
+    >
+      <AppButton size="sm" @click="load()">{{ t('productDetail.retry') }}</AppButton>
+      <AppButton size="sm" variant="secondary" :to="publicPath('/shop')">{{ t('productDetail.backShop') }}</AppButton>
+    </EmptyState>
+
+    <template v-else-if="detail">
+      <div class="mt-6 grid gap-10 lg:grid-cols-[1fr_1fr]">
+        <!-- 1. 图片 -->
+        <div>
+          <div class="overflow-hidden rounded-lg border border-line bg-canvas-sunk">
+            <img
+              v-if="currentImage"
+              :src="currentImage.thumb ?? currentImage.src"
+              :srcset="currentImage.srcset?.map((item) => `${item.url} ${item.width}w`).join(', ') || undefined"
+              sizes="(min-width: 1024px) 50vw, 100vw"
+              :width="currentImage.width"
+              :height="currentImage.height"
+              :alt="currentImage.alt || t('productDetail.imageAlt', { title: detail.title })"
+              loading="lazy"
+              decoding="async"
+              class="w-full object-cover"
+            />
+            <div v-else class="flex aspect-square items-center justify-center text-xs text-ink-faint">
+              {{ t('productDetail.imagePending') }}
+            </div>
+          </div>
+
+          <div v-if="images.length > 1" class="mt-3 flex flex-wrap gap-3">
+            <button
+              v-for="(image, index) in images"
+              :key="image.id"
+              type="button"
+              class="overflow-hidden rounded-sm border transition-colors"
+              :class="index === activeImage ? 'border-amber' : 'border-line hover:border-amber'"
+              :aria-label="t('productDetail.imageNumber', { index: index + 1 })"
+              :aria-pressed="index === activeImage"
+              @click="activeImage = index"
+            >
+              <img
+                :src="image.thumb ?? image.src"
+                :width="image.width"
+                :height="image.height"
+                :alt="image.alt || t('productDetail.imageAltNumber', { title: detail.title, index: index + 1 })"
+                loading="lazy"
+                decoding="async"
+                class="size-20 object-cover"
+              />
+            </button>
+          </div>
+        </div>
+
+        <!-- 2~5. SKU/库存 → 价格 → 运费 → 售后 → 购买按钮 -->
+        <div class="space-y-6">
+          <div>
+            <div class="flex flex-wrap items-center gap-2">
+              <StatusBadge :tone="availability.tone" :label="availability.label" />
+              <StatusBadge v-if="detail.category" tone="neutral" :label="productCategoryLabel(detail.category)" />
+              <StatusBadge v-if="detail.requires_approval" tone="amber" :label="t('productDetail.approval')" />
+              <StatusBadge v-if="detail.kind" tone="night" :label="productKindLabel(detail.kind)" />
+            </div>
+            <h1 class="mt-4 font-display text-3xl leading-tight sm:text-4xl">{{ displayTitle }}</h1>
+        <p v-if="isDemo" class="mt-2 inline-flex rounded-full bg-ink/8 px-2.5 py-1 text-[11px] font-bold text-ink-muted">演示</p>
+            <p v-if="detail.subtitle" class="mt-3 text-sm text-ink-muted">{{ detail.subtitle }}</p>
+
+            <p class="mt-5 flex flex-wrap items-baseline gap-2">
+              <span class="font-display text-3xl">{{ priceLabel }}</span>
+              <span v-if="priceHighCents !== null && priceHighCents !== priceLowCents" class="text-xs text-ink-faint">
+                {{ t('productDetail.priceRange') }}
+              </span>
+              <span v-else class="text-xs text-ink-faint">{{ t('productDetail.shippingExcluded') }}</span>
+            </p>
+
+            <p class="mt-2 text-xs text-ink-muted">
+              <template v-if="skus.length">
+                {{ t('productDetail.skuCount', { count: skus.length, available: availableSkuCount }) }}
+              </template>
+              {{ t('productDetail.stockNote') }}
+            </p>
+
+            <p
+              v-if="detail.availability === 'sold_out'"
+              class="mt-4 rounded-lg border border-line-strong bg-surface-muted p-4 text-sm text-ink-muted"
+            >
+              {{ t('productDetail.soldOut') }}
+            </p>
+          </div>
+
+          <p
+            v-if="!auth.isAuthenticated"
+            class="rounded-lg border border-line bg-surface-muted p-4 text-sm text-ink-muted"
+          >
+            {{ t('productDetail.loginNote') }}
+            <RouterLink class="link-underline text-amber-strong" :to="withQuery(publicPath('/login'), { returnTo: route.fullPath })">
+              {{ t('productDetail.login') }}
+            </RouterLink>
+          </p>
+
+          <p
+            v-else-if="expiredApplication"
+            class="rounded-lg border border-amber bg-amber-soft p-4 text-sm text-amber-strong"
+          >
+            {{ t('productDetail.expired') }}
+          </p>
+
+          <SkuPicker
+            :skus="skus"
+            :requires-approval="detail.requires_approval"
+            :approval-url="approvalUrl"
+            :approval-window-label="approvalWindowLabel"
+            :purchasable="availability.purchasable"
+            :unavailable-reason="
+              availability.purchasable
+                ? ''
+                : t('productDetail.unavailable', { status: availability.label })
+            "
+            :submitting="submitting"
+            @add="onAdd"
+          >
+            <template #shipping>
+              <p class="eyebrow">Shipping</p>
+              <p class="mt-2 text-sm leading-relaxed text-ink-muted">{{ shippingNote }}</p>
+              <p class="mt-2 text-xs text-ink-faint">
+                {{ t('productDetail.shippingNote') }}{{ site.commercePolicy.cross_border_note }}
+              </p>
+            </template>
+
+            <template #after-sales>
+              <p class="eyebrow">After sales</p>
+              <p class="mt-2 text-sm leading-relaxed text-ink-muted">
+                {{ t('productDetail.afterSales', { note: afterSalesNote }) }}
+              </p>
+              <p class="mt-2 text-xs text-ink-faint">
+                {{ t('productDetail.refund') }}
+              </p>
+              <AppButton :to="publicPath('/legal/returns')" size="sm" variant="secondary" class="mt-3">
+                {{ t('productDetail.returns') }}
+              </AppButton>
+            </template>
+          </SkuPicker>
+        </div>
+      </div>
+
+      <!-- 商品说明 -->
+      <section v-if="detail.description_html" class="mt-16">
+        <SectionHeading eyebrow="Detail" :title="t('productDetail.descriptionTitle')" :description="t('productDetail.descriptionNote')" />
+        <div
+          class="prose-quiet mt-6 max-w-[720px] text-sm leading-relaxed text-ink-muted"
+          v-html="detail.description_html"
+        />
+      </section>
+
+      <section class="mt-16">
+        <SectionHeading
+          eyebrow="Next"
+          :title="t('productDetail.nextTitle')"
+          :description="t('productDetail.nextDescription')"
+        >
+          <template #actions>
+            <AppButton to="/account/applications" size="sm" variant="secondary">{{ t('productDetail.applications') }}</AppButton>
+            <AppButton :to="publicPath('/contact')" size="sm">{{ t('productDetail.contact') }}</AppButton>
+          </template>
+        </SectionHeading>
+      </section>
+    </template>
+  </div>
+</template>
+
 <script setup lang="ts">
 /**
  * 商品详情（/shop/:slug）。
@@ -15,8 +223,10 @@ import { RouterLink, useRoute, useRouter } from "vue-router";
 
 import SkuPicker from "@/modules/catalog/components/SkuPicker.vue";
 import {
+  DEMO_TITLE_MARK,
   applyPageMeta,
   buildProductJsonLd,
+  displayProductTitle,
   fetchProduct,
   fetchStockApplications,
   productAvailabilityMeta,
@@ -36,6 +246,7 @@ import { AppButton, Breadcrumbs, EmptyState, SectionHeading, StatusBadge } from 
 import { StarLoader } from "@/shared/ui/BrandMark";
 import { formatCountdown, formatMoney, isExpired } from "@/shared/lib/format";
 import { ApiError } from "@/shared/lib/http";
+import { useI18n } from "@/shared/lib/i18n";
 import { useToast } from "@/shared/lib/toast";
 
 const route = useRoute();
@@ -44,6 +255,8 @@ const cart = useCartStore();
 const auth = useAuthStore();
 const site = useSiteStore();
 const toast = useToast();
+const { t, locale } = useI18n();
+const publicPath = (path: string): string => locale.value === "en-US" ? `/en${path === "/" ? "" : path}` : path;
 
 const detail = ref<ProductDetail | null>(null);
 const applications = ref<StockApplication[]>([]);
@@ -56,6 +269,9 @@ const activeImage = ref(0);
 const now = ref(Date.now());
 
 const slug = computed(() => String(route.params.slug ?? ""));
+
+const displayTitle = computed(() => displayProductTitle(detail.value?.title));
+const isDemo = computed(() => (detail.value?.title ?? "").includes(DEMO_TITLE_MARK));
 
 const images = computed(() => detail.value?.images ?? []);
 const currentImage = computed(() => images.value[activeImage.value] ?? images.value[0] ?? null);
@@ -78,7 +294,7 @@ const priceHighCents = computed<number | null>(() => {
   return Math.max(...prices);
 });
 const priceLabel = computed(() => {
-  if (priceLowCents.value === null) return "价格待公布";
+  if (priceLowCents.value === null) return t("productCard.pricePending");
   if (priceHighCents.value !== null && priceHighCents.value !== priceLowCents.value) {
     return `${formatMoney(priceLowCents.value, currency.value)} – ${formatMoney(priceHighCents.value, currency.value)}`;
   }
@@ -115,13 +331,14 @@ const expiredApplication = computed<StockApplication | null>(() => {
 const approvalWindowLabel = computed(() => {
   const item = approvedApplication.value;
   if (!item) return "";
-  if (!item.purchase_expires_at) return "审批已通过，可直接购买";
-  return `剩余购买时间 ${formatCountdown(item.purchase_expires_at, now.value)}`;
+  if (!item.purchase_expires_at) return t("productDetail.approved");
+  return t("productDetail.remaining", { time: formatCountdown(item.purchase_expires_at, now.value, locale.value) });
 });
 
 const approvalUrl = computed(() => {
   const product = detail.value;
-  if (!auth.isAuthenticated) return withQuery("/login", { returnTo: route.fullPath });
+  if (product?.service_kind === "cleaning") return "/wash";
+  if (!auth.isAuthenticated) return withQuery(publicPath("/login"), { returnTo: route.fullPath });
   return withQuery("/account/applications", {
     product_id: product?.id ?? "",
     product_slug: product?.slug ?? "",
@@ -171,7 +388,9 @@ async function loadApproval(): Promise<void> {
   }
 }
 
+let loadVersion = 0;
 async function load(): Promise<void> {
+  const version = ++loadVersion;
   if (!slug.value) {
     notFound.value = true;
     loading.value = false;
@@ -183,27 +402,29 @@ async function load(): Promise<void> {
   forbidden.value = false;
   activeImage.value = 0;
   try {
-    const payload = await fetchProduct(slug.value);
+    const payload = await fetchProduct(slug.value, site.browsingCurrency);
+    if (version !== loadVersion) return;
     detail.value = payload;
     applyPageMeta({
-      title: payload.title,
+      title: displayProductTitle(payload.title),
       description:
         payload.subtitle ||
-        `${payload.title} 的图片、规格与库存状态、价格与运费说明、售后说明。可售性与金额以下单时服务端校验为准。`,
+        t("productDetail.meta", { title: displayProductTitle(payload.title) }),
       canonicalPath: `/shop/${payload.slug}`,
     });
     syncJsonLd();
     await loadApproval();
   } catch (caught) {
+    if (version !== loadVersion) return;
     if (caught instanceof ApiError) {
       if (caught.status === 404 || caught.code === "RESOURCE_NOT_FOUND") notFound.value = true;
       else if (caught.status === 403) forbidden.value = true;
       else error.value = caught.message;
     } else {
-      error.value = "商品详情加载失败。";
+      error.value = t("productDetail.error");
     }
   } finally {
-    loading.value = false;
+    if (version === loadVersion) loading.value = false;
   }
 }
 
@@ -221,7 +442,7 @@ function syncJsonLd(): void {
       priceLowCents: priceLowCents.value,
       priceHighCents: priceHighCents.value,
       skuCount: skus.value.length,
-      url: `${origin}/shop/${product.slug}`,
+      url: `${origin}${publicPath(`/shop/${product.slug}`)}`,
     }),
   );
 }
@@ -232,8 +453,8 @@ async function onAdd(payload: { sku: Sku; quantity: number }): Promise<void> {
   const product = detail.value;
   if (!product) return;
   if (!auth.isAuthenticated) {
-    toast.info("请先登录再加入购物车", "购物车保存在服务端，登录后可以在其他设备继续结算。");
-    await router.push(withQuery("/login", { returnTo: route.fullPath }));
+    toast.info(t("productDetail.loginFirst"), t("productDetail.cartSaved"));
+    await router.push(withQuery(publicPath("/login"), { returnTo: route.fullPath }));
     return;
   }
   submitting.value = true;
@@ -241,21 +462,21 @@ async function onAdd(payload: { sku: Sku; quantity: number }): Promise<void> {
   submitting.value = false;
   if (ok) {
     toast.success(
-      `已加入购物车：${product.title} · ${payload.sku.label}`,
-      `购物车当前共 ${cart.itemCount} 件。价格、库存与运费在结算时由服务端重新校验。`,
+      t("productDetail.added", { title: product.title, sku: payload.sku.label }),
+      t("productDetail.cartCount", { count: cart.itemCount }),
     );
   } else {
     toast.error(
-      cart.error ?? "加入购物车失败",
-      "可以稍后重试；购物车数量与库存以服务端为准，页面不会先按本地状态当成成功。",
+      cart.error ?? t("productDetail.addFailed"),
+      t("productDetail.addRetry"),
     );
   }
 }
 
 onMounted(() => {
   applyPageMeta({
-    title: "商品详情",
-    description: "商品图片、规格与库存状态、价格与运费说明、售后说明。",
+    title: t("productDetail.title"),
+    description: t("productDetail.metaDefault"),
     canonicalPath: `/shop/${slug.value}`,
   });
   if (auth.isAuthenticated) void cart.load();
@@ -267,221 +488,12 @@ onBeforeUnmount(() => {
   setProductJsonLd(null);
 });
 
-watch(slug, () => void load());
+watch([slug, () => site.browsingCurrency], () => void load());
 watch(
   () => auth.isAuthenticated,
   () => void loadApproval(),
 );
 </script>
-
-<template>
-  <div class="container-page py-10 lg:py-14">
-    <Breadcrumbs
-      :items="[
-        { label: '首页', to: '/' },
-        { label: '商城', to: '/shop' },
-        { label: detail?.title ?? '商品详情' },
-      ]"
-    />
-
-    <div v-if="loading" class="py-16">
-      <StarLoader message="正在读取商品信息" />
-    </div>
-
-    <EmptyState
-      v-else-if="notFound"
-      class="mt-10"
-      tone="not-found"
-      title="找不到这个商品"
-      description="商品可能已下架或地址有误；下架商品不会通过公开地址继续销售。"
-    >
-      <AppButton to="/shop" size="sm">返回商城</AppButton>
-    </EmptyState>
-
-    <EmptyState
-      v-else-if="forbidden"
-      class="mt-10"
-      tone="forbidden"
-      title="没有访问该商品的权限"
-      description="该商品可能仅对特定客户开放。登录后可查看自己的申请与订单记录。"
-    >
-      <AppButton :to="withQuery('/login', { returnTo: route.fullPath })" size="sm">手机号登录</AppButton>
-      <AppButton to="/shop" size="sm" variant="secondary">返回商城</AppButton>
-    </EmptyState>
-
-    <EmptyState
-      v-else-if="error"
-      class="mt-10"
-      tone="error"
-      title="商品详情暂时无法加载"
-      :description="`${error} 网络恢复后可以重试。`"
-    >
-      <AppButton size="sm" @click="load()">重新加载</AppButton>
-      <AppButton size="sm" variant="secondary" to="/shop">返回商城</AppButton>
-    </EmptyState>
-
-    <template v-else-if="detail">
-      <div class="mt-6 grid gap-10 lg:grid-cols-[1fr_1fr]">
-        <!-- 1. 图片 -->
-        <div>
-          <div class="overflow-hidden rounded-lg border border-line bg-canvas-sunk">
-            <img
-              v-if="currentImage"
-              :src="currentImage.thumb ?? currentImage.src"
-              :srcset="currentImage.srcset?.map((item) => `${item.url} ${item.width}w`).join(', ') || undefined"
-              sizes="(min-width: 1024px) 50vw, 100vw"
-              :width="currentImage.width"
-              :height="currentImage.height"
-              :alt="currentImage.alt || `${detail.title} 商品图`"
-              loading="lazy"
-              decoding="async"
-              class="w-full object-cover"
-            />
-            <div v-else class="flex aspect-square items-center justify-center text-xs text-ink-faint">
-              图片准备中
-            </div>
-          </div>
-
-          <div v-if="images.length > 1" class="mt-3 flex flex-wrap gap-3">
-            <button
-              v-for="(image, index) in images"
-              :key="image.id"
-              type="button"
-              class="overflow-hidden rounded-sm border transition-colors"
-              :class="index === activeImage ? 'border-amber' : 'border-line hover:border-amber'"
-              :aria-label="`查看第 ${index + 1} 张商品图`"
-              :aria-pressed="index === activeImage"
-              @click="activeImage = index"
-            >
-              <img
-                :src="image.thumb ?? image.src"
-                :width="image.width"
-                :height="image.height"
-                :alt="image.alt || `${detail.title} 商品图 ${index + 1}`"
-                loading="lazy"
-                decoding="async"
-                class="size-20 object-cover"
-              />
-            </button>
-          </div>
-        </div>
-
-        <!-- 2~5. SKU/库存 → 价格 → 运费 → 售后 → 购买按钮 -->
-        <div class="space-y-6">
-          <div>
-            <div class="flex flex-wrap items-center gap-2">
-              <StatusBadge :tone="availability.tone" :label="availability.label" />
-              <StatusBadge v-if="detail.category" tone="neutral" :label="productCategoryLabel(detail.category)" />
-              <StatusBadge v-if="detail.requires_approval" tone="amber" label="需先申请审批" />
-              <StatusBadge v-if="detail.kind" tone="night" :label="productKindLabel(detail.kind)" />
-            </div>
-            <h1 class="mt-4 font-display text-3xl leading-tight sm:text-4xl">{{ detail.title }}</h1>
-            <p v-if="detail.subtitle" class="mt-3 text-sm text-ink-muted">{{ detail.subtitle }}</p>
-
-            <p class="mt-5 flex flex-wrap items-baseline gap-2">
-              <span class="font-display text-3xl">{{ priceLabel }}</span>
-              <span v-if="priceHighCents !== null && priceHighCents !== priceLowCents" class="text-xs text-ink-faint">
-                区间来自各规格单价
-              </span>
-              <span v-else class="text-xs text-ink-faint">未含运费，最终金额以结算页为准</span>
-            </p>
-
-            <p class="mt-2 text-xs text-ink-muted">
-              <template v-if="skus.length">
-                共 {{ skus.length }} 个规格，其中 {{ availableSkuCount }} 个当前可售；
-              </template>
-              库存与可售性以下单时服务端校验为准，页面不自行判定。
-            </p>
-
-            <p
-              v-if="detail.availability === 'sold_out'"
-              class="mt-4 rounded-lg border border-line-strong bg-surface-muted p-4 text-sm text-ink-muted"
-            >
-              该商品当前全部规格售罄。售罄仍可浏览页面与规格，补货后会重新开放购买；
-              补货时间不做承诺，可以提交申请或关注公告。
-            </p>
-          </div>
-
-          <p
-            v-if="!auth.isAuthenticated"
-            class="rounded-lg border border-line bg-surface-muted p-4 text-sm text-ink-muted"
-          >
-            购物车保存在服务端，登录后才能加入与结算。
-            <RouterLink class="link-underline text-amber-strong" :to="withQuery('/login', { returnTo: route.fullPath })">
-              手机号登录
-            </RouterLink>
-          </p>
-
-          <p
-            v-else-if="expiredApplication"
-            class="rounded-lg border border-amber bg-amber-soft p-4 text-sm text-amber-strong"
-          >
-            上一次审批的购买时间已结束，无法继续按该审批购买。需要重新提交申请并等待人工审批。
-          </p>
-
-          <SkuPicker
-            :skus="skus"
-            :requires-approval="detail.requires_approval"
-            :approval-url="approvalUrl"
-            :approval-window-label="approvalWindowLabel"
-            :purchasable="availability.purchasable"
-            :unavailable-reason="
-              availability.purchasable
-                ? ''
-                : `该商品当前状态为「${availability.label}」，暂不可加入购物车；售罄或待上架仍可浏览规格。`
-            "
-            :submitting="submitting"
-            @add="onAdd"
-          >
-            <template #shipping>
-              <p class="eyebrow">Shipping</p>
-              <p class="mt-2 text-sm leading-relaxed text-ink-muted">{{ shippingNote }}</p>
-              <p class="mt-2 text-xs text-ink-faint">
-                运费在结算页按运费模板计算，页面不预估金额；{{ site.commercePolicy.cross_border_note }}
-              </p>
-            </template>
-
-            <template #after-sales>
-              <p class="eyebrow">After sales</p>
-              <p class="mt-2 text-sm leading-relaxed text-ink-muted">
-                退换货参照：{{ afterSalesNote }}。定制商品与现货的条件不同，质量问题走独立处理流程，
-                不会一概“不退不换”。
-              </p>
-              <p class="mt-2 text-xs text-ink-faint">
-                退款按原渠道退回原付款来源，到账以渠道结果为准。
-              </p>
-              <AppButton to="/legal/returns" size="sm" variant="secondary" class="mt-3">
-                阅读退换与维修规则
-              </AppButton>
-            </template>
-          </SkuPicker>
-        </div>
-      </div>
-
-      <!-- 商品说明 -->
-      <section v-if="detail.description_html" class="mt-16">
-        <SectionHeading eyebrow="Detail" title="商品说明" description="以运营发布的说明为准，不含未核准的性能承诺。" />
-        <div
-          class="prose-quiet mt-6 max-w-[720px] text-sm leading-relaxed text-ink-muted"
-          v-html="detail.description_html"
-        />
-      </section>
-
-      <section class="mt-16">
-        <SectionHeading
-          eyebrow="Next"
-          title="还需要确认？"
-          description="可以查看掉落与服务申请规则、售后条款，或直接联系客服确认现货与配件情况。"
-        >
-          <template #actions>
-            <AppButton to="/account/applications" size="sm" variant="secondary">掉落与服务申请</AppButton>
-            <AppButton to="/contact" size="sm">联系客服</AppButton>
-          </template>
-        </SectionHeading>
-      </section>
-    </template>
-  </div>
-</template>
 
 <style scoped>
 .prose-quiet :deep(p) {

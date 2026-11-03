@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 import sqlalchemy as sa
 from sqlalchemy.orm import Session
 
@@ -13,6 +15,16 @@ from app.modules.content.models import (
     SiteSetting,
 )
 from app.platform.ids import new_id, now_ms
+
+
+def _public_conditions(moment: int | None = None) -> list[Any]:
+    now = moment if moment is not None else now_ms()
+    return [
+        ContentEntry.status == "published",
+        sa.or_(ContentEntry.publish_at.is_(None), ContentEntry.publish_at <= now),
+        sa.or_(ContentEntry.unpublish_at.is_(None), ContentEntry.unpublish_at > now),
+        sa.or_(ContentEntry.kind != "work", ContentEntry.display_authorized == 1),
+    ]
 
 
 def get_entry(session: Session, entry_id: str) -> ContentEntry | None:
@@ -42,17 +54,12 @@ def get_published(
     委托作品（``kind="work"``）**必须仍有公开展示授权**：撤回授权后即使条目仍是
     published，也不能再通过直链访问（FR-002、C18：无授权的作品不出现）。
     """
-    now = moment if moment is not None else now_ms()
     conditions = [
         ContentEntry.kind == kind,
         ContentEntry.slug == slug,
         ContentEntry.locale == locale,
-        ContentEntry.status == "published",
-        sa.or_(ContentEntry.publish_at.is_(None), ContentEntry.publish_at <= now),
-        sa.or_(ContentEntry.unpublish_at.is_(None), ContentEntry.unpublish_at > now),
+        *_public_conditions(moment),
     ]
-    if kind == "work":
-        conditions.append(ContentEntry.display_authorized == 1)
     return session.scalars(sa.select(ContentEntry).where(*conditions)).one_or_none()
 
 
@@ -70,16 +77,11 @@ def list_published(
     offset: int = 0,
     moment: int | None = None,
 ) -> tuple[list[ContentEntry], int]:
-    now = moment if moment is not None else now_ms()
     conditions = [
         ContentEntry.kind == kind,
         ContentEntry.locale == locale,
-        ContentEntry.status == "published",
-        sa.or_(ContentEntry.publish_at.is_(None), ContentEntry.publish_at <= now),
-        sa.or_(ContentEntry.unpublish_at.is_(None), ContentEntry.unpublish_at > now),
+        *_public_conditions(moment),
     ]
-    if kind == "work":
-        conditions.append(ContentEntry.display_authorized == 1)
     if species:
         conditions.append(ContentEntry.species == species)
     if work_type:
@@ -173,8 +175,9 @@ def get_series_for_entry(session: Session, entry_id: str) -> SeriesSpec | None:
     return session.scalars(sa.select(SeriesSpec).where(SeriesSpec.entry_id == entry_id)).one_or_none()
 
 
-def list_series(session: Session, *, active_only: bool = True) -> list[tuple[SeriesSpec, ContentEntry]]:
+def list_series(session: Session, *, active_only: bool = True, locale: str = "zh-CN") -> list[tuple[SeriesSpec, ContentEntry]]:
     stmt = sa.select(SeriesSpec, ContentEntry).join(ContentEntry, ContentEntry.id == SeriesSpec.entry_id)
+    stmt = stmt.where(ContentEntry.kind == "series", ContentEntry.locale == locale, *_public_conditions())
     if active_only:
         stmt = stmt.where(SeriesSpec.is_active == 1)
     stmt = stmt.order_by(SeriesSpec.display_order, ContentEntry.sort_order)
@@ -194,15 +197,13 @@ def list_settings(session: Session, *, public_only: bool = False, group: str | N
     return list(session.scalars(stmt.order_by(SiteSetting.group, SiteSetting.key)))
 
 
-def list_sitemap_entries(session: Session, *, moment: int | None = None, limit: int = 5000) -> list[ContentEntry]:
-    now = moment if moment is not None else now_ms()
+def list_sitemap_entries(session: Session, *, moment: int | None = None, limit: int = 5000, locales: tuple[str, ...] = ("zh-CN",)) -> list[ContentEntry]:
     return list(
         session.scalars(
             sa.select(ContentEntry)
             .where(
-                ContentEntry.status == "published",
-                ContentEntry.locale == "zh-CN",
-                sa.or_(ContentEntry.publish_at.is_(None), ContentEntry.publish_at <= now),
+                *_public_conditions(moment),
+                ContentEntry.locale.in_(locales),
             )
             .order_by(ContentEntry.updated_at.desc())
             .limit(limit)
@@ -237,7 +238,7 @@ def species_facets(session: Session, *, kind: str = "work", locale: str = "zh-CN
         .where(
             ContentEntry.kind == kind,
             ContentEntry.locale == locale,
-            ContentEntry.status == "published",
+            *_public_conditions(),
             ContentEntry.species.is_not(None),
         )
         .group_by(ContentEntry.species)
@@ -252,7 +253,7 @@ def work_type_facets(session: Session, *, locale: str = "zh-CN") -> list[tuple[s
         .where(
             ContentEntry.kind == "work",
             ContentEntry.locale == locale,
-            ContentEntry.status == "published",
+            *_public_conditions(),
             ContentEntry.work_type.is_not(None),
         )
         .group_by(ContentEntry.work_type)

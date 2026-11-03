@@ -549,21 +549,10 @@ def update_setting(
 
 # ------------------------------------------------------------------ 序列化
 def public_route_for(entry: ContentEntry) -> str:
-    if entry.kind == "work":
-        return f"/works/{entry.slug}"
-    if entry.kind == "news":
-        return f"/news/{entry.slug}"
-    if entry.kind == "series":
-        return f"/fursuits/{entry.slug}"
-    if entry.kind == "legal":
-        return f"/legal/{entry.slug}"
-    if entry.kind == "story":
-        return f"/stories/{entry.slug}"
-    if entry.kind == "designer":
-        return f"/designers/{entry.slug}"
-    if entry.kind == "event":
-        return f"/events/{entry.slug}"
-    return f"/pages/{entry.slug}"
+    prefixes = {"work": "works", "news": "news", "series": "fursuits", "legal": "legal",
+                "story": "stories", "designer": "designers", "event": "events"}
+    prefix = "/en" if entry.locale == "en-US" else ""
+    return f"{prefix}/{prefixes.get(entry.kind, 'pages')}/{entry.slug}"
 
 
 def entry_payload(entry: ContentEntry, *, include_body: bool = False) -> dict[str, Any]:
@@ -1028,11 +1017,15 @@ def sitemap_urls(session: Session, *, origin: str) -> list[dict[str, str]]:
         "/legal/returns",
         "/legal/points",
     ]
+    english_enabled = feature_flags(session).get("en_locale", False)
+    if english_enabled:
+        static_paths += [f"/en{path}" if path != "/" else "/en" for path in static_paths]
     entries = [
         {"loc": f"{origin}{path}", "changefreq": "weekly", "priority": "0.7"}
         for path in static_paths
     ]
-    for entry in repo.list_sitemap_entries(session):
+    locales = ("zh-CN", "en-US") if english_enabled else ("zh-CN",)
+    for entry in repo.list_sitemap_entries(session, locales=locales):
         entries.append(
             {
                 "loc": f"{origin}{public_route_for(entry)}",

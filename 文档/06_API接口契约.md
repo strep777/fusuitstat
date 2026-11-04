@@ -50,8 +50,8 @@ HTTP：400 格式错误，401 未认证，403 无权限/CSRF，404 无可访问�
 | POST `/me/closure-requests` | 本人+二次验证 | 注销申请，返回需处理的合法阻碍 |
 | GET/POST `/me/addresses`、PATCH/DELETE `/me/addresses/:id` | 本人 | 地址 CRUD；删除不改订单快照 |
 | GET `/content/:kind`、GET `/content/:kind/:slug` | 公开 | 仅已发布；作品、公告、系列、FAQ |
-| GET `/products`、GET `/products/:slug` | 公开 | SKU、可售展示、规格；`category` 接受 stock/accessory/props/merch/service/character |
-| POST `/stock-applications`、GET `/stock-applications` | 本人 | 掉落/道具/洗毛预约；洗毛额外接受期望日期与返还方式 |
+| GET `/products`、GET `/products/:slug` | 公开 | SKU、可售展示、规格；`category` 接受 stock/accessory/props/merch/service/character；`exclude_kinds` 接受逗号分隔的商品类型，用于商城排除 service 与 exclusive_character |
+| POST `/stock-applications`、GET `/stock-applications` | 本人 | 掉落/道具/保养服务预约；保养服务额外接受期望日期与返还方式 |
 | GET `/characters`、GET `/characters/:slug` | 公开 | 角色过滤、授权信息与状态 |
 | GET `/schedule-rounds` | 公开 | 开放时间、匿名余量摘要 |
 | POST `/uploads` | 本人/员工+限流 | 建临时上传，返回受限地址/表单 |
@@ -94,9 +94,9 @@ HTTP：400 格式错误，401 未认证，403 无权限/CSRF，404 无可访问�
 
 后台 `GET /admin/estimates?status=&page=&limit=` 需 `quote.read`；`PATCH /admin/estimates/:id` 需 `quote.review` 与 CSRF，只允许 `CONTACTED` / `CLOSED` 并记录原因。后台明文联系方式不进入日志、导出默认脱敏。
 
-### 洗毛预约（FR-025）
+### 保养服务预约（FR-025）
 
-`POST /stock-applications` 的洗毛分支要求商品 `status=published` 且 `service_kind=cleaning`，请求：
+`POST /stock-applications` 的保养服务分支要求商品 `status=published` 且 `service_kind=cleaning`，请求：
 
 ```json
 {"product_id":"prod_example","sku_id":"sku_example","kind":"cleaning","reason":"全装，长毛，局部打结","preferred_date":"2026-11-20","return_method":"ship"}
@@ -108,7 +108,7 @@ HTTP：400 格式错误，401 未认证，403 无权限/CSRF，404 无可访问�
 
 ### 商品区域价格
 
-`GET /products` 与 `GET /products/:slug` 接受可选 `currency=CNY|USD`；其他币种返回 422。列表只包含存在该币种已启用 SKU 的已发布商品，分页总数使用同一过滤条件；售罄 SKU 仍可浏览。响应 `currency`、`price_from_cents`、`availability` 与 `skus` 对应同一币种，不比较不同币种的数字大小。详情没有目标币种规格时返回空 `skus`、空最低价与不可购买状态。省略币种保留兼容读取，不代表允许混币种结算。
+`GET /products` 与 `GET /products/:slug` 接受可选 `currency=CNY|USD`；其他币种返回 422。列表只包含存在该币种已启用 SKU 的已发布商品，分页总数使用同一过滤条件；售罄 SKU 仍可浏览。合并商城请求 `exclude_kinds=service,exclusive_character`，使保养服务与角色汤不出现在商城；分页总数按排除后的结果计算。响应 `currency`、`price_from_cents`、`availability` 与 `skus` 对应同一币种，不比较不同币种的数字大小。详情没有目标币种规格时返回空 `skus`、空最低价与不可购买状态。省略币种保留兼容读取，不代表允许混币种结算。
 
 ### 手机验证码
 

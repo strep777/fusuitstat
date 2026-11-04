@@ -1,6 +1,6 @@
 <script setup lang="ts">
 /**
- * 角色领养：独占角色的内容、授权规则、售出展示与掉落释放。
+ * 角色汤：独占角色的内容、授权规则、售出展示与掉落释放。
  *
  * 约束：独占角色只有一只，售出后必须立刻反映真实状态；释放（掉落）是危险动作，
  * 需要确认对象、金额与后果，并填写理由。
@@ -153,7 +153,7 @@ onMounted(load);
   <div class="space-y-6">
     <AdminPageHeader
       eyebrow="Characters"
-      title="角色领养"
+      title="角色汤"
       description="维护独占角色的内容、授权规则与售出展示。独占角色只有一只：售出后必须立刻反映真实状态，避免二次售卖。"
     >
       <template #actions>

@@ -1,10 +1,9 @@
 <script setup lang="ts">
 /**
- * 角色领养池（/characters）。
+ * 角色汤（/characters）：领养工作室原创角色设定。
  *
- * 约束（03 文档）：待领养/保留/已领养/自留可筛选，状态进 URL（刷新与返回都能恢复）；
- * 保留不等于成交；售价与授权范围可见（卡片给状态与价格，授权说明在详情页）；
- * 没有数据时显示诚实空态，不用占位角色填充。
+ * 每个角色都是唯一设定；状态、价格与授权范围公开可见。
+ * 保留不等于成交，只有已完成领养的记录才代表角色归属变更。
  */
 import { computed, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
@@ -18,7 +17,7 @@ import {
   readQueryString,
   type CharacterSummary,
 } from "@/modules/catalog/api/catalog";
-import { AppButton, Breadcrumbs, EmptyState, SectionHeading, SkeletonBlock } from "@/shared/ui/base";
+import { AppButton, Breadcrumbs, EmptyState, SkeletonBlock } from "@/shared/ui/base";
 import { ApiError } from "@/shared/lib/http";
 
 const route = useRoute();
@@ -51,6 +50,8 @@ const activeFilterCount = computed(
   () => [filters.value.status, filters.value.species, filters.value.q].filter(Boolean).length,
 );
 
+const featured = computed(() => (items.value.length === 1 ? items.value[0] ?? null : null));
+
 async function load(): Promise<void> {
   loading.value = true;
   error.value = null;
@@ -70,7 +71,7 @@ async function load(): Promise<void> {
     if (caught instanceof ApiError && (caught.status === 403 || caught.needsLogin)) {
       forbidden.value = true;
     } else {
-      error.value = caught instanceof ApiError ? caught.message : "角色列表加载失败。";
+      error.value = caught instanceof ApiError ? caught.message : "角色汤加载失败。";
     }
     items.value = [];
     total.value = 0;
@@ -113,9 +114,9 @@ function resetFilters(): void {
 
 onMounted(() => {
   applyPageMeta({
-    title: "角色领养",
+    title: "角色汤",
     description:
-      "角色领养池：待领养、保留中、已领养与工作室自留状态可筛选；保留不等于成交，售价与授权范围在角色详情页说明。",
+      "角色汤：领养工作室原创角色设定。每个角色都是唯一设定，状态、售价与授权范围公开可见；保留状态不等于成交。",
     canonicalPath: "/characters",
   });
   void load();
@@ -125,100 +126,114 @@ watch(() => route.fullPath, () => void load());
 </script>
 
 <template>
-  <div class="container-page py-10 lg:py-14">
-    <Breadcrumbs :items="[{ label: '首页', to: '/' }, { label: '角色领养' }]" />
+  <div class="container-page pb-10 pt-8 lg:pb-14">
+    <Breadcrumbs :items="[{ label: '首页', to: '/' }, { label: '角色汤' }]" />
 
-    <div class="mt-6">
-      <SectionHeading
-        :level="1"
-        eyebrow="Adoption"
-        title="角色领养"
-        description="每个角色都是唯一设定：独占角色库存固定为 1，售出后不再复制。保留状态不等于成交，只有已完成领养的记录才代表角色归属变更。"
-      >
-        <template #actions>
-          <AppButton to="/fursuits" size="sm" variant="secondary">查看系列规格</AppButton>
-          <AppButton to="/estimate" size="sm">按自己的设定估价</AppButton>
-        </template>
-      </SectionHeading>
-    </div>
-
-    <!-- 筛选：状态进 URL -->
-    <section class="mt-10 rounded-lg border border-line bg-surface p-5" aria-label="角色筛选">
-      <div class="flex flex-wrap items-center gap-2">
-        <span class="text-xs text-ink-faint">状态</span>
-        <button
-          type="button"
-          class="min-h-[44px] rounded-sm border px-3 text-sm transition-colors"
-          :class="
-            filters.status === ''
-              ? 'border-amber bg-amber-soft text-amber-strong'
-              : 'border-line-strong bg-surface text-ink-soft hover:border-amber'
-          "
-          :aria-pressed="filters.status === ''"
-          @click="pushQuery({ status: '' })"
-        >
-          全部
-        </button>
-        <button
-          v-for="option in CHARACTER_STATUS_OPTIONS"
-          :key="option.value"
-          type="button"
-          class="min-h-[44px] rounded-sm border px-3 text-sm transition-colors"
-          :class="
-            filters.status === option.value
-              ? 'border-amber bg-amber-soft text-amber-strong'
-              : 'border-line-strong bg-surface text-ink-soft hover:border-amber'
-          "
-          :aria-pressed="filters.status === option.value"
-          @click="pushQuery({ status: option.value })"
-        >
-          {{ option.label }}
-        </button>
-      </div>
-
-      <form class="mt-5 grid gap-4 sm:grid-cols-[1fr_1fr_auto]" @submit.prevent="submitFilters()">
+    <section class="relative mt-6 overflow-hidden rounded-[2rem] bg-[#f4efe8]">
+      <div class="relative z-10 grid gap-8 px-7 py-10 sm:px-10 sm:py-14 lg:grid-cols-[1.05fr_0.95fr] lg:items-end">
         <div>
-          <label class="text-sm font-medium text-ink-soft" for="character-species">物种</label>
+          <p class="text-[11px] uppercase tracking-[0.22em] text-ink-faint">CHARACTER SOUP</p>
+          <h1 class="mt-4 font-display text-5xl font-medium tracking-[-0.045em] text-ink sm:text-7xl">
+            角色汤
+          </h1>
+          <p class="mt-5 max-w-lg text-sm leading-relaxed text-ink-muted sm:text-base">
+            一个设定，只属于一个委托人。领养后获得角色使用权，可以按它定制整装，也可以只带走这份设定。
+          </p>
+          <div class="mt-7 flex flex-wrap gap-3">
+            <AppButton to="/estimate" size="lg">按设定估价</AppButton>
+            <AppButton to="/fursuits" size="lg" variant="secondary">查看系列规格</AppButton>
+          </div>
+        </div>
+
+        <div class="flex items-end justify-between gap-6">
+          <p class="text-[11px] leading-relaxed text-ink-faint">
+            保留状态不等于成交<br />
+            以完成领养的记录为准
+          </p>
+          <div class="rounded-2xl bg-white/75 px-6 py-5 text-right">
+            <p class="text-[10px] uppercase tracking-[0.2em] text-ink-faint">AVAILABLE</p>
+            <p class="mt-2 font-display text-4xl font-medium text-ink">{{ total }}</p>
+            <p class="mt-1 text-[11px] text-ink-muted">位角色可查看</p>
+          </div>
+        </div>
+      </div>
+      <span
+        class="pointer-events-none absolute -bottom-16 right-4 select-none font-display text-[18rem] leading-none text-ink/[0.04]"
+        aria-hidden="true"
+      >汤</span>
+    </section>
+
+    <section class="mt-8 border-y border-line py-5" aria-label="角色筛选">
+      <div class="flex flex-col gap-3 lg:flex-row lg:items-center">
+        <div class="flex items-center gap-1.5 overflow-x-auto pb-1">
+          <button
+            type="button"
+            class="min-h-[44px] shrink-0 rounded-full px-4 text-xs transition-colors"
+            :class="
+              filters.status === ''
+                ? 'bg-brand text-white'
+                : 'bg-canvas-sunk text-ink-soft hover:text-ink'
+            "
+            :aria-pressed="filters.status === ''"
+            @click="pushQuery({ status: '' })"
+          >
+            全部
+          </button>
+          <button
+            v-for="option in CHARACTER_STATUS_OPTIONS"
+            :key="option.value"
+            type="button"
+            class="min-h-[44px] shrink-0 rounded-full px-4 text-xs transition-colors"
+            :class="
+              filters.status === option.value
+                ? 'bg-brand text-white'
+                : 'bg-canvas-sunk text-ink-soft hover:text-ink'
+            "
+            :aria-pressed="filters.status === option.value"
+            @click="pushQuery({ status: option.value })"
+          >
+            {{ option.label }}
+          </button>
+        </div>
+
+        <form class="flex min-w-0 flex-wrap gap-2 lg:ml-auto lg:max-w-2xl lg:flex-1" @submit.prevent="submitFilters()">
+          <label class="sr-only" for="character-species">物种</label>
           <input
             id="character-species"
             v-model="draftSpecies"
-            class="field-base mt-1.5"
+            class="field-base min-w-[130px] flex-1"
             type="search"
-            placeholder="输入物种名称筛选"
+            placeholder="物种"
             autocomplete="off"
           />
-        </div>
-        <div>
-          <label class="text-sm font-medium text-ink-soft" for="character-q">关键词</label>
+          <label class="sr-only" for="character-q">关键词</label>
           <input
             id="character-q"
             v-model="draftQuery"
-            class="field-base mt-1.5"
+            class="field-base min-w-[160px] flex-[1.4]"
             type="search"
             placeholder="角色名或设定关键词"
             autocomplete="off"
           />
-        </div>
-        <div class="flex items-end gap-3">
           <AppButton type="submit" size="sm">筛选</AppButton>
           <AppButton v-if="activeFilterCount" size="sm" variant="ghost" @click="resetFilters()">
             清除
           </AppButton>
-        </div>
-      </form>
-      <p class="mt-3 text-xs text-ink-faint">筛选条件会写进地址栏，刷新或分享链接都能恢复同样的结果。</p>
+        </form>
+      </div>
+      <p class="mt-3 text-[11px] text-ink-faint">筛选条件写进地址栏，刷新或分享链接都能恢复。</p>
     </section>
 
-    <div v-if="loading" class="mt-10 rounded-lg border border-line bg-surface p-6">
-      <SkeletonBlock :lines="4" aria-label="正在加载角色列表" />
+    <div v-if="loading" class="mt-8 rounded-2xl bg-surface p-6 shadow-soft">
+      <SkeletonBlock :lines="4" aria-label="正在加载角色汤" />
     </div>
 
     <EmptyState
       v-else-if="forbidden"
-      class="mt-10"
+      class="mt-8"
       tone="forbidden"
-      title="没有访问角色池的权限"
-      description="角色池对访客开放；如果这里被拒绝，可能是账号状态受限。登录后可确认账号状态，公开角色无需登录即可查看。"
+      title="没有访问角色汤的权限"
+      description="角色汤对访客开放；如果这里被拒绝，可能是账号状态受限。登录后可确认账号状态，公开角色无需登录即可查看。"
     >
       <AppButton to="/login" size="sm">手机号登录</AppButton>
       <AppButton size="sm" variant="secondary" to="/contact">联系客服</AppButton>
@@ -226,9 +241,9 @@ watch(() => route.fullPath, () => void load());
 
     <EmptyState
       v-else-if="error"
-      class="mt-10"
+      class="mt-8"
       tone="error"
-      title="角色列表暂时无法加载"
+      title="角色汤暂时无法加载"
       :description="`${error} 已选择的筛选条件仍保留在地址栏，可直接重试。`"
     >
       <AppButton size="sm" @click="load()">重新加载</AppButton>
@@ -236,13 +251,16 @@ watch(() => route.fullPath, () => void load());
     </EmptyState>
 
     <template v-else-if="items.length">
-      <p class="mt-8 text-sm text-ink-muted">
+      <p class="mt-6 text-sm text-ink-muted">
         <template v-if="activeFilterCount">符合条件 {{ total }} 位角色</template>
         <template v-else>共 {{ total }} 位角色</template>
         <span v-if="filters.page > 1" class="ml-2 text-ink-faint">第 {{ filters.page }} 页</span>
       </p>
 
-      <div class="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <div v-if="featured" class="mt-5">
+        <CharacterCard :character="featured" featured />
+      </div>
+      <div v-else class="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         <CharacterCard v-for="character in items" :key="character.id" :character="character" />
       </div>
 
@@ -271,7 +289,7 @@ watch(() => route.fullPath, () => void load());
 
     <EmptyState
       v-else-if="activeFilterCount"
-      class="mt-10"
+      class="mt-8"
       title="没有符合条件的角色"
       description="当前筛选条件下没有已发布的角色。可以放宽状态或物种条件；保留中的角色不会因为筛选而变成可购买。"
     >
@@ -280,8 +298,8 @@ watch(() => route.fullPath, () => void load());
 
     <EmptyState
       v-else
-      class="mt-10"
-      title="当前没有已发布的角色"
+      class="mt-8"
+      title="角色汤正在熬制"
       description="角色由运营整理设定图与授权说明后发布；没有取得展示授权的设定不会出现在这里。"
     >
       <AppButton to="/estimate" size="sm">按自己的设定估价</AppButton>

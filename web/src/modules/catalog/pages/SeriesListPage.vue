@@ -82,7 +82,7 @@ const comparisonRows = computed(() =>
       >
         <template #actions>
           <AppButton to="/estimate" size="sm">按需求估价</AppButton>
-          <AppButton to="/characters" size="sm" variant="secondary">角色领养</AppButton>
+          <AppButton to="/characters" size="sm" variant="secondary">角色汤</AppButton>
         </template>
       </SectionHeading>
     </div>

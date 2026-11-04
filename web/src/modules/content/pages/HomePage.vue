@@ -58,8 +58,8 @@ const slides = computed(() => [
   },
   {
     key: "care",
-    label: "03 / CARE & PROPS",
-    caption: "洗毛、道具与周边",
+    label: "03 / CARE & SHOP",
+    caption: "保养服务、道具与商城",
     tone: "bg-[#f5eee4]",
     image: "",
   },
@@ -273,21 +273,21 @@ onBeforeUnmount(() => {
             做装，也做养护。
           </h2>
           <p class="mt-4 max-w-xl text-sm leading-7 text-ink-muted">
-            全装、半装、单头与配件按设定逐件打版；洗毛、道具与周边由同一间工作室打理。
+            全装、半装、单头与配件按设定逐件打版；角色汤、保养服务与商城由同一间工作室打理。
           </p>
         </div>
         <nav class="grid gap-1 text-sm" aria-label="快速入口">
           <RouterLink to="/estimate" class="flex items-center justify-between border-b border-line py-3 text-ink-soft hover:text-brand-strong">
             <span>查询价格与委托估价</span><span aria-hidden="true">→</span>
           </RouterLink>
+          <RouterLink to="/characters" class="flex items-center justify-between border-b border-line py-3 text-ink-soft hover:text-brand-strong">
+            <span>角色汤 · 领养一个设定</span><span aria-hidden="true">→</span>
+          </RouterLink>
           <RouterLink to="/wash" class="flex items-center justify-between border-b border-line py-3 text-ink-soft hover:text-brand-strong">
-            <span>洗毛与护理</span><span aria-hidden="true">→</span>
+            <span>保养服务 · 清洗与养护</span><span aria-hidden="true">→</span>
           </RouterLink>
-          <RouterLink to="/props" class="flex items-center justify-between border-b border-line py-3 text-ink-soft hover:text-brand-strong">
-            <span>道具工坊</span><span aria-hidden="true">→</span>
-          </RouterLink>
-          <RouterLink to="/merch" class="flex items-center justify-between border-b border-line py-3 text-ink-soft hover:text-brand-strong">
-            <span>周边展示</span><span aria-hidden="true">→</span>
+          <RouterLink to="/shop" class="flex items-center justify-between border-b border-line py-3 text-ink-soft hover:text-brand-strong">
+            <span>商城 · 道具与周边</span><span aria-hidden="true">→</span>
           </RouterLink>
         </nav>
       </div>

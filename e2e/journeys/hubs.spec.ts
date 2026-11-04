@@ -1,9 +1,10 @@
 /**
- * 洗毛、道具、周边专题页与洗毛预约（FR-025 / C31–C33）。
+ * 保养服务、角色汤与合并商城（FR-025 / C31–C34）。
  *
  * 覆盖：
- * - 三个专题页直接打开、标题与目录条目来自真实接口；
- * - 洗毛页套餐与预约表单（登录 → 套餐 → 期望日期 → 返还方式 → 提交）；
+ * - 保养服务套餐与预约表单（登录 → 套餐 → 期望日期 → 返还方式 → 提交）；
+ * - 角色汤与合并商城的公开入口、真实目录与筛选；
+ * - 旧 /props、/merch 地址重定向到合并商城对应分类；
  * - 提交后的记录字段（preferred_date / return_method）由服务端回读确认；
  * - 全程没有 JS 异常或真实网络失败。
  */
@@ -28,31 +29,38 @@ function shanghaiDatePlus(days: number): string {
   }).format(value);
 }
 
-test.describe("洗毛 / 道具 / 周边", () => {
-  test("三个专题页可直接打开并展示真实目录", async ({ page }) => {
+test.describe("保养服务 / 角色汤 / 合并商城", () => {
+  test("新入口可直接打开，旧专题地址重定向到商城分类", async ({ page }) => {
     const errors = collectPageErrors(page);
 
     await page.goto("/wash");
     await expect(page.getByRole("heading", { level: 1, name: /洗掉旅途/ })).toBeVisible();
-    await expect(page.getByRole("heading", { level: 2, name: "洗毛套餐" })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 2, name: "保养套餐" })).toBeVisible();
     await expect(page.locator('a[href^="/shop/demo-"]').first()).toBeVisible();
     expect(await page.locator('a[href^="/shop/demo-"]').count()).toBeGreaterThanOrEqual(4);
     await assertNoSensitiveLeak(page);
 
+    await page.goto("/characters");
+    await expect(page.getByRole("heading", { level: 1, name: "角色汤" })).toBeVisible();
+    await expect(page.getByText(/位角色可查看/)).toBeVisible();
+
+    await page.goto("/shop?category=props");
+    await expect(page.getByRole("heading", { level: 1, name: "商城" })).toBeVisible();
+    await expect(page.locator('a[href^="/shop/demo-prop-"]').first()).toBeVisible();
+
+    await page.goto("/shop?category=merch");
+    await expect(page.getByRole("heading", { level: 1, name: "商城" })).toBeVisible();
+    await expect(page.locator('[data-display-only="true"]').first()).toBeVisible();
+
     await page.goto("/props");
-    await expect(page.getByRole("heading", { level: 1, name: /给角色加一点小心机/ })).toBeVisible();
-    await expect(page.locator('a[href^="/shop/demo-"]').first()).toBeVisible();
-    expect(await page.locator('a[href^="/shop/demo-"]').count()).toBeGreaterThanOrEqual(3);
-
+    await expect(page).toHaveURL(/\/shop\?category=props/);
     await page.goto("/merch");
-    await expect(page.getByRole("heading", { level: 1, name: /先看看周边/ })).toBeVisible();
-    await expect(page.locator('a[href^="/shop/demo-"]').first()).toBeVisible();
-    expect(await page.locator('a[href^="/shop/demo-"]').count()).toBeGreaterThanOrEqual(3);
+    await expect(page).toHaveURL(/\/shop\?category=merch/);
 
-    expect(errors, `专题页出现浏览器错误：\n${errors.join("\n")}`).toEqual([]);
+    expect(errors, `新入口出现浏览器错误：\n${errors.join("\n")}`).toEqual([]);
   });
 
-  test("登录后提交洗毛预约并回读日期与返还方式", async ({ page }) => {
+  test("登录后提交保养预约并回读日期与返还方式", async ({ page }) => {
     await loginViaSandboxApi(page);
 
     await page.goto("/wash");
@@ -65,7 +73,7 @@ test.describe("洗毛 / 道具 / 周边", () => {
     await page.locator("#wash-date").fill(preferredDate);
     await page.locator("#wash-return").selectOption("ship");
 
-    const note = `E2E 洗毛预约 ${Date.now()}：请先检查毛面。`;
+    const note = `E2E 保养预约 ${Date.now()}：请先检查毛面。`;
     await page.locator("#wash-note").fill(note);
     await page.getByRole("button", { name: /提交预约/ }).click();
 

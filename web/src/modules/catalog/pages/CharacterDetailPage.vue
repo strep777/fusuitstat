@@ -115,7 +115,7 @@ watch(slug, () => void load());
     <Breadcrumbs
       :items="[
         { label: '首页', to: '/' },
-        { label: '角色领养', to: '/characters' },
+        { label: '角色汤', to: '/characters' },
         { label: detail?.name ?? '角色详情' },
       ]"
     />

@@ -37,6 +37,7 @@ def list_products(
     session: Session,
     *,
     kind: str | None = None,
+    exclude_kinds: list[str] | None = None,
     category: str | None = None,
     query: str | None = None,
     currency: str | None = None,
@@ -45,7 +46,15 @@ def list_products(
     offset: int = 0,
 ) -> tuple[list[Product], int]:
     return repo.list_products(
-        session, kind=kind, category=category, query=query, currency=currency, series_code=series_code, limit=limit, offset=offset
+        session,
+        kind=kind,
+        exclude_kinds=exclude_kinds,
+        category=category,
+        query=query,
+        currency=currency,
+        series_code=series_code,
+        limit=limit,
+        offset=offset,
     )
 
 

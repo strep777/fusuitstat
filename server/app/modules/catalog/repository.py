@@ -36,6 +36,7 @@ def list_products(
     session: Session,
     *,
     kind: str | None = None,
+    exclude_kinds: list[str] | None = None,
     category: str | None = None,
     series_code: str | None = None,
     query: str | None = None,
@@ -49,6 +50,8 @@ def list_products(
         conditions.append(Product.status == "published")
     if kind:
         conditions.append(Product.kind == kind)
+    if exclude_kinds:
+        conditions.append(Product.kind.not_in(exclude_kinds))
     if category:
         conditions.append(Product.category == category)
     if series_code:

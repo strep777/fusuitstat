@@ -57,10 +57,9 @@ const navItems = computed<NavItem[]>(() => {
     { label: t("nav.works"), to: "/works" },
     { label: t("nav.commission"), to: "/commission/guide" },
     { label: t("nav.estimate"), to: "/estimate" },
+    { label: t("nav.characters"), to: "/characters" },
     { label: t("nav.shop"), to: "/shop" },
     { label: t("nav.wash"), to: "/wash" },
-    { label: t("nav.props"), to: "/props" },
-    { label: t("nav.merch"), to: "/merch" },
     { label: t("nav.about"), to: "/about" },
   ];
   return items.filter((item) => !item.feature || site.featureEnabled(item.feature));

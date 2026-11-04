@@ -31,8 +31,6 @@ const CharacterDetailPage = () => import("@/modules/catalog/pages/CharacterDetai
 const ShopPage = () => import("@/modules/catalog/pages/ShopPage.vue");
 const ProductDetailPage = () => import("@/modules/catalog/pages/ProductDetailPage.vue");
 const WashPage = () => import("@/modules/catalog/pages/WashPage.vue");
-const PropsPage = () => import("@/modules/catalog/pages/PropsPage.vue");
-const MerchPage = () => import("@/modules/catalog/pages/MerchPage.vue");
 
 const CommissionGuidePage = () => import("@/modules/commissions/pages/CommissionGuidePage.vue");
 const CommissionSchedulesPage = () => import("@/modules/commissions/pages/CommissionSchedulesPage.vue");
@@ -168,7 +166,7 @@ const publicChildren: RouteRecordRaw[] = [
   },
 
   // ---- 目录 ----
-  { path: "characters", name: "characters", component: CharactersPage, meta: { title: "角色领养" } },
+  { path: "characters", name: "characters", component: CharactersPage, meta: { title: "角色汤" } },
   {
     path: "characters/:slug",
     name: "character-detail",
@@ -177,9 +175,23 @@ const publicChildren: RouteRecordRaw[] = [
   },
   { path: "shop", name: "shop", component: ShopPage, meta: { title: "商城" } },
   { path: "shop/:slug", name: "product-detail", component: ProductDetailPage, meta: { title: "商品详情" } },
-  { path: "wash", name: "wash", component: WashPage, meta: { title: "洗毛与护理" } },
-  { path: "props", name: "props", component: PropsPage, meta: { title: "道具工坊" } },
-  { path: "merch", name: "merch", component: MerchPage, meta: { title: "周边商店" } },
+  { path: "wash", name: "wash", component: WashPage, meta: { title: "保养服务" } },
+  {
+    path: "props",
+    name: "props",
+    redirect: (to) => ({
+      path: to.path.startsWith("/en") ? "/en/shop" : "/shop",
+      query: { category: "props" },
+    }),
+  },
+  {
+    path: "merch",
+    name: "merch",
+    redirect: (to) => ({
+      path: to.path.startsWith("/en") ? "/en/shop" : "/shop",
+      query: { category: "merch" },
+    }),
+  },
 
   // ---- 登录 ----
   { path: "login", name: "login", component: LoginPage, meta: { title: "登录", layout: "plain" } },

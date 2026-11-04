@@ -298,7 +298,7 @@ onMounted(load);
               <FieldRow label="类型" for="p-kind" :hint="isNew ? '创建后不可修改' : '类型创建后不可修改'">
                 <select id="p-kind" v-model="form.kind" class="field-base" :disabled="!isNew">
                   <option value="stock_goods">现货商品</option>
-                  <option value="exclusive_character">角色领养</option>
+                  <option value="exclusive_character">角色汤</option>
                   <option value="commission">委托服务</option>
                   <option value="service">服务</option>
                 </select>

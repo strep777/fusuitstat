@@ -93,6 +93,8 @@ export interface ProductDetail extends ProductSummary {
 export type ProductQuery = {
   currency?: "CNY" | "USD";
   kind?: string;
+  /** 商城排除的 kind（服务走保养服务、角色走角色汤）。 */
+  excludeKinds?: string[];
   category?: string;
   q?: string;
   page?: number;
@@ -104,6 +106,7 @@ export async function fetchProducts(query: ProductQuery = {}): Promise<Page<Prod
     query: {
       currency: query.currency,
       kind: query.kind,
+      exclude_kinds: query.excludeKinds?.join(","),
       category: query.category,
       q: query.q,
       page: query.page,
@@ -122,16 +125,14 @@ export interface CatalogOption {
 }
 
 /**
- * 商城分类（03 文档：现货/配件/道具/周边；服务按 C28 启用）。
- * 取值同时用于 URL query 与 API 的 `category` 参数，后端按同一份清单实现；
- * **标签**走词条表（`t()`），因此分类本身在英文站也会显示英文。
+ * 商城分类（03 文档：现货/配件/道具/周边）。
+ * 保养服务与角色汤各有独立入口，不在商城中重复售卖。
  */
 export const PRODUCT_CATEGORY_OPTIONS: CatalogOption[] = [
   { value: "stock", label: "现货" },
   { value: "accessory", label: "配件" },
   { value: "props", label: "道具" },
   { value: "merch", label: "周边" },
-  { value: "service", label: "服务" },
 ];
 
 /** 分类 value → 词条键（label 保留中文原文用于兜底与非界面场景）。 */
@@ -269,7 +270,7 @@ const CHARACTER_STATUS_META: Record<string, CharacterStatusMeta> = {
   reserved: {
     label: "已保留·未成交",
     tone: "amber",
-    blockedReason: "该角色已被保留，保留不等于成交；若保留释放会重新开放。",
+    blockedReason: "该角色已被保留，保留状态不等于成交；若保留释放会重新开放。",
     open: false,
   },
   adopted: {

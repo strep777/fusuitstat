@@ -1,61 +1,50 @@
 <template>
   <div>
-    <section class="bg-canvas">
-      <div class="container-page py-8 lg:py-12">
-        <Breadcrumbs :items="[{ label: t('nav.home'), to: '/' }, { label: t('shop.crumb') }]" />
-        <div class="mt-8 grid gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-end">
-          <SectionHeading
-            :level="1"
-            :eyebrow="t('shop.eyebrow')"
-            :title="t('shop.title')"
-            :description="t('shop.description')"
-          >
-            <template #actions>
-              <AppButton to="/characters" size="sm" variant="secondary">{{ t("shop.characters") }}</AppButton>
-              <AppButton to="/account/applications" size="sm">{{ t("shop.applications") }}</AppButton>
-            </template>
-          </SectionHeading>
+    <section class="container-page pt-8">
+      <Breadcrumbs :items="[{ label: t('nav.home'), to: '/' }, { label: '商城' }]" />
 
-          <div class="grid gap-2">
+      <div class="mt-6 overflow-hidden rounded-[2rem] bg-[#f6f1ea]">
+        <div class="grid gap-8 px-7 py-10 sm:px-10 sm:py-14 lg:grid-cols-[1.05fr_0.95fr] lg:items-end">
+          <div>
+            <p class="text-[11px] uppercase tracking-[0.22em] text-ink-faint">STORE / 物件</p>
+            <h1 class="mt-4 font-display text-5xl font-medium tracking-[-0.04em] text-ink sm:text-6xl">
+              商城
+            </h1>
+            <p class="mt-5 max-w-lg text-sm leading-relaxed text-ink-muted sm:text-base">
+              道具、配件与周边。现货直接下单；周边目前只展示，暂不售卖。限量结构件仍需先申请再报价。
+            </p>
+            <p class="mt-2 text-xs text-ink-faint">角色汤与保养服务各有独立入口，不在这里重复售卖。</p>
+          </div>
+
+          <div class="grid gap-2 text-sm">
+            <RouterLink
+              to="/characters"
+              class="group flex items-center justify-between rounded-2xl bg-white/70 px-5 py-4 text-ink transition-colors hover:bg-white"
+            >
+              <span>
+                <span class="block text-[10px] uppercase tracking-[0.18em] text-ink-faint">CHARACTER SOUP</span>
+                <span class="mt-1 block font-medium">角色汤 · 领养一个设定</span>
+              </span>
+              <span class="text-ink-faint transition-transform group-hover:translate-x-1" aria-hidden="true">→</span>
+            </RouterLink>
             <RouterLink
               to="/wash"
-              class="group flex items-center justify-between rounded-2xl bg-[#eaf2ee] px-5 py-4 text-[#2E2923] transition-shadow hover:shadow-soft"
+              class="group flex items-center justify-between rounded-2xl bg-white/70 px-5 py-4 text-ink transition-colors hover:bg-white"
             >
-              <span class="flex items-center gap-3">
-                <span class="text-[10px] uppercase tracking-[0.16em] text-[#557565]">CARE</span>
-                <span class="font-display text-[15px] font-medium">洗毛护理</span>
+              <span>
+                <span class="block text-[10px] uppercase tracking-[0.18em] text-ink-faint">CARE</span>
+                <span class="mt-1 block font-medium">保养服务 · 清洗与养护</span>
               </span>
-              <span class="text-[#57504A] transition-transform group-hover:translate-x-1" aria-hidden="true">→</span>
-            </RouterLink>
-            <RouterLink
-              to="/props"
-              class="group flex items-center justify-between rounded-2xl bg-[#f0ebf2] px-5 py-4 text-[#2E2923] transition-shadow hover:shadow-soft"
-            >
-              <span class="flex items-center gap-3">
-                <span class="text-[10px] uppercase tracking-[0.16em] text-[#7c6b8a]">PROPS</span>
-                <span class="font-display text-[15px] font-medium">道具工坊</span>
-              </span>
-              <span class="text-[#57504A] transition-transform group-hover:translate-x-1" aria-hidden="true">→</span>
-            </RouterLink>
-            <RouterLink
-              to="/merch"
-              class="group flex items-center justify-between rounded-2xl bg-[#f8eedf] px-5 py-4 text-[#2E2923] transition-shadow hover:shadow-soft"
-            >
-              <span class="flex items-center gap-3">
-                <span class="text-[10px] uppercase tracking-[0.16em] text-[#96724d]">MERCH</span>
-                <span class="font-display text-[15px] font-medium">周边展示</span>
-              </span>
-              <span class="text-[#57504A] transition-transform group-hover:translate-x-1" aria-hidden="true">→</span>
+              <span class="text-ink-faint transition-transform group-hover:translate-x-1" aria-hidden="true">→</span>
             </RouterLink>
           </div>
         </div>
       </div>
     </section>
 
-    <div class="container-page pb-8 pt-2 lg:pb-12">
-      <!-- 分类筛选：分类进 URL -->
-      <section class="rounded-2xl border border-line bg-surface p-4 shadow-soft sm:p-5" :aria-label="t('shop.filterLabel')">
-        <div class="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
+    <div class="container-page pb-8 pt-9 lg:pb-12">
+      <section class="border-b border-line pb-5" :aria-label="t('shop.filterLabel')">
+        <div class="-mx-1 flex flex-wrap items-center gap-1.5 px-1">
           <button
             type="button"
             class="min-h-[44px] shrink-0 rounded-full px-4 text-xs transition-colors"
@@ -84,10 +73,8 @@
           >
             {{ productCategoryLabel(option.value) }}
           </button>
-        </div>
 
-        <div class="mt-4 flex flex-wrap items-center gap-3 border-t border-line pt-4">
-          <form class="flex min-w-[260px] flex-1 gap-2" @submit.prevent="submitSearch()">
+          <form class="ml-auto flex min-w-[240px] flex-1 gap-2 sm:max-w-md" @submit.prevent="submitSearch()">
             <label class="sr-only" for="shop-q">{{ t("shop.searchLabel") }}</label>
             <input
               id="shop-q"
@@ -100,16 +87,6 @@
             <AppButton type="submit" size="sm" class="shrink-0 whitespace-nowrap">{{ t("shop.search") }}</AppButton>
           </form>
 
-          <span
-            v-if="filters.kind"
-            class="inline-flex min-h-[44px] items-center gap-2 rounded-full bg-canvas-sunk px-3 text-sm text-ink-soft"
-          >
-            {{ productKindLabel(filters.kind) }}
-            <button type="button" class="text-xs text-brand-strong link-underline" @click="pushQuery({ kind: '' })">
-              {{ t("shop.cancel") }}
-            </button>
-          </span>
-
           <AppButton v-if="activeFilterCount" size="sm" variant="ghost" @click="resetFilters()">
             {{ t("shop.clearFilters") }}
           </AppButton>
@@ -118,7 +95,6 @@
         <div class="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-ink-faint">
           <p>{{ t("shop.urlNote") }}</p>
           <p>{{ t("shop.zoneNote", { currency: site.browsingCurrency }) }}</p>
-          <p v-if="filters.category">{{ t("shop.currentCategory") }}：{{ productCategoryLabel(filters.category) }}</p>
         </div>
       </section>
 
@@ -199,7 +175,7 @@
         :title="t('shop.emptyTitle')"
         :description="t('shop.emptyBody')"
       >
-        <AppButton to="/characters" size="sm" variant="secondary">{{ t("shop.lookCharacters") }}</AppButton>
+        <AppButton to="/characters" size="sm" variant="secondary">去角色汤看看</AppButton>
         <AppButton to="/contact" size="sm">{{ t("shop.askStock") }}</AppButton>
       </EmptyState>
     </div>
@@ -208,10 +184,10 @@
 
 <script setup lang="ts">
 /**
- * 商城列表（/shop）：分类、搜索与库存状态，售罄商品仍可打开详情。
+ * 商城列表（/shop）：道具、配件与周边的合并目录。
  *
- * 约束（03/11 文档）：分类进 URL（刷新与分享可恢复）；库存状态用文字徽章表达；
- * 不显示占位商品，空态说明上架前需要完成的核对。
+ * 角色领养在 /characters（角色汤），洗毛/养护在 /wash（保养服务）；
+ * 服务与独占角色通过 exclude_kinds 从商城排除，避免同一内容出现两次。
  */
 import { computed, onMounted, ref, watch } from "vue";
 import { RouterLink, useRoute, useRouter } from "vue-router";
@@ -222,12 +198,11 @@ import {
   applyPageMeta,
   fetchProducts,
   productCategoryLabel,
-  productKindLabel,
   readQueryInt,
   readQueryString,
   type ProductSummary,
 } from "@/modules/catalog/api/catalog";
-import { AppButton, Breadcrumbs, EmptyState, SectionHeading, SkeletonBlock } from "@/shared/ui/base";
+import { AppButton, Breadcrumbs, EmptyState, SkeletonBlock } from "@/shared/ui/base";
 import { useSiteStore } from "@/modules/content/stores/site";
 import { useI18n } from "@/shared/lib/i18n";
 import { ApiError } from "@/shared/lib/http";
@@ -250,7 +225,6 @@ const forbidden = ref(false);
 
 const filters = computed(() => ({
   category: readQueryString(route.query.category),
-  kind: readQueryString(route.query.kind),
   q: readQueryString(route.query.q),
   page: readQueryInt(route.query.page, 1),
 }));
@@ -262,7 +236,7 @@ watch(filters, (value) => {
 });
 
 const activeFilterCount = computed(
-  () => [filters.value.category, filters.value.kind, filters.value.q].filter(Boolean).length,
+  () => [filters.value.category, filters.value.q].filter(Boolean).length,
 );
 
 let loadVersion = 0;
@@ -275,7 +249,7 @@ async function load(): Promise<void> {
     const page = await fetchProducts({
       currency: site.browsingCurrency,
       category: filters.value.category || undefined,
-      kind: filters.value.kind || undefined,
+      excludeKinds: ["service", "exclusive_character"],
       q: filters.value.q || undefined,
       page: filters.value.page,
       limit: 12,
@@ -299,21 +273,14 @@ async function load(): Promise<void> {
   }
 }
 
-function pushQuery(patch: {
-  category?: string;
-  kind?: string;
-  q?: string;
-  page?: number;
-}): void {
+function pushQuery(patch: { category?: string; q?: string; page?: number }): void {
   const merged = {
     category: patch.category ?? filters.value.category,
-    kind: patch.kind ?? filters.value.kind,
     q: patch.q ?? filters.value.q,
     page: patch.page ?? 1,
   };
   const query: Record<string, string> = {};
   if (merged.category) query.category = merged.category;
-  if (merged.kind) query.kind = merged.kind;
   if (merged.q) query.q = merged.q;
   if (merged.page > 1) query.page = String(merged.page);
   void router.push({ path: route.path, query });
@@ -330,8 +297,8 @@ function resetFilters(): void {
 
 onMounted(() => {
   applyPageMeta({
-    title: t("shop.title"),
-    description: t("shop.metaDescription"),
+    title: "商城",
+    description: "道具、配件与周边现货目录；角色汤与保养服务各有独立入口。",
     canonicalPath: "/shop",
   });
   void load();

@@ -78,7 +78,7 @@ const routes: RouteRecordRaw[] = [
       page("products", "admin-products", "商品与库存", ADMIN_PERMISSIONS.catalogWrite, ProductsPage),
       page("products/new", "admin-product-new", "新建商品", ADMIN_PERMISSIONS.catalogWrite, ProductEditPage),
       page("products/:id", "admin-product-edit", "编辑商品", ADMIN_PERMISSIONS.catalogWrite, ProductEditPage),
-      page("characters", "admin-characters", "角色领养", ADMIN_PERMISSIONS.catalogWrite, CharactersPage),
+      page("characters", "admin-characters", "角色汤", ADMIN_PERMISSIONS.catalogWrite, CharactersPage),
       page("applications", "admin-applications", "服务与掉落申请", ADMIN_PERMISSIONS.catalogWrite, ApplicationsPage),
       page("quotes", "admin-quotes", "询价与报价", ADMIN_PERMISSIONS.quoteReview, QuotesPage),
       page("estimates", "admin-estimates", "估价请求", ADMIN_PERMISSIONS.quoteRead, EstimatesPage),

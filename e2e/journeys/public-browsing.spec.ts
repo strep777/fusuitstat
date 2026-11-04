@@ -208,7 +208,7 @@ test.describe("公开浏览 · 桌面与移动视口", () => {
     const errors = collectPageErrors(page);
 
     await page.goto("/characters");
-    await expect(page.getByRole("heading", { level: 1, name: "角色领养" })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1, name: "角色汤" })).toBeVisible();
     await expect(page.getByLabel("角色筛选")).toBeVisible();
     await expect(page.getByText(/保留状态不等于成交/)).toBeVisible();
 

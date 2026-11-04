@@ -208,6 +208,13 @@ def test_props_and_merch_category_filters(client: TestClient, db: Session) -> No
         product = create_product(db, slug=slug, title=title, kind="stock_goods")
         product.category = category
         create_sku(db, product_id=product.id, price_cents=10000)
+    service = create_product(db, slug="care-service", title="保养服务", kind="service")
+    service.category = "service"
+    service.service_kind = "cleaning"
+    create_sku(db, product_id=service.id, price_cents=16800)
+    character = create_product(db, slug="adopt-character", title="角色汤角色", kind="exclusive_character")
+    character.category = "character"
+    create_sku(db, product_id=character.id, price_cents=2400000)
     db.commit()
 
     props = client.get("/api/v1/products", params={"category": "props"})
@@ -217,6 +224,13 @@ def test_props_and_merch_category_filters(client: TestClient, db: Session) -> No
     merch = client.get("/api/v1/products", params={"category": "merch"})
     assert merch.status_code == 200, merch.text
     assert [item["slug"] for item in merch.json()["items"]] == ["merch-badge"]
+
+    merged = client.get(
+        "/api/v1/products",
+        params={"exclude_kinds": "service,exclusive_character"},
+    )
+    assert merged.status_code == 200, merged.text
+    assert {item["slug"] for item in merged.json()["items"]} == {"prop-horn", "merch-badge", "stock-tail"}
 
     facets = client.get("/api/v1/products/facets")
     assert facets.status_code == 200, facets.text
@@ -230,3 +244,12 @@ def test_props_and_merch_category_filters(client: TestClient, db: Session) -> No
     # 目录仓储同样支持分类过滤，后台与专题页共用同一查询。
     rows, total = catalog_repo.list_products(db, category="props", limit=10, offset=0)
     assert total == 1 and rows[0].slug == "prop-horn"
+
+    merged_rows, merged_total = catalog_repo.list_products(
+        db,
+        exclude_kinds=["service", "exclusive_character"],
+        limit=10,
+        offset=0,
+    )
+    assert merged_total == 3
+    assert {row.slug for row in merged_rows} == {"prop-horn", "merch-badge", "stock-tail"}

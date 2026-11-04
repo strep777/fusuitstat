@@ -36,10 +36,9 @@ const browseLinks = computed(() => [
   { label: t("footer.works"), to: "/works" },
   { label: t("footer.series"), to: "/fursuits" },
   { label: t("footer.estimate"), to: "/estimate" },
+  { label: t("footer.characters"), to: "/characters" },
   { label: t("footer.shop"), to: "/shop" },
   { label: t("footer.wash"), to: "/wash" },
-  { label: t("footer.props"), to: "/props" },
-  { label: t("footer.merch"), to: "/merch" },
   { label: t("footer.news"), to: "/news" },
 ]);
 

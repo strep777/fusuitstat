@@ -41,6 +41,7 @@ admin_router = APIRouter(tags=["admin-catalog"])
 def list_products(
     ctx: ContextDep,
     kind: str | None = None,
+    exclude_kinds: str | None = None,
     category: str | None = None,
     series_code: str | None = None,
     currency: Literal["CNY", "USD"] | None = None,
@@ -48,9 +49,11 @@ def list_products(
     page: Annotated[int, Query(ge=1)] = 1,
     limit: Annotated[int, Query(ge=1, le=100)] = 20,
 ) -> CatalogPage:
+    excluded = [value.strip() for value in (exclude_kinds or "").split(",") if value.strip()]
     rows, total = svc.list_products(
         ctx.session,
         kind=kind,
+        exclude_kinds=excluded or None,
         category=category,
         query=q,
         currency=currency,

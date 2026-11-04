@@ -11,8 +11,7 @@ import { createMemoryHistory, createRouter, type Router } from "vue-router";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import type { MediaImage, Page, ProductSummary } from "@/modules/catalog/api/catalog";
-import MerchPage from "@/modules/catalog/pages/MerchPage.vue";
-import PropsPage from "@/modules/catalog/pages/PropsPage.vue";
+import ShopPage from "@/modules/catalog/pages/ShopPage.vue";
 import WashPage from "@/modules/catalog/pages/WashPage.vue";
 
 vi.mock("@/modules/identity/stores/auth", () => ({
@@ -117,6 +116,7 @@ function createTestRouter(): Router {
       { path: "/merch", component: stub },
       { path: "/shop", component: stub },
       { path: "/shop/:slug", component: stub },
+      { path: "/characters", component: stub },
       { path: "/care", component: stub },
       { path: "/login", component: stub },
       { path: "/contact", component: stub },
@@ -187,8 +187,8 @@ describe("WashPage 洗毛预约", () => {
   });
 });
 
-describe("道具与周边专题页", () => {
-  it("道具页请求 props 分类并渲染商品卡", async () => {
+describe("合并商城", () => {
+  it("只请求道具、配件与周边，排除服务与独占角色", async () => {
     const { calls } = installFetch([
       makeProduct({
         id: "prop-horn",
@@ -201,22 +201,18 @@ describe("道具与周边专题页", () => {
         requires_approval: false,
       }),
     ]);
-    const { wrapper } = await mountAt(PropsPage, "/props");
+    const { wrapper } = await mountAt(ShopPage, "/shop?category=props");
 
-    expect(calls.some((call) => call.url.includes("category=props"))).toBe(true);
+    const catalogCall = calls.find((call) =>
+      decodeURIComponent(call.url).includes("exclude_kinds=service,exclusive_character"),
+    );
+    expect(catalogCall).toBeTruthy();
+    expect(decodeURIComponent(catalogCall!.url)).toContain("category=props");
     expect(wrapper.text()).toContain("发光角饰·星轨");
     expect(wrapper.find('a[href="/shop/demo-prop-glow-horn"]').exists()).toBe(true);
   });
 
-  it("周边页请求 merch 分类，空结果给出空态", async () => {
-    const { calls } = installFetch([]);
-    const { wrapper } = await mountAt(MerchPage, "/merch");
-
-    expect(calls.some((call) => call.url.includes("category=merch"))).toBe(true);
-    expect(wrapper.text()).toContain("周边");
-  });
-
-  it("周边卡只作展示，不显示价格与购买入口", async () => {
+  it("周边商品只作展示，不显示价格与购买入口", async () => {
     installFetch([
       makeProduct({
         id: "merch-badge",
@@ -224,11 +220,12 @@ describe("道具与周边专题页", () => {
         title: "星绒徽章·双曜（演示内容）",
         kind: "stock_goods",
         category: "merch",
+        service_kind: null,
         price_from_cents: 3800,
         requires_approval: false,
       }),
     ]);
-    const { wrapper } = await mountAt(MerchPage, "/merch");
+    const { wrapper } = await mountAt(ShopPage, "/shop?category=merch");
 
     const card = wrapper.find('[data-display-only="true"]');
     expect(card.exists()).toBe(true);

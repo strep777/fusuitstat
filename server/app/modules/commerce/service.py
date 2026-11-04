@@ -576,6 +576,7 @@ def preview_checkout(
     session.flush()
     return {
         "checkout_token": token,
+        "terms_version": session_row.terms_version,
         "expires_at": iso(session_row.expires_at),
         "lines": [_checkout_line(line) for line in lines],
         "goods_cents": priced["goods_cents"],

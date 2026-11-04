@@ -48,6 +48,7 @@ def _place_order(client: TestClient, shopper: dict, *, quantity: int = 1, key: s
         },
     )
     assert preview.status_code == 200, preview.text
+    assert preview.json()["terms_version"] == "shop-1"
     created = client.post(
         "/api/v1/orders",
         json={

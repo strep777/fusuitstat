@@ -18,7 +18,6 @@
         class="size-full object-cover"
       />
       <div v-else class="flex size-full flex-col items-center justify-center gap-2 text-ink-faint">
-        <span class="text-4xl font-light text-brand/40" aria-hidden="true">✦</span>
         <span class="text-[11px]">{{ t("productCard.imagePending") }}</span>
       </div>
 

@@ -76,6 +76,7 @@ const addresses = ref<Address[]>([]);
 const selectedAddressId = ref<string>("");
 const preview = ref<CheckoutPreview | null>(null);
 const previewLoading = ref(false);
+let previewRequest = 0;
 const previewError = ref<string | null>(null);
 
 const accepted = ref(false);
@@ -98,7 +99,7 @@ const addressError = ref<string | null>(null);
 const addressFieldErrors = ref<Record<string, string>>({});
 const addressForm = ref({ recipient: "", phone: "", region: "", detail: "", postal_code: "", is_default: false });
 
-const termsVersion = computed(() => site.commissionPolicy.terms_version);
+
 const currency = computed(() => preview.value?.currency ?? "CNY");
 const items = computed(() => cartLines.value.map((line) => ({ sku_id: line.sku_id, quantity: line.quantity })));
 
@@ -257,7 +258,13 @@ const expiresText = computed(() =>
 );
 
 async function refreshPreview(): Promise<CheckoutPreview | null> {
-  if (!selectedAddressId.value || items.value.length === 0) return null;
+  const request = ++previewRequest;
+  preview.value = null;
+  pointsBaseQuote.value = null;
+  if (!selectedAddressId.value || items.value.length === 0) {
+    previewLoading.value = false;
+    return null;
+  }
   previewLoading.value = true;
   previewError.value = null;
   try {
@@ -266,11 +273,12 @@ async function refreshPreview(): Promise<CheckoutPreview | null> {
       address_id: selectedAddressId.value,
       redeem_points: redeemPoints.value,
     });
+    if (request !== previewRequest) return null;
     preview.value = next;
     void refreshPointsBaseQuote(next);
     return next;
   } catch (caught) {
-    preview.value = null;
+    if (request !== previewRequest) return null;
     if (caught instanceof ApiError) {
       previewError.value = caught.message || "结算预览获取失败。";
       if (caught.code === "STOCK_NOT_ENOUGH") {
@@ -282,7 +290,7 @@ async function refreshPreview(): Promise<CheckoutPreview | null> {
     }
     return null;
   } finally {
-    previewLoading.value = false;
+    if (request === previewRequest) previewLoading.value = false;
   }
 }
 
@@ -302,9 +310,12 @@ async function refreshPointsBaseQuote(next: CheckoutPreview): Promise<void> {
     return;
   }
   try {
-    pointsBaseQuote.value = await fetchPointsRedemptionQuote(amount, 0);
+    const quote = await fetchPointsRedemptionQuote(amount, 0);
+    if (preview.value?.checkout_token !== next.checkout_token) return;
+    pointsBaseQuote.value = quote;
     pointsBackendDisabled.value = false;
   } catch (caught) {
+    if (preview.value?.checkout_token !== next.checkout_token) return;
     pointsBaseQuote.value = null;
     if (caught instanceof ApiError && caught.code === "FEATURE_DISABLED") {
       pointsBackendDisabled.value = true;
@@ -317,7 +328,7 @@ watch(selectedAddressId, (value, previous) => {
   // 地址变化会重新计算运费与可售情况，因此需要重新确认条款
   accepted.value = false;
   stockIssues.value = [];
-  void refreshPreview();
+  if (!loading.value) void refreshPreview();
 });
 
 /** 对比上一份报价与服务端最新价格，生成逐行差异 */
@@ -370,7 +381,7 @@ async function submit(): Promise<void> {
     const result = await createOrder({
       checkout_token: preview.value.checkout_token,
       address_id: selectedAddressId.value,
-      terms_version: termsVersion.value,
+      terms_version: preview.value.terms_version,
       accepted: true,
       // 与预览一致的服务端裁定用量；不一致时后端返回 PRICE_CHANGED 让用户重新确认。
       redeem_points: preview.value.points_redeemed,
@@ -530,7 +541,6 @@ async function saveAddress(): Promise<void> {
     addressFormOpen.value = false;
     addressForm.value = { recipient: "", phone: "", region: "", detail: "", postal_code: "", is_default: false };
     toast.success("地址已保存", "订单会保存当时的地址快照，之后修改地址不影响历史订单。");
-    await refreshPreview();
   } catch (caught) {
     if (caught instanceof ApiError) {
       if (caught.needsLogin) {
@@ -929,7 +939,7 @@ function markDirty(): void {
         <SurfaceCard>
           <h2 class="font-display text-lg">订单条款</h2>
           <p class="mt-3 text-sm text-ink-muted">
-            当前条款版本：<span class="font-medium text-ink-soft">{{ termsVersion }}</span>。
+            当前条款版本：<span class="font-medium text-ink-soft">{{ preview?.terms_version ?? "待预览" }}</span>。
             条款内容与版本由运营发布，接受记录保存在订单里，之后不会回填修改。
           </p>
           <dl class="mt-4 space-y-2 text-xs text-ink-muted">

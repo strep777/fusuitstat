@@ -263,6 +263,7 @@ export interface PointsQuote {
 }
 
 export interface CheckoutPreview {
+  terms_version: string;
   /** 一次性令牌；创建订单时原样回传，不做本地校验。 */
   checkout_token: string;
   expires_at: string;
@@ -314,6 +315,7 @@ interface ServerCheckoutLine {
 
 /** 服务端结算预览 DTO（与后端 `CheckoutPreviewDto` 一致）。 */
 interface ServerCheckoutPreview {
+  terms_version: string;
   checkout_token: string;
   expires_at: string | null;
   lines: ServerCheckoutLine[];
@@ -354,6 +356,7 @@ function checkoutPreviewOf(preview: ServerCheckoutPreview): CheckoutPreview {
   }));
   return {
     checkout_token: preview.checkout_token,
+    terms_version: preview.terms_version,
     expires_at: preview.expires_at ?? "",
     lines,
     goods_cents: preview.goods_cents,

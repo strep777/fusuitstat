@@ -96,3 +96,57 @@ def test_admin_allowlist_blocks_unknown_client(guard_settings: Settings) -> None
     response = client.get("/api/v1/admin/ping")
     assert response.status_code == 403
     assert response.json()["error"]["code"] == "FORBIDDEN"
+
+
+def test_forwarded_chain_ignores_spoofed_prefix(guard_settings: Settings) -> None:
+    from starlette.requests import Request
+
+    from app.platform.guard import client_ip
+
+    request = Request({
+        "type": "http",
+        "client": ("127.0.0.1", 4000),
+        "headers": [(b"x-forwarded-for", b"10.1.1.1, 198.51.100.1")],
+    })
+    assert client_ip(request, guard_settings) == "198.51.100.1"
+
+
+def test_prune_retains_active_daily_limit(monkeypatch: pytest.MonkeyPatch) -> None:
+    from app.platform.guard import _WindowCounter
+
+    monkeypatch.setattr("app.platform.guard.time.time", lambda: 3600)
+    counter = _WindowCounter()
+    counter.hit("trap", 1, 86400)
+    counter._prune(3600)
+    assert not counter.hit("trap", 1, 86400)[0]
+
+
+def test_authenticated_context_releases_session_write_lock(db, client) -> None:
+    from contextlib import closing
+
+    from starlette.requests import Request
+
+    from app.api.dependencies import get_context
+    from app.modules.identity.models import Session as SessionModel
+    from app.platform.db import get_engine
+    from tests.conftest import create_user, issue_login
+
+    user = create_user(db)
+    issue_login(db, client, user)
+    row = db.query(SessionModel).filter_by(user_id=user.id).one()
+    row.last_seen_at -= 60_000
+    previous = row.last_seen_at
+    db.commit()
+    cookie = client.build_request("GET", "/api/v1/me").headers["cookie"]
+    request = Request({
+        "type": "http", "method": "GET", "path": "/api/v1/me",
+        "headers": [(b"cookie", cookie.encode())],
+    })
+    with closing(get_context(request)) as contexts:
+        ctx = next(contexts)
+        assert ctx.principal.id == user.id
+        assert ctx.session_row.last_seen_at > previous
+        with get_engine().connect() as other:
+            other.exec_driver_sql("PRAGMA busy_timeout=0")
+            other.exec_driver_sql("BEGIN IMMEDIATE")
+            other.rollback()

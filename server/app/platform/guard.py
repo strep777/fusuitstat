@@ -12,14 +12,14 @@
 from __future__ import annotations
 
 import asyncio
-import hashlib
+import hmac
 import ipaddress
 import logging
 import time
 from typing import Any
 
 from fastapi import Request
-from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 from starlette.responses import JSONResponse, Response
 
 from app.platform.config import Settings
@@ -87,19 +87,20 @@ def _error_response(
     return response
 
 
-def _client_ip(request: Request, settings: Settings) -> str:
+def client_ip(request: Request, settings: Settings) -> str | None:
     """只信任配置的反向代理传来的转发头，避免伪造 X-Forwarded-For 绕过限流。"""
-    direct = request.client.host if request.client else "unknown"
-    if direct in settings.trusted_proxies:
-        forwarded = request.headers.get("x-forwarded-for")
-        if forwarded:
-            return forwarded.split(",")[0].strip() or direct
+    direct = request.client.host if request.client else None
+    chain = request.headers.get("x-forwarded-for", "").split(",")
+    for hop in reversed(chain):
+        if direct not in settings.trusted_proxies or not hop.strip():
+            break
+        direct = hop.strip()
     return direct
 
 
 def _ip_hash(ip: str, settings: Settings) -> str:
     secret = settings.secret("session_secret")
-    return hashlib.sha256(f"guard::{secret}::{ip}".encode()).hexdigest()[:32]
+    return hmac.digest(secret.encode(), f"guard::{ip}".encode(), "sha256").hex()[:32]
 
 
 def _is_admin_allowed(ip: str, entries: list[str]) -> bool:
@@ -131,20 +132,19 @@ class _WindowCounter:
 
     def hit(self, key: str, limit: int, window_seconds: int) -> tuple[bool, int, int]:
         now = int(time.time())
-        window_start = now - (now % window_seconds)
+        expires = now - (now % window_seconds) + window_seconds
         bucket = self._buckets.get(key)
-        count = 1 if bucket is None or bucket[0] != window_start else bucket[1] + 1
-        self._buckets[key] = (window_start, count)
+        count = 1 if bucket is None or bucket[0] != expires else bucket[1] + 1
+        self._buckets[key] = (expires, count)
         self._hits += 1
         if self._hits % 4096 == 0:
             self._prune(now)
         remaining = max(0, limit - count)
-        return count <= limit, remaining, window_start + window_seconds
+        return count <= limit, remaining, expires
 
     def _prune(self, now: int) -> None:
-        stale_before = now - 300
         self._buckets = {
-            key: value for key, value in self._buckets.items() if value[0] >= stale_before
+            key: value for key, value in self._buckets.items() if value[0] > now
         }
 
 
@@ -168,7 +168,7 @@ class RequestGuardMiddleware(BaseHTTPMiddleware):
             return False
         return not self.settings.is_testing or self.settings.security_guard_test_mode
 
-    async def dispatch(self, request: Request, call_next: Any) -> Response:  # noqa: ANN401
+    async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:  # noqa: ANN401
         if not self.active:
             return await call_next(request)
 
@@ -176,7 +176,7 @@ class RequestGuardMiddleware(BaseHTTPMiddleware):
         if path in _SKIP_PATHS:
             return await call_next(request)
 
-        ip = _client_ip(request, self.settings)
+        ip = client_ip(request, self.settings) or "unknown"
         subject = _ip_hash(ip, self.settings)
 
         # 1) 后台 IP 允许清单。默认空=不启用；一旦配置，未命中直接拒绝。

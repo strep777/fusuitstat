@@ -316,7 +316,7 @@ onBeforeUnmount(() => {
             loading="lazy"
             class="size-full object-cover"
           />
-          <div v-else class="flex size-full items-center justify-center text-4xl text-ink-faint" aria-hidden="true">✦</div>
+          <p v-else class="flex size-full items-center justify-center text-sm text-ink-muted">暂无封面</p>
         </div>
         <div class="flex flex-col justify-center p-7 sm:p-10">
           <p class="text-[10px] uppercase tracking-[0.14em] text-ink-faint">
@@ -345,7 +345,7 @@ onBeforeUnmount(() => {
               loading="lazy"
               class="size-full object-cover"
             />
-            <div v-else class="flex size-full items-center justify-center text-3xl text-ink-faint" aria-hidden="true">✦</div>
+            <p v-else class="flex size-full items-center justify-center text-sm text-ink-muted">暂无封面</p>
           </div>
           <div class="p-4">
             <p class="text-[10px] uppercase tracking-[0.14em] text-ink-faint">{{ work.species }} · {{ work.work_type }}</p>
@@ -354,6 +354,8 @@ onBeforeUnmount(() => {
         </RouterLink>
       </div>
     </section>
+
+    <p v-if="!loading && !error && !works.length" class="container-page pb-16 text-sm text-ink-muted">暂无公开作品。</p>
 
     <div v-if="error" role="status" class="container-page pb-16">
       <div class="rounded-2xl bg-canvas-sunk px-6 py-5 text-sm text-ink-muted">

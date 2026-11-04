@@ -118,6 +118,7 @@ const PREVIEW_LINES = [
 ];
 
 const PREVIEW = {
+  terms_version: "shop-2",
   checkout_token: "ct_1",
   expires_at: "2099-01-01T00:00:00+00:00",
   lines: PREVIEW_LINES,
@@ -215,7 +216,8 @@ interface MockOptions {
   /** 站点公开配置（`/content/settings`）的额外键，例如 `loyalty.rules` 与功能开关 */
   settings?: Record<string, unknown>;
   /** 结算预览（POST /checkout/preview）的响应，可按请求体返回不同报价 */
-  preview?: (body: Record<string, unknown> | null) => Response;
+  addresses?: (typeof ADDRESS)[];
+  preview?: (body: Record<string, unknown> | null) => Response | Promise<Response>;
 }
 
 function installFetchMock(options: MockOptions = {}): void {
@@ -240,7 +242,7 @@ function installFetchMock(options: MockOptions = {}): void {
     }
     if (url.includes("/me/addresses")) {
       // 06 文档：地址列表返回数组本身，不是分页对象。
-      return jsonResponse([ADDRESS]);
+      return jsonResponse(options.addresses ?? [ADDRESS]);
     }
     if (url.endsWith("/cart") && method === "GET") {
       return jsonResponse(CART);
@@ -402,6 +404,25 @@ describe("结算页：价格变化必须确认后才下单", () => {
     installFetchMock();
   });
 
+  it("快速切换地址时，较早请求的失败不能覆盖当前预览", async () => {
+    const delayed = deferred<Response>();
+    const { wrapper } = await mountCheckout({
+      addresses: [ADDRESS, { ...ADDRESS, id: "addr_2", is_default: false }],
+      preview: (body) => body?.address_id === "addr_2" ? delayed.promise : jsonResponse(PREVIEW),
+    });
+    expect(callsTo("/checkout/preview", "POST")).toHaveLength(1);
+    const radios = wrapper.findAll('input[type="radio"]');
+    await radios[1]!.setValue(true);
+    await radios[0]!.setValue(true);
+    await flush();
+    delayed.resolve(errorResponse(409, "PRICE_CHANGED", "过期地址的预览"));
+    await flush();
+    expect(callsTo("/checkout/preview", "POST")).toHaveLength(3);
+    expect(wrapper.text()).not.toContain("过期地址的预览");
+    await wrapper.get('input[type="checkbox"][class*="accent-amber"]').setValue(true);
+    expect(findButton(wrapper, "提交订单").attributes("disabled")).toBeUndefined();
+  });
+
   it("未勾选条款时不能提交，并说明原因", async () => {
     const { wrapper } = await mountCheckout();
     const submit = findButton(wrapper, "提交订单");
@@ -449,7 +470,7 @@ describe("结算页：价格变化必须确认后才下单", () => {
     expect(created.body).toEqual({
       checkout_token: "ct_1",
       address_id: "addr_1",
-      terms_version: "commission-1",
+      terms_version: "shop-2",
       accepted: true,
       redeem_points: 0,
     });

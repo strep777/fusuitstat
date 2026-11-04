@@ -1212,7 +1212,7 @@ requires-dist = [
     { name = "boto3", specifier = ">=1.43.97" },
     { name = "cryptography", specifier = ">=44.0.0" },
     { name = "email-validator", specifier = ">=2.2.0" },
-    { name = "fastapi", specifier = ">=0.115.0" },
+    { name = "fastapi", specifier = ">=0.121.0" },
     { name = "httpx", specifier = ">=0.28.0" },
     { name = "pillow", specifier = ">=11.0.0" },
     { name = "pydantic", specifier = ">=2.10.0" },

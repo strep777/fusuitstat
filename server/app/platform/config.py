@@ -391,14 +391,18 @@ class Settings(BaseSettings):
             self.data_dir.mkdir(parents=True, exist_ok=True)
             if path.exists():
                 data = json.loads(path.read_text(encoding="utf-8"))
-                if isinstance(data, dict) and isinstance(data.get(name), str) and data[name]:
-                    return data[name]
+                if not isinstance(data, dict):
+                    data = {}
+                existing = data.get(name)
+                if isinstance(existing, str) and existing:
+                    return existing
             else:
                 data = {}
         except (OSError, ValueError):
             # 文件损坏或不可读时回退到进程内值，并尝试覆盖重建。
             data = {}
-        data[name] = secrets.token_hex(32)
+        value = _DEV_SECRETS.get(name) or secrets.token_hex(32)
+        data[name] = value
         try:
             tmp = path.with_suffix(".tmp")
             tmp.write_text(json.dumps(data), encoding="utf-8")
@@ -406,8 +410,8 @@ class Settings(BaseSettings):
                 tmp.chmod(0o600)
             tmp.replace(path)
         except OSError:
-            _DEV_SECRETS.setdefault(name, data[name])
-        return data[name]
+            return _DEV_SECRETS.setdefault(name, value)
+        return value
 
 
 _DEV_SECRETS: dict[str, str] = {}

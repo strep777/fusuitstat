@@ -177,7 +177,10 @@ def init_database(engine: Engine | None = None) -> None:
     target = engine or get_engine()
     import app.modules  # noqa: F401  触发模型注册
 
-    Base.metadata.create_all(target)
+    with target.begin() as connection:
+        if connection.dialect.name == "sqlite":
+            connection.exec_driver_sql("BEGIN")
+        Base.metadata.create_all(connection)
 
 
 def integrity_report(engine: Engine | None = None) -> dict[str, Any]:

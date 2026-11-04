@@ -55,7 +55,7 @@ interface PreparedOrder {
  * 每一步都是服务端裁定（08 文档：金额、库存与可售性不来自前端），
  * 走的是与浏览器同一个会话 cookie，因此后续 `page.goto('/pay/:id')` 即为已登录状态。
  */
-async function preparePendingOrder(page: Page, session: SandboxSession): Promise<PreparedOrder> {
+async function prepareCart(page: Page, session: SandboxSession) {
   const productsResponse = await page.request.get("/api/v1/products?limit=50", {
     headers: sessionReadHeaders(),
   });
@@ -107,6 +107,11 @@ async function preparePendingOrder(page: Page, session: SandboxSession): Promise
   });
   expect(cartResponse.ok(), await cartResponse.text()).toBeTruthy();
 
+  return { address, product, sku, headers };
+}
+
+async function preparePendingOrder(page: Page, session: SandboxSession): Promise<PreparedOrder> {
+  const { address, product, sku, headers } = await prepareCart(page, session);
   const previewResponse = await page.request.post("/api/v1/checkout/preview", {
     headers,
     data: { items: [{ sku_id: sku?.id, quantity: 1 }], address_id: address.id, coupon_code: null },
@@ -249,15 +254,20 @@ test.describe("TC-O01 加购、结算预览与创建订单（服务端裁定金�
     expectNoUnexpectedErrors(errors);
   });
 
-  test("结算页能把购物车交给服务端结算（依赖前端契约修复）", async ({ page }) => {
-    test.fixme(
-      true,
-      "前端缺陷阻塞：`web/src/modules/commerce/api/commerce.ts:570-571` 的 fetchAddresses() 按 {items:[]} 解析，" +
-        "而后端 `GET /api/v1/me/addresses` 返回裸数组（server/app/modules/identity/router.py:614），" +
-        "CheckoutPage.loadBase()（CheckoutPage.vue:137-141）因此抛 TypeError 并恒定渲染「结算信息加载失败」；" +
-        "同时 commerce.ts:561-568 的 AddressInput 提交 region，后端 identity/schemas.py:156-165 只接受 region_code/province/city，" +
-        "实测 POST /me/addresses 返回 422。「加购 → 结算预览 → 提交订单」的 UI 路径在修复前无法验证，不能标记为通过。",
-    );
+  test("结算页能把购物车交给服务端结算", async ({ page }) => {
+    const session = await loginViaSandboxApi(page);
+    await prepareCart(page, session);
+    await page.goto("/checkout");
+    const submit = page.getByRole("button", { name: "提交订单", exact: true });
+    await page.getByRole("checkbox", { name: /我已阅读并接受/ }).check();
+    await expect(submit).toBeEnabled();
+    const [response] = await Promise.all([
+      page.waitForResponse((item) => item.request().method() === "POST"
+        && new URL(item.url()).pathname === "/api/v1/orders"),
+      submit.click(),
+    ]);
+    expect(response.ok(), await response.text()).toBeTruthy();
+    await expect(page).toHaveURL(/\/pay\//);
   });
 });
 

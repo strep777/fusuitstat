@@ -336,6 +336,9 @@ def touch_session(session: Session, row: SessionModel) -> None:
     """滑动闲置期限。数据库不因页面访问更新计数，只更新必要的时间戳。"""
     settings = get_settings()
     moment = now_ms()
+    # 同一页面会并发读取多个接口；半分钟内的活动共用一次续期。
+    if moment - row.last_seen_at < 30_000:
+        return
     row.last_seen_at = moment
     idle = settings.session_idle_hours if row.scope == "customer" else settings.admin_session_hours
     row.idle_expires_at = moment + idle * 3_600_000

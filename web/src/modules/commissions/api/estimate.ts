@@ -30,6 +30,7 @@ export interface EstimateSeries {
 export interface EstimateOptions {
   response_workdays: number;
   currency: string;
+  range_high_percent: number;
   styles: EstimateStyleSetting[];
   options: EstimateOptionSetting[];
   series: EstimateSeries[];

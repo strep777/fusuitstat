@@ -344,15 +344,13 @@ test.describe("TC-A06 会话过期、恶意 returnTo 与 CSRF", () => {
     expectNoUnexpectedErrors(errors);
   });
 
-  test("所有写接口都应校验受信 Origin（身份模块当前缺失，见 fixme 说明）", async () => {
-    test.fixme(
-      true,
-      "已实测的偏离：AGENTS.md 约束 6 与 10 文档要求「写请求同时校验 Origin 与受信 Referer」，" +
-        "但 `POST /api/v1/me/sessions/revoke-others`（server/app/modules/identity/router.py:300-301）只在依赖里声明了 `CsrfDep`，" +
-        "既没有 router 级 `Depends(enforce_write_guard)`，函数体里也没有显式调用。" +
-        "实测：带合法会话 CSRF token + `Origin: https://evil.example` 时该接口返回 **200 {\"revoked\":0}**（对照 `POST /api/v1/inquiries` 同条件返回 403 CSRF_INVALID）。" +
-        "在服务端补齐 Origin 校验前，本用例不能断言通过；也不允许把 200 写成预期行为。",
-    );
+  test("身份接口拒绝带有效会话令牌的跨站写请求", async ({ page }) => {
+    const session = await loginViaSandboxApi(page);
+    const response = await page.request.post("/api/v1/me/sessions/revoke-others", {
+      headers: { ...sessionWriteHeaders(session), Origin: "https://evil.example" },
+    });
+    expect(response.status()).toBe(403);
+    expect((await response.json()).error.code).toBe("CSRF_INVALID");
   });
 
   test("登录前的写请求缺少匿名 CSRF 被拒", async ({ page }) => {

@@ -161,7 +161,7 @@ pnpm exec playwright test --config ../e2e/playwright.config.ts
 | 文档 | 内容 |
 |---|---|
 | `文档/00_阅读入口与项目总纲.md` | 阅读顺序、规则优先级、范围与版本 |
-| `文档/02_软件需求规格说明书.md` | FR-001–025 与验收口径 |
+| `文档/02_软件需求规格说明书.md` | FR-001–026 与验收口径 |
 | `文档/03_站点路由与页面功能.md` | 公开、账户与后台路由及页面状态 |
 | `文档/04_技术选型与架构设计.md` | 模块边界、目录与技术决策 |
 | `文档/05_数据模型与一致性约束.md` | 表结构、约束与事务不变量 |
@@ -195,3 +195,7 @@ pnpm exec playwright test --config ../e2e/playwright.config.ts
 **浏览器测试没有可用浏览器**：安装 Playwright Chromium，或设置 `E2E_BROWSER_CHANNEL=msedge` 使用系统 Edge（近似验证，最终以 CI 目标浏览器为准）。
 
 **旧数据库缺列**：执行 `uv run python -m app.cli init-db` 应用迁移；不要手工改表。
+
+## 本地回归检查
+
+在仓库根目录使用 CMD，进入 `server` 运行 `uv run mypy app` 和 `uv run pytest --durations=5`。进入 `web` 运行 `pnpm lint && pnpm test && pnpm build`。估价配置变动后，在后端目录运行 `uv run python -m app.cli export-openapi`，再从仓库根目录运行 `python scripts/check_frontend_contract.py` 核对前端调用。

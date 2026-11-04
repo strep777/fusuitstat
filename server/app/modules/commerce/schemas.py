@@ -131,6 +131,7 @@ class RegionZoneDto(Dto):
 
 
 class CheckoutPreviewDto(Dto):
+    terms_version: str
     checkout_token: str
     expires_at: str | None = None
     lines: list[CheckoutLineDto] = Field(default_factory=list)

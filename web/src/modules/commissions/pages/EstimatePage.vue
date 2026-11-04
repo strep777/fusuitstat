@@ -61,10 +61,12 @@ const optionPrice = computed(() =>
 const estimateLow = computed(() => {
   if (!selectedSeries.value) return 0;
   const factor = selectedStyle.value?.factor ?? 100;
-  return Math.round((selectedSeries.value.base_price_cents * factor) / 100) + optionPrice.value;
+  return Math.floor((selectedSeries.value.base_price_cents * factor) / 100) + optionPrice.value;
 });
 
-const estimateHigh = computed(() => Math.round(estimateLow.value * 1.25));
+const estimateHigh = computed(() => Math.max(estimateLow.value, Math.floor(
+  estimateLow.value * (options.value?.range_high_percent ?? 125) / 100,
+)));
 
 const contactPlaceholder = computed(
   () => contactTypes.find((item) => item.value === form.contactType)?.placeholder ?? "",
@@ -212,6 +214,8 @@ onMounted(() => {
         </div>
       </div>
     </div>
+
+    <p v-else-if="!options?.series.length || !options.styles.length" class="container-page py-16" role="status">暂无可估价的系列或风格。</p>
 
     <div v-else class="container-page py-10 sm:py-14">
       <div class="grid gap-10 lg:grid-cols-[1fr_340px] lg:items-start">

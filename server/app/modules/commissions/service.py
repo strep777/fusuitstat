@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import json
 import re
+from collections.abc import Sequence
 from datetime import datetime
 from typing import Any
 
@@ -3013,8 +3014,9 @@ def estimate_options(session: Session) -> dict[str, Any]:
     return {
         "response_workdays": int(rules.get("response_workdays", 3) or 3),
         "currency": str(rules.get("currency", "CNY") or "CNY"),
-        "styles": rules.get("styles") or {},
-        "options": rules.get("options") or {},
+        "styles": rules.get("styles") or [],
+        "options": rules.get("options") or [],
+        "range_high_percent": int(rules.get("range_high_percent", 125) or 125),
         "series": content_ports.estimate_series(session),
         "disclaimer": "参考区间由公开配置计算，不构成报价；最终价格以人工确认的角色复杂度、材料与工期为准。",
     }
@@ -3047,7 +3049,7 @@ def _mask_contact(contact_type: str, contact: str) -> str:
     return f"{contact[:2]}***{contact[-2:]}" if len(contact) > 4 else "***"
 
 
-def _estimate_range(rules: dict[str, Any], series: dict[str, Any], style: str, options: list[str]) -> tuple[int, int, str]:
+def _estimate_range(rules: dict[str, Any], series: dict[str, Any], style: str, options: Sequence[str]) -> tuple[int, int, str]:
     style_rules = rules.get("styles") or {}
     style_entry: dict[str, Any] = {}
     if isinstance(style_rules, list):

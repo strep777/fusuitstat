@@ -955,7 +955,7 @@ def admin_update_estimate(
         estimate_id=estimate_id,
         status=payload.status,
         note=payload.note,
-        actor_id=principal.id,
+        actor_id=principal.require_staff(),
     )
     return row.model_dump()
 

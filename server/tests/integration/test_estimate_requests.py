@@ -33,6 +33,7 @@ def test_public_estimate_options_and_submit(db, client):
     options = client.get("/api/v1/estimates/options")
     assert options.status_code == 200, options.text
     body = options.json()
+    assert body["range_high_percent"] == 125
     codes = {item["code"] for item in body["series"]}
     assert "FULL" in codes
     assert next(item for item in body["styles"] if item["value"] == "standard")["factor"] == 100

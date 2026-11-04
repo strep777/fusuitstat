@@ -67,7 +67,10 @@ def run_migrations_online() -> None:
         poolclass=pool.NullPool,
         future=True,
     )
-    with connectable.connect() as connection:
+    with connectable.begin() as connection:
+        # sqlite3 的默认事务模式不会为 DDL 开启事务。
+        if connection.dialect.name == "sqlite":
+            connection.exec_driver_sql("BEGIN")
         context.configure(
             connection=connection,
             target_metadata=target_metadata,

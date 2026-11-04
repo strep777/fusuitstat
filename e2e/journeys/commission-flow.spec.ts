@@ -326,7 +326,7 @@ test.describe("TC-C01 询价草稿 → 提交 → 客户查看状态", () => {
     await page.goto(`/account/quotes/${inquiryId}`);
 
     const withdraw = page.getByRole("button", { name: "撤回询价" });
-    test.skip((await withdraw.count()) === 0, "当前状态不提供撤回入口（流程规则变化时同步维护本用例）");
+    await expect(withdraw).toBeVisible();
 
     await withdraw.click();
     await expect(page.getByText(`确认撤回编号 ${inquiryId} 的询价？`)).toBeVisible();

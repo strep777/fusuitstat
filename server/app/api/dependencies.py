@@ -21,6 +21,7 @@ from app.modules.identity.ports import VISITOR, Principal
 from app.platform.config import get_settings
 from app.platform.db import get_session_factory
 from app.platform.errors import AppError
+from app.platform.guard import client_ip
 
 SAFE_METHODS = frozenset({"GET", "HEAD", "OPTIONS"})
 
@@ -54,13 +55,7 @@ class RequestContext:
 
 def client_ip_of(request: Request) -> str | None:
     """只信任配置的反向代理传来的转发头，避免伪造 X-Forwarded-For 绕过限流。"""
-    settings = get_settings()
-    direct = request.client.host if request.client else None
-    if direct in settings.trusted_proxies:
-        forwarded = request.headers.get("x-forwarded-for")
-        if forwarded:
-            return forwarded.split(",")[0].strip()
-    return direct
+    return client_ip(request, get_settings())
 
 
 def _session_cookie_for_scope(request: Request, scope: str) -> str | None:
@@ -84,7 +79,6 @@ def resolve_principal(session: Session, request: Request) -> tuple[Principal, Se
     row = identity_service.load_session(session, token, scope=scope)
     if row is None:
         return VISITOR, None
-    identity_service.touch_session(session, row)
     if scope == "admin" and row.staff_id:
         staff = repo.get_staff(session, row.staff_id)
         if staff is None or staff.status != "active":
@@ -115,6 +109,10 @@ def get_context(request: Request) -> Iterator[RequestContext]:
     session = get_session_factory()()
     try:
         principal, row = resolve_principal(session, request)
+        if row is not None:
+            # 会话活动单独落库，避免在处理整个请求期间占用 SQLite 写锁。
+            identity_service.touch_session(session, row)
+            session.commit()
         ctx = RequestContext(
             session=session,
             principal=principal,
@@ -124,7 +122,7 @@ def get_context(request: Request) -> Iterator[RequestContext]:
             request_id=getattr(request.state, "trace_id", "") or "",
         )
         yield ctx
-        # 只读请求也提交，以便滑动过期时间与限流计数落库。
+        # 业务记录与 outbox 仍在各自的同一事务中提交。
         if session.in_transaction():
             session.commit()
     except Exception:
@@ -134,7 +132,8 @@ def get_context(request: Request) -> Iterator[RequestContext]:
         session.close()
 
 
-ContextDep = Annotated[RequestContext, Depends(get_context)]
+# 在发送 HTTP 成功响应前完成提交，确保下一请求能读到刚创建的记录。
+ContextDep = Annotated[RequestContext, Depends(get_context, scope="function")]
 
 
 def current_principal(ctx: ContextDep) -> Principal:

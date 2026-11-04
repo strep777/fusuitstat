@@ -25,27 +25,27 @@
 }
 
 @theme {
-  --color-canvas: #faf7f1;
-  --color-canvas-sunk: #f3ece2;
+  --color-canvas: #ffffff;
+  --color-canvas-sunk: #f5f4f1;
   --color-surface: #ffffff;
-  --color-surface-muted: #f8f3ec;
-  --color-line: #e9dfd2;
-  --color-line-strong: #d7c9b8;
+  --color-surface-muted: #fafaf8;
+  --color-line: #ece9e3;
+  --color-line-strong: #d8d4cc;
 
-  --color-ink: #2e2923;
-  --color-ink-soft: #57504a;
-  --color-ink-muted: #7d7369;
-  --color-ink-faint: #a39a8f;
+  --color-ink: #1f1d1a;
+  --color-ink-soft: #504b45;
+  --color-ink-muted: #7b756d;
+  --color-ink-faint: #a49e95;
 
-  --color-night: #2e2923;
-  --color-night-soft: #3b342c;
-  --color-night-line: #4d453b;
+  --color-night: #1b1916;
+  --color-night-soft: #26231f;
+  --color-night-line: #3b3731;
 
   /* 陶土粉主色。白字对比 ≥ 4.5:1；浅粉只作背景。 */
   --color-brand: #a65c36;
   --color-brand-strong: #8e4b2a;
   --color-brand-hover: #8e4b2a;
-  --color-brand-soft: #f4e0d1;
+  --color-brand-soft: #f6ece5;
 
   --color-pop: #c98257;
   --color-cream: #fbf0e3;
@@ -414,4 +414,9 @@ html[data-motion="reduced"] * {
 [class*="shadow-[8px_8px_0"],
 [class*="shadow-[10px_10px_0"] {
   box-shadow: var(--shadow-soft) !important;
+}
+
+/* 2026-11：所有按钮不再使用描边；层级只靠底色、字重与柔影表达。 */
+button {
+  border: 0 !important;
 }

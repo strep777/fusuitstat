@@ -45,7 +45,7 @@ test.describe("洗毛 / 道具 / 周边", () => {
     expect(await page.locator('a[href^="/shop/demo-"]').count()).toBeGreaterThanOrEqual(3);
 
     await page.goto("/merch");
-    await expect(page.getByRole("heading", { level: 1, name: /把星绒带回家/ })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1, name: /先看看周边/ })).toBeVisible();
     await expect(page.locator('a[href^="/shop/demo-"]').first()).toBeVisible();
     expect(await page.locator('a[href^="/shop/demo-"]').count()).toBeGreaterThanOrEqual(3);
 

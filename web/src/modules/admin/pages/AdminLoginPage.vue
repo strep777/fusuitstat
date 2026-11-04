@@ -87,7 +87,7 @@ function restart(): void {
 <template>
   <div class="grid min-h-screen bg-canvas lg:grid-cols-[0.85fr_1.15fr]">
     <!-- 品牌侧板：安全事实，不放营销空话 -->
-    <aside class="relative hidden flex-col justify-between overflow-hidden border-r border-line bg-[#f1e7db] p-10 text-ink lg:flex">
+    <aside class="relative hidden flex-col justify-between overflow-hidden border-r border-line bg-[#f5f4f1] p-10 text-ink lg:flex">
       <div class="pointer-events-none absolute inset-0 bg-dots opacity-40" aria-hidden="true" />
       <div class="relative flex items-center gap-3">
         <BrandMark :size="40" decorative />

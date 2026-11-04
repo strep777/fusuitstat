@@ -65,12 +65,16 @@ async function preparePendingOrder(page: Page, session: SandboxSession): Promise
       slug: string;
       title: string;
       requires_approval: boolean;
+      category?: string | null;
       skus: Array<{ id: string; in_stock: boolean }>;
     }>;
   };
 
   const product = products.items.find(
-    (item) => !item.requires_approval && item.skus.some((sku) => sku.in_stock),
+    (item) =>
+      item.category !== "merch" &&
+      !item.requires_approval &&
+      item.skus.some((sku) => sku.in_stock),
   );
   test.skip(
     !product,
@@ -150,7 +154,10 @@ test.describe("TC-O01 加购、结算预览与创建订单（服务端裁定金�
     await loginViaSandboxApi(page);
 
     await page.goto("/shop");
-    const card = page.locator('a[href^="/shop/"]').first();
+    const card = page
+      .locator('a[href^="/shop/"]:not([data-display-only="true"])')
+      .filter({ hasNotText: "审批" })
+      .first();
     await card.waitFor({ state: "visible" });
     const href = await card.getAttribute("href");
     const title = (

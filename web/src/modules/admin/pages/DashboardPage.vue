@@ -211,7 +211,7 @@ onMounted(load);
             v-for="metric in metrics"
             :key="metric.key"
             :to="metric.to"
-            class="group flex min-h-[178px] flex-col border-2 border-ink p-5 text-ink shadow-[4px_4px_0_var(--color-ink)] transition-all hover:-translate-y-1 hover:shadow-[7px_7px_0_var(--color-ink)]"
+            class="group flex min-h-[178px] flex-col rounded-xl border border-line bg-surface p-5 text-ink shadow-soft transition-shadow hover:shadow-lift"
             :class="metric.tone"
           >
             <div class="flex items-start justify-between gap-3">

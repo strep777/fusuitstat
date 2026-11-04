@@ -61,12 +61,18 @@ onMounted(load);
           </h1>
           <p class="mt-5 max-w-2xl text-base leading-relaxed text-[#57504A] sm:text-lg">{{ intro }}</p>
           <div class="mt-7 flex flex-wrap gap-3">
-            <AppButton :to="`/shop?category=${category}`" variant="primary">在商城中筛选</AppButton>
-            <AppButton to="/contact" variant="secondary" class="!border-[#2E2923]/15 !bg-white/70 !text-[#2E2923] hover:!bg-white">想要定制</AppButton>
+            <template v-if="category === 'merch'">
+              <AppButton to="/contact" variant="primary">联系工作室</AppButton>
+              <span class="inline-flex items-center text-sm text-[#57504A]">周边目前仅展示</span>
+            </template>
+            <template v-else>
+              <AppButton :to="`/shop?category=${category}`" variant="primary">在商城中筛选</AppButton>
+              <AppButton to="/contact" variant="secondary" class="!bg-white/70 !text-[#2E2923] hover:!bg-white">想要定制</AppButton>
+            </template>
           </div>
         </div>
         <div class="rounded-2xl bg-surface/85 p-6 text-ink shadow-soft backdrop-blur">
-          <p class="text-[10px] uppercase tracking-[0.22em] text-ink-faint">在售</p>
+          <p class="text-[10px] uppercase tracking-[0.22em] text-ink-faint">{{ category === "merch" ? "展示" : "在售" }}</p>
           <p class="mt-3 font-display text-5xl font-light leading-none">
             {{ loading ? "…" : products.length }}
             <span class="text-sm font-normal text-ink-muted">件</span>
@@ -84,7 +90,9 @@ onMounted(load);
         <AppButton variant="secondary" @click="load">重试</AppButton>
       </EmptyState>
       <EmptyState v-else-if="!products.length" tone="empty" :title="emptyLabel">
-        <AppButton :to="`/shop?category=${category}`" variant="secondary">去商城看看</AppButton>
+        <AppButton :to="category === 'merch' ? '/contact' : `/shop?category=${category}`" variant="secondary">
+          {{ category === "merch" ? "联系工作室" : "去商城看看" }}
+        </AppButton>
       </EmptyState>
 
       <div v-else class="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -96,7 +104,11 @@ onMounted(load);
 
     <section class="border-t border-line bg-[#f8f3ec] py-14 sm:py-20">
       <div class="container-page grid gap-10 lg:grid-cols-[0.8fr_1.2fr]">
-        <SectionHeading eyebrow="FAQ" title="购买前确认" description="限量与定制件以服务端审批结果为准。" />
+        <SectionHeading
+          eyebrow="FAQ"
+          :title="category === 'merch' ? '关于周边' : '购买前确认'"
+          :description="category === 'merch' ? '周边目前只做展示，暂不售卖。' : '限量与定制件以服务端审批结果为准。'"
+        />
         <div class="divide-y divide-line">
           <details v-for="item in faqs" :key="item.q" class="group py-4">
             <summary class="cursor-pointer list-none font-medium marker:hidden">

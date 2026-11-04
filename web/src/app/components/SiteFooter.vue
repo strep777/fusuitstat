@@ -48,7 +48,7 @@ const safeSocial = computed(() =>
 </script>
 
 <template>
-  <footer class="mt-24 border-t border-line bg-[#f2ebe1] text-ink">
+  <footer class="mt-24 border-t border-line bg-[#fafaf8] text-ink">
     <div class="container-page pt-14 sm:pt-20">
       <div class="grid gap-12 pb-14 lg:grid-cols-[1.15fr_1.85fr] lg:gap-20">
         <div>
@@ -68,7 +68,7 @@ const safeSocial = computed(() =>
 
           <RouterLink
             to="/shop"
-            class="mt-7 inline-flex items-center gap-2 rounded-full border border-line-strong bg-surface px-5 py-2.5 text-sm text-ink transition-colors hover:border-brand hover:text-brand-strong"
+            class="mt-7 inline-flex items-center gap-2 rounded-full bg-canvas-sunk px-5 py-2.5 text-sm text-ink transition-colors hover:bg-brand-soft hover:text-brand-strong"
           >
             逛逛商城 <span aria-hidden="true">→</span>
           </RouterLink>
@@ -155,7 +155,7 @@ const safeSocial = computed(() =>
               <ul class="mt-3 flex flex-wrap gap-2 text-xs">
                 <li v-for="link in safeSocial" :key="link.code">
                   <a
-                    class="inline-block rounded-full border border-line-strong px-3 py-1.5 text-ink-muted transition-colors hover:border-brand hover:text-brand-strong"
+                    class="inline-block rounded-full bg-surface-muted px-3 py-1.5 text-ink-muted transition-colors hover:bg-brand-soft hover:text-brand-strong"
                     :href="link.url"
                     target="_blank"
                     rel="noopener noreferrer"

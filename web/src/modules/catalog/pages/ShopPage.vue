@@ -19,7 +19,7 @@
           <div class="grid gap-2">
             <RouterLink
               to="/wash"
-              class="group flex items-center justify-between rounded-2xl bg-[#eaf2ee] px-5 py-4 text-[#2E2923] transition-all hover:-translate-y-0.5 hover:shadow-soft"
+              class="group flex items-center justify-between rounded-2xl bg-[#eaf2ee] px-5 py-4 text-[#2E2923] transition-shadow hover:shadow-soft"
             >
               <span class="flex items-center gap-3">
                 <span class="text-[10px] uppercase tracking-[0.16em] text-[#557565]">CARE</span>
@@ -29,7 +29,7 @@
             </RouterLink>
             <RouterLink
               to="/props"
-              class="group flex items-center justify-between rounded-2xl bg-[#f0ebf2] px-5 py-4 text-[#2E2923] transition-all hover:-translate-y-0.5 hover:shadow-soft"
+              class="group flex items-center justify-between rounded-2xl bg-[#f0ebf2] px-5 py-4 text-[#2E2923] transition-shadow hover:shadow-soft"
             >
               <span class="flex items-center gap-3">
                 <span class="text-[10px] uppercase tracking-[0.16em] text-[#7c6b8a]">PROPS</span>
@@ -39,11 +39,11 @@
             </RouterLink>
             <RouterLink
               to="/merch"
-              class="group flex items-center justify-between rounded-2xl bg-[#f8eedf] px-5 py-4 text-[#2E2923] transition-all hover:-translate-y-0.5 hover:shadow-soft"
+              class="group flex items-center justify-between rounded-2xl bg-[#f8eedf] px-5 py-4 text-[#2E2923] transition-shadow hover:shadow-soft"
             >
               <span class="flex items-center gap-3">
                 <span class="text-[10px] uppercase tracking-[0.16em] text-[#96724d]">MERCH</span>
-                <span class="font-display text-[15px] font-medium">周边商店</span>
+                <span class="font-display text-[15px] font-medium">周边展示</span>
               </span>
               <span class="text-[#57504A] transition-transform group-hover:translate-x-1" aria-hidden="true">→</span>
             </RouterLink>

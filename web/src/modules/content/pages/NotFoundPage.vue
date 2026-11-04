@@ -95,7 +95,7 @@ onMounted(() => {
         <ul class="mt-5 flex flex-wrap gap-3">
           <li v-for="item in suggestions" :key="item.to">
             <RouterLink
-              class="inline-flex min-h-[44px] items-center rounded-full border border-line-strong bg-surface px-5 text-sm text-ink-soft transition-colors hover:border-amber hover:text-amber-strong"
+              class="inline-flex min-h-[44px] items-center rounded-full bg-canvas-sunk px-5 text-sm text-ink-soft transition-colors hover:bg-brand-soft hover:text-brand-strong"
               :to="item.to"
             >
               {{ item.label }}

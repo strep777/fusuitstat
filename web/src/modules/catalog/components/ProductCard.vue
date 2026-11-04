@@ -1,9 +1,10 @@
 <template>
   <RouterLink
     :to="`${locale === 'en-US' ? '/en' : ''}/shop/${product.slug}`"
-    class="group flex flex-col overflow-hidden rounded-2xl bg-surface shadow-soft transition-all duration-300 hover:-translate-y-1 hover:shadow-lift"
+    :data-display-only="displayOnly ? 'true' : undefined"
+    class="group flex flex-col overflow-hidden rounded-2xl bg-surface shadow-soft transition-shadow duration-300 hover:shadow-lift"
   >
-    <div class="relative aspect-square overflow-hidden bg-[#f2e5d8]">
+    <div class="relative aspect-square overflow-hidden bg-[#f4f2ef]">
       <img
         v-if="cover"
         :src="mediaSrc(cover)"
@@ -14,7 +15,7 @@
         :alt="cover.alt || t('productCard.imageAlt', { title: product.title })"
         loading="lazy"
         decoding="async"
-        class="size-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
+        class="size-full object-cover"
       />
       <div v-else class="flex size-full flex-col items-center justify-center gap-2 text-ink-faint">
         <span class="text-4xl font-light text-brand/40" aria-hidden="true">✦</span>
@@ -22,8 +23,9 @@
       </div>
 
       <div class="absolute left-3 top-3 flex flex-wrap gap-1.5">
-        <StatusBadge :tone="availability.tone" :label="availability.label" />
-        <StatusBadge v-if="product.requires_approval" tone="grape" :label="t('productCard.approval')" />
+        <StatusBadge v-if="!displayOnly" :tone="availability.tone" :label="availability.label" />
+        <span v-else class="rounded-full bg-canvas-sunk px-2.5 py-1 text-[10px] text-ink-muted">仅展示</span>
+        <StatusBadge v-if="!displayOnly && product.requires_approval" tone="grape" :label="t('productCard.approval')" />
         <span
           v-if="isDemo"
           class="rounded-full bg-canvas-sunk px-2.5 py-1 text-[10px] text-ink-muted"
@@ -49,7 +51,8 @@
       <p v-if="kindLabel && !categoryLabel" class="mt-1 text-xs text-ink-faint">{{ kindLabel }}</p>
 
       <div class="mt-auto flex items-end justify-between gap-2 pt-5">
-        <p class="font-display text-base font-medium text-brand-strong">
+        <p v-if="displayOnly" class="text-sm text-ink-muted">展示品 · 暂不售卖</p>
+        <p v-else class="font-display text-base font-medium text-brand-strong">
           <template v-if="product.price_from_cents !== null">
             {{ formatMoney(product.price_from_cents, toCurrency(product.currency)) }}
             <span class="text-[11px] font-normal text-ink-muted">{{ t("productCard.from") }}</span>
@@ -99,6 +102,7 @@ const props = defineProps<{ product: ProductSummary }>();
 const cover = computed(() => props.product.images?.[0] ?? null);
 const availability = computed(() => productAvailabilityMeta(props.product.availability));
 const categoryLabel = computed(() => productCategoryLabel(props.product.category));
+const displayOnly = computed(() => props.product.category === "merch");
 const kindLabel = computed(() => productKindLabel(props.product.kind));
 const DEMO_SUFFIX = DEMO_TITLE_MARK;
 const isDemo = computed(() => props.product.title.includes(DEMO_SUFFIX));

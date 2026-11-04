@@ -302,6 +302,12 @@ def _validate_amounts(
 
 
 # ------------------------------------------------------------------ 行计算
+def _assert_sellable_category(product: Any) -> None:
+    """周边当前只展示不售卖：前端隐藏入口，后端仍必须拒绝。"""
+    if getattr(product, "category", None) == "merch":
+        raise AppError("MERCH_DISPLAY_ONLY", "周边目前仅展示，暂不售卖。")
+
+
 def _line_for_sku(session: Session, sku_id: str, quantity: int) -> dict[str, Any]:
     """按当前目录重算一行的权威价格与可售性。"""
     if quantity <= 0:
@@ -312,6 +318,7 @@ def _line_for_sku(session: Session, sku_id: str, quantity: int) -> dict[str, Any
     product = catalog_ports.get_product(session, sku.product_id)
     if product is None or product.status != "published":
         raise AppError("STOCK_NOT_ENOUGH", "该商品当前不可售。", fields={"sku_id": "已下架"})
+    _assert_sellable_category(product)
     if quantity > sku.max_per_order:
         raise AppError(
             "VALIDATION_ERROR",
@@ -438,7 +445,11 @@ def cart_payload(session: Session, *, user_id: str) -> dict[str, Any]:
             product = catalog_ports.get_product(session, sku.product_id) if sku else None
             available = max(0, sku.stock_on_hand - sku.reserved) if sku else 0
             sellable = bool(
-                sku and sku.is_active and product is not None and product.status == "published"
+                sku
+                and sku.is_active
+                and product is not None
+                and product.status == "published"
+                and getattr(product, "category", None) != "merch"
             )
             items.append(
                 {
@@ -481,6 +492,10 @@ def set_cart_item(session: Session, *, user_id: str, sku_id: str, quantity: int)
         return cart_payload(session, user_id=user_id)
     if sku is None or not sku.is_active:
         raise AppError("STOCK_NOT_ENOUGH", "该规格当前不可售。", fields={"sku_id": "不可售"})
+    product = catalog_ports.get_product(session, sku.product_id)
+    if product is None:
+        raise AppError("STOCK_NOT_ENOUGH", "该商品当前不可售。", fields={"sku_id": "已下架"})
+    _assert_sellable_category(product)
     if quantity > sku.max_per_order:
         raise AppError(
             "VALIDATION_ERROR",

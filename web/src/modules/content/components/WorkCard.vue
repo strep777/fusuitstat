@@ -52,7 +52,7 @@ const srcset = computed(() =>
 <template>
   <RouterLink
     :to="work.route"
-    class="group flex flex-col overflow-hidden rounded-2xl bg-surface shadow-soft transition-all duration-300 hover:-translate-y-1 hover:shadow-lift"
+    class="group flex flex-col overflow-hidden rounded-2xl bg-surface shadow-soft transition-shadow duration-300 hover:shadow-lift"
   >
     <div class="aspect-[4/5] overflow-hidden bg-[#f2e5d8]">
       <img
@@ -65,7 +65,7 @@ const srcset = computed(() =>
         :alt="coverAlt"
         :loading="eager ? 'eager' : 'lazy'"
         decoding="async"
-        class="size-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
+        class="size-full object-cover"
       />
       <div v-else class="flex size-full items-center justify-center px-4 text-center text-xs text-ink-faint">
         图片准备中

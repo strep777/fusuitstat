@@ -43,7 +43,7 @@ const status = computed(() => characterStatusMeta(props.character.status));
         :alt="cover.alt || `${character.name} 设定图`"
         loading="lazy"
         decoding="async"
-        class="size-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+        class="size-full object-cover"
       />
       <div v-else class="flex size-full items-center justify-center text-xs text-ink-faint">
         设定图准备中

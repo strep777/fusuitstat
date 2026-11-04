@@ -3,7 +3,8 @@
  *
  * 约束（11 文档）：按钮触控范围至少 44×44px；不能靠颜色单独表达售罄/已付款/错误；
  * 禁用按钮旁说明原因；每个数据区域都有 loading/empty/error/forbidden/not-found/success 状态。
- * 视觉 v4「Soft Atelier」：暖白、陶土粉、细线、柔影、大留白；中文使用系统无衬线。
+ * 视觉 v5「White Atelier」：白色主调、陶土粉点缀、细线、柔影、大留白；
+ * 所有按钮无描边，层级只由底色/字重/柔影表达；中文使用系统无衬线。
  */
 
 import { computed, defineComponent, h, type PropType, type VNodeChild } from "vue";
@@ -15,14 +16,12 @@ export type ButtonVariant = "primary" | "secondary" | "ghost" | "danger" | "quie
 export type ButtonSize = "sm" | "md" | "lg";
 
 const VARIANT_CLASS: Record<ButtonVariant, string> = {
-  primary:
-    "bg-brand text-white border border-transparent shadow-soft hover:bg-brand-hover hover:shadow-lift active:translate-y-px",
+  primary: "bg-brand text-white shadow-soft hover:bg-brand-hover hover:shadow-lift",
   secondary:
-    "bg-surface text-ink border border-line-strong hover:border-brand hover:text-brand-strong hover:bg-brand-soft/40",
-  ghost: "bg-transparent text-ink-soft border border-transparent hover:bg-canvas-sunk hover:text-ink",
-  danger:
-    "bg-wine text-white border border-transparent shadow-soft hover:opacity-90 active:translate-y-px",
-  quiet: "bg-surface-muted text-ink-soft border border-transparent hover:bg-canvas-sunk",
+    "bg-canvas-sunk text-ink hover:bg-brand-soft/70 hover:text-brand-strong",
+  ghost: "bg-transparent text-ink-soft hover:bg-canvas-sunk hover:text-ink",
+  danger: "bg-wine text-white shadow-soft hover:opacity-90",
+  quiet: "bg-surface-muted text-ink-soft hover:bg-canvas-sunk",
 };
 
 const SIZE_CLASS: Record<ButtonSize, string> = {

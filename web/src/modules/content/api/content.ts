@@ -234,6 +234,7 @@ export interface HomeAggregate {
       title: string;
       subtitle: string;
       kind: string;
+      category?: string | null;
       price_from_cents: number | null;
       currency: string;
       availability: string;

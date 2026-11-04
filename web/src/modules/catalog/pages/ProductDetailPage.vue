@@ -4,7 +4,7 @@
       :items="[
         { label: t('nav.home'), to: publicPath('/') },
         { label: t('nav.shop'), to: publicPath('/shop') },
-        { label: detail?.title ?? t('productDetail.title') },
+        { label: displayTitle || t('productDetail.title') },
       ]"
     />
 
@@ -94,16 +94,24 @@
         <div class="space-y-6">
           <div>
             <div class="flex flex-wrap items-center gap-2">
-              <StatusBadge :tone="availability.tone" :label="availability.label" />
+              <StatusBadge v-if="displayOnly" tone="neutral" label="仅展示" />
+              <StatusBadge v-else :tone="availability.tone" :label="availability.label" />
               <StatusBadge v-if="detail.category" tone="neutral" :label="productCategoryLabel(detail.category)" />
-              <StatusBadge v-if="detail.requires_approval" tone="amber" :label="t('productDetail.approval')" />
-              <StatusBadge v-if="detail.kind" tone="night" :label="productKindLabel(detail.kind)" />
+              <StatusBadge v-if="!displayOnly && detail.requires_approval" tone="amber" :label="t('productDetail.approval')" />
+              <StatusBadge v-if="!displayOnly && detail.kind" tone="night" :label="productKindLabel(detail.kind)" />
             </div>
             <h1 class="mt-4 font-display text-3xl leading-tight sm:text-4xl">{{ displayTitle }}</h1>
         <p v-if="isDemo" class="mt-2 inline-flex rounded-full bg-ink/8 px-2.5 py-1 text-[11px] font-bold text-ink-muted">演示</p>
             <p v-if="detail.subtitle" class="mt-3 text-sm text-ink-muted">{{ detail.subtitle }}</p>
 
-            <p class="mt-5 flex flex-wrap items-baseline gap-2">
+            <div v-if="displayOnly" class="mt-6 rounded-xl bg-surface-muted p-5 text-sm leading-relaxed text-ink-muted">
+              周边目前仅展示，暂不售卖。喜欢的话可以联系工作室，后续开放会先发公告。
+              <div class="mt-4">
+                <AppButton :to="publicPath('/contact')" size="sm">联系工作室</AppButton>
+              </div>
+            </div>
+
+            <p v-else class="mt-5 flex flex-wrap items-baseline gap-2">
               <span class="font-display text-3xl">{{ priceLabel }}</span>
               <span v-if="priceHighCents !== null && priceHighCents !== priceLowCents" class="text-xs text-ink-faint">
                 {{ t('productDetail.priceRange') }}
@@ -111,7 +119,7 @@
               <span v-else class="text-xs text-ink-faint">{{ t('productDetail.shippingExcluded') }}</span>
             </p>
 
-            <p class="mt-2 text-xs text-ink-muted">
+            <p v-if="!displayOnly" class="mt-2 text-xs text-ink-muted">
               <template v-if="skus.length">
                 {{ t('productDetail.skuCount', { count: skus.length, available: availableSkuCount }) }}
               </template>
@@ -119,65 +127,67 @@
             </p>
 
             <p
-              v-if="detail.availability === 'sold_out'"
+              v-if="!displayOnly && detail.availability === 'sold_out'"
               class="mt-4 rounded-lg border border-line-strong bg-surface-muted p-4 text-sm text-ink-muted"
             >
               {{ t('productDetail.soldOut') }}
             </p>
           </div>
 
-          <p
-            v-if="!auth.isAuthenticated"
-            class="rounded-lg border border-line bg-surface-muted p-4 text-sm text-ink-muted"
-          >
-            {{ t('productDetail.loginNote') }}
-            <RouterLink class="link-underline text-amber-strong" :to="withQuery(publicPath('/login'), { returnTo: route.fullPath })">
-              {{ t('productDetail.login') }}
-            </RouterLink>
-          </p>
+          <template v-if="!displayOnly">
+            <p
+              v-if="!auth.isAuthenticated"
+              class="rounded-lg border border-line bg-surface-muted p-4 text-sm text-ink-muted"
+            >
+              {{ t('productDetail.loginNote') }}
+              <RouterLink class="link-underline text-amber-strong" :to="withQuery(publicPath('/login'), { returnTo: route.fullPath })">
+                {{ t('productDetail.login') }}
+              </RouterLink>
+            </p>
 
-          <p
-            v-else-if="expiredApplication"
-            class="rounded-lg border border-amber bg-amber-soft p-4 text-sm text-amber-strong"
-          >
-            {{ t('productDetail.expired') }}
-          </p>
+            <p
+              v-else-if="expiredApplication"
+              class="rounded-lg border border-amber bg-amber-soft p-4 text-sm text-amber-strong"
+            >
+              {{ t('productDetail.expired') }}
+            </p>
 
-          <SkuPicker
-            :skus="skus"
-            :requires-approval="detail.requires_approval"
-            :approval-url="approvalUrl"
-            :approval-window-label="approvalWindowLabel"
-            :purchasable="availability.purchasable"
-            :unavailable-reason="
-              availability.purchasable
-                ? ''
-                : t('productDetail.unavailable', { status: availability.label })
-            "
-            :submitting="submitting"
-            @add="onAdd"
-          >
-            <template #shipping>
-              <p class="eyebrow">Shipping</p>
-              <p class="mt-2 text-sm leading-relaxed text-ink-muted">{{ shippingNote }}</p>
-              <p class="mt-2 text-xs text-ink-faint">
-                {{ t('productDetail.shippingNote') }}{{ site.commercePolicy.cross_border_note }}
-              </p>
-            </template>
+            <SkuPicker
+              :skus="skus"
+              :requires-approval="detail.requires_approval"
+              :approval-url="approvalUrl"
+              :approval-window-label="approvalWindowLabel"
+              :purchasable="availability.purchasable"
+              :unavailable-reason="
+                availability.purchasable
+                  ? ''
+                  : t('productDetail.unavailable', { status: availability.label })
+              "
+              :submitting="submitting"
+              @add="onAdd"
+            >
+              <template #shipping>
+                <p class="eyebrow">Shipping</p>
+                <p class="mt-2 text-sm leading-relaxed text-ink-muted">{{ shippingNote }}</p>
+                <p class="mt-2 text-xs text-ink-faint">
+                  {{ t('productDetail.shippingNote') }}{{ site.commercePolicy.cross_border_note }}
+                </p>
+              </template>
 
-            <template #after-sales>
-              <p class="eyebrow">After sales</p>
-              <p class="mt-2 text-sm leading-relaxed text-ink-muted">
-                {{ t('productDetail.afterSales', { note: afterSalesNote }) }}
-              </p>
-              <p class="mt-2 text-xs text-ink-faint">
-                {{ t('productDetail.refund') }}
-              </p>
-              <AppButton :to="publicPath('/legal/returns')" size="sm" variant="secondary" class="mt-3">
-                {{ t('productDetail.returns') }}
-              </AppButton>
-            </template>
-          </SkuPicker>
+              <template #after-sales>
+                <p class="eyebrow">After sales</p>
+                <p class="mt-2 text-sm leading-relaxed text-ink-muted">
+                  {{ t('productDetail.afterSales', { note: afterSalesNote }) }}
+                </p>
+                <p class="mt-2 text-xs text-ink-faint">
+                  {{ t('productDetail.refund') }}
+                </p>
+                <AppButton :to="publicPath('/legal/returns')" size="sm" variant="secondary" class="mt-3">
+                  {{ t('productDetail.returns') }}
+                </AppButton>
+              </template>
+            </SkuPicker>
+          </template>
         </div>
       </div>
 
@@ -272,6 +282,7 @@ const slug = computed(() => String(route.params.slug ?? ""));
 
 const displayTitle = computed(() => displayProductTitle(detail.value?.title));
 const isDemo = computed(() => (detail.value?.title ?? "").includes(DEMO_TITLE_MARK));
+const displayOnly = computed(() => detail.value?.category === "merch");
 
 const images = computed(() => detail.value?.images ?? []);
 const currentImage = computed(() => images.value[activeImage.value] ?? images.value[0] ?? null);
@@ -439,9 +450,9 @@ function syncJsonLd(): void {
   setProductJsonLd(
     buildProductJsonLd({
       product,
-      priceLowCents: priceLowCents.value,
-      priceHighCents: priceHighCents.value,
-      skuCount: skus.value.length,
+      priceLowCents: displayOnly.value ? null : priceLowCents.value,
+      priceHighCents: displayOnly.value ? null : priceHighCents.value,
+      skuCount: displayOnly.value ? 0 : skus.value.length,
       url: `${origin}${publicPath(`/shop/${product.slug}`)}`,
     }),
   );
@@ -450,6 +461,7 @@ function syncJsonLd(): void {
 watch([detail, skus], () => syncJsonLd());
 
 async function onAdd(payload: { sku: Sku; quantity: number }): Promise<void> {
+  if (displayOnly.value) return;
   const product = detail.value;
   if (!product) return;
   if (!auth.isAuthenticated) {

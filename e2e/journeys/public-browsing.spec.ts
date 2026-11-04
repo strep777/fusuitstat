@@ -34,9 +34,15 @@ function expectNoUnexpectedErrors(errors: string[], allowed: RegExp | null = nul
 const STUBBED_RESPONSE_NOISE = /Failed to load resource|503|502|500/;
 
 /** 打开列表页，取第一条详情链接的真实 href —— 不依赖种子数据里写死的 slug。 */
-async function firstDetailHref(page: Page, listPath: string, detailPrefix: string): Promise<string> {
+async function firstDetailHref(
+  page: Page,
+  listPath: string,
+  detailPrefix: string,
+  excludeText?: string,
+): Promise<string> {
   await page.goto(listPath);
-  const link = page.locator(`a[href^="${detailPrefix}"]`).first();
+  const links = page.locator(`a[href^="${detailPrefix}"]:not([data-display-only="true"])`);
+  const link = (excludeText ? links.filter({ hasNotText: excludeText }) : links).first();
   await link.waitFor({ state: "visible", timeout: 15_000 });
   const href = await link.getAttribute("href");
   expect(href, `${listPath} 上没有 ${detailPrefix} 开头的详情链接`).toBeTruthy();
@@ -44,9 +50,15 @@ async function firstDetailHref(page: Page, listPath: string, detailPrefix: strin
 }
 
 /** 详情页 h1 必须与列表卡片里的标题一致（证明直达的是同一条内容）。 */
-async function cardTitle(page: Page, listPath: string, detailPrefix: string): Promise<string> {
+async function cardTitle(
+  page: Page,
+  listPath: string,
+  detailPrefix: string,
+  excludeText?: string,
+): Promise<string> {
   await page.goto(listPath);
-  const card = page.locator(`a[href^="${detailPrefix}"]`).first();
+  const links = page.locator(`a[href^="${detailPrefix}"]:not([data-display-only="true"])`);
+  const card = (excludeText ? links.filter({ hasNotText: excludeText }) : links).first();
   await card.waitFor({ state: "visible", timeout: 15_000 });
   // 卡片结构不同：作品/商品把 h3 放在 <a> 里，公告列表则是 <h2><a>…</a></h2>。
   // 先找链接内部的标题，再退回「包含该链接的标题元素」，避免把徽标与元信息一起读进来。
@@ -171,8 +183,8 @@ test.describe("公开浏览 · 桌面与移动视口", () => {
     // ShopPage.vue:142 的筛选区块有 aria-label。
     await expect(page.getByLabel("商品筛选")).toBeVisible();
 
-    const title = await cardTitle(page, "/shop", "/shop/");
-    const href = await firstDetailHref(page, "/shop", "/shop/");
+    const title = await cardTitle(page, "/shop", "/shop/", "审批");
+    const href = await firstDetailHref(page, "/shop", "/shop/", "审批");
 
     await page.goto(href);
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(title);

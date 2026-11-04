@@ -215,4 +215,25 @@ describe("道具与周边专题页", () => {
     expect(calls.some((call) => call.url.includes("category=merch"))).toBe(true);
     expect(wrapper.text()).toContain("周边");
   });
+
+  it("周边卡只作展示，不显示价格与购买入口", async () => {
+    installFetch([
+      makeProduct({
+        id: "merch-badge",
+        slug: "demo-merch-badge",
+        title: "星绒徽章·双曜（演示内容）",
+        kind: "stock_goods",
+        category: "merch",
+        price_from_cents: 3800,
+        requires_approval: false,
+      }),
+    ]);
+    const { wrapper } = await mountAt(MerchPage, "/merch");
+
+    const card = wrapper.find('[data-display-only="true"]');
+    expect(card.exists()).toBe(true);
+    expect(card.text()).toContain("展示品 · 暂不售卖");
+    expect(card.text()).not.toContain("¥38");
+    expect(card.text()).toContain("仅展示");
+  });
 });

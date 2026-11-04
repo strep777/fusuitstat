@@ -581,6 +581,26 @@ describe("ProductDetailPage", () => {
     wrapper.unmount();
   });
 
+  it("周边详情只展示，不渲染价格、库存与加购按钮", async () => {
+    installFetch((url) => {
+      if (url.includes("/products/merch-badge")) {
+        return { body: makeProductDetail({ category: "merch", title: "星绒徽章（演示内容）" }) };
+      }
+      return { body: {} };
+    });
+
+    const { wrapper } = await mountAt(ProductDetailPage, "/shop/merch-badge");
+
+    expect(wrapper.text()).toContain("周边目前仅展示，暂不售卖");
+    expect(wrapper.text()).toContain("仅展示");
+    expect(wrapper.text()).not.toContain("加入购物车");
+    expect(wrapper.text()).not.toContain("¥1,200");
+    expect(wrapper.findAll("button").some((button) => button.text().includes("加入购物车"))).toBe(false);
+    const script = document.head.querySelector('script[type="application/ld+json"]');
+    const data = JSON.parse(script?.textContent ?? "{}") as { offers?: unknown };
+    expect(data.offers).toBeUndefined();
+  });
+
   it("英文售罄和不存在状态保留明确说明与返回入口", async () => {
     installFetch((url) => url.includes("/products/missing") ? {
       status: 404, body: { error: { code: "RESOURCE_NOT_FOUND", message: "Missing" } },

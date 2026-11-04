@@ -250,9 +250,14 @@ def home_aggregate(ctx: ContextDep, locale: LocaleLiteral = "zh-CN") -> dict[str
     policy = svc.setting_value(session, "commerce.policy", {}) or {}
     zone = "US" if locale == "en-US" else "CN"
     currency = (policy.get("regions", {}).get(zone) or {}).get("currency", policy.get("currency", "CNY"))
-    products, product_total = catalog_ports.list_products(session, currency=currency, limit=4)
-    product_items = [catalog_ports.product_payload(session, product, include_skus=False, currency=currency)
-                     for product in products]
+    products, _product_total = catalog_ports.list_products(session, currency=currency, limit=12)
+    # 周边只展示不售卖，首页商品区先排除；其余分类正常展示。
+    product_items = [
+        catalog_ports.product_payload(session, product, include_skus=False, currency=currency)
+        for product in products
+        if getattr(product, "category", None) != "merch"
+    ][:4]
+    product_total = len(product_items)
 
     try:
         from app.modules.commissions import ports as commission_ports

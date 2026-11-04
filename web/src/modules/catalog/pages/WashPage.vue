@@ -146,7 +146,7 @@ onMounted(load);
             >
               {{ t("washPage.cta") }}
             </a>
-            <AppButton to="/care" variant="secondary" class="!border-[#2E2923]/15 !bg-white/70 !text-[#2E2923] hover:!bg-white">日常养护指南</AppButton>
+            <AppButton to="/care" variant="secondary" class="!bg-white/70 !text-[#2E2923] hover:!bg-white">日常养护指南</AppButton>
           </div>
           <ul class="mt-7 flex flex-wrap gap-2 text-[11px] text-[#57504A]">
             <li class="rounded-full bg-white/70 px-3 py-1.5">先预约后报价</li>
@@ -199,7 +199,7 @@ onMounted(load);
           <div class="mt-7 flex flex-wrap gap-2">
             <RouterLink
               :to="`/shop/${item.slug}`"
-              class="rounded-full border border-line-strong px-3.5 py-1.5 text-xs text-ink-soft transition-colors hover:border-brand hover:text-brand-strong"
+              class="rounded-full bg-canvas-sunk px-3.5 py-1.5 text-xs text-ink-soft transition-colors hover:bg-brand-soft hover:text-brand-strong"
             >
               查看详情
             </RouterLink>

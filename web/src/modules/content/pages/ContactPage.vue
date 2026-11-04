@@ -203,7 +203,7 @@ onMounted(() => {
         <ul v-if="safeSocial.length" class="mt-8 flex flex-wrap gap-3">
           <li v-for="link in safeSocial" :key="link.code">
             <a
-              class="inline-flex min-h-[44px] items-center rounded-full border border-line-strong bg-surface px-5 text-sm transition-colors hover:border-amber hover:text-amber-strong"
+              class="inline-flex min-h-[44px] items-center rounded-full bg-canvas-sunk px-5 text-sm transition-colors hover:bg-brand-soft hover:text-brand-strong"
               :href="link.url"
               target="_blank"
               rel="noopener noreferrer"

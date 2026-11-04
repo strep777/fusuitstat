@@ -87,7 +87,7 @@ async function logout(): Promise<void> {
 
     <aside
       id="admin-nav"
-      class="fixed inset-y-0 left-0 z-50 flex w-[264px] flex-col border-r border-line bg-[#f4eee5] transition-transform lg:translate-x-0"
+      class="fixed inset-y-0 left-0 z-50 flex w-[264px] flex-col border-r border-line bg-white transition-transform lg:translate-x-0"
       :class="navOpen ? 'translate-x-0' : '-translate-x-full'"
     >
       <div class="flex h-[76px] shrink-0 items-center gap-3 px-5">

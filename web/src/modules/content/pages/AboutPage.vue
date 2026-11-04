@@ -356,22 +356,15 @@ onMounted(() => {
           </dl>
         </SurfaceCard>
 
-        <SurfaceCard class="!bg-night !text-canvas" as="div">
-          <p class="eyebrow text-canvas/50">Next</p>
-          <h3 class="mt-3 font-display text-2xl">想开始一个角色？</h3>
-          <p class="mt-3 text-sm leading-relaxed text-canvas/70">
+        <SurfaceCard class="!bg-[#f1e4d7]" as="div">
+          <p class="eyebrow">Next</p>
+          <h3 class="mt-3 font-display text-2xl font-medium">想开始一个角色？</h3>
+          <p class="mt-3 text-sm leading-relaxed text-ink-muted">
             先读委托指南了解可接范围与售后，再提交询价。也可以直接发邮件说明需求，两条路径都会有人处理。
           </p>
           <div class="mt-6 flex flex-wrap gap-3">
             <AppButton to="/commission/new" size="sm">提交询价</AppButton>
-            <AppButton
-              to="/contact"
-              variant="secondary"
-              size="sm"
-              class="!border-night-line !bg-transparent !text-canvas hover:!border-amber-ink hover:!text-amber-ink"
-            >
-              联系与反馈
-            </AppButton>
+            <AppButton to="/contact" variant="secondary" size="sm">联系与反馈</AppButton>
           </div>
         </SurfaceCard>
       </div>

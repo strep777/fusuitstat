@@ -40,7 +40,9 @@ test("FAQ 双语：直达、搜索、切换语言重新读取正文", async ({ p
   await expect(page).toHaveURL(/\/faq$/);
   await expect(page.getByRole("heading", { name: "常见问题", exact: true })).toBeVisible();
   await expect(page.getByRole("searchbox", { name: "搜索问题" })).toHaveValue("");
-  await page.getByText("其他问题", { exact: true }).click();
+  if (!(await page.getByText("如何清洁毛面？", { exact: true }).isVisible())) {
+    await page.getByText("其他问题", { exact: true }).click();
+  }
   await page.getByText("如何清洁毛面？", { exact: true }).click();
   await expect(page.getByText("测试中文养护答案。", { exact: true })).toBeVisible();
   await expect(page.getByText("Test English care answer.", { exact: true })).toHaveCount(0);

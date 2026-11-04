@@ -105,55 +105,45 @@ const commissionLabel = computed(() => {
 </script>
 
 <template>
-  <header class="sticky top-0 z-40 border-b-2 border-ink bg-canvas">
-    <!-- 工作室状态条：只用事实信息，不做虚假倒计时。 -->
-    <div class="bg-ink text-canvas">
-      <div
-        class="container-page flex h-8 items-center justify-between gap-4 font-mono text-[10px] uppercase tracking-[0.16em]"
-      >
-        <p class="truncate">上海 · 手工兽装工作室</p>
-        <div class="hidden shrink-0 items-center gap-5 md:flex">
-          <span>全装 / 半装 / 单头</span>
-          <span class="text-lemon">手工制作 · 全国寄送</span>
-        </div>
-      </div>
-    </div>
-
-    <div class="container-page flex h-16 items-center gap-3 sm:h-[72px]">
+  <header
+    class="sticky top-0 z-40 border-b bg-canvas/90 backdrop-blur-md transition-colors"
+    :class="scrolled ? 'border-line' : 'border-transparent'"
+  >
+    <div class="container-page flex h-[76px] items-center gap-4">
       <RouterLink
         to="/"
         class="flex shrink-0 items-center gap-2.5"
         :aria-label="t('nav.brandHome')"
       >
-        <BrandMark :size="38" :variant="logoVariant" decorative class="shrink-0" />
+        <BrandMark :size="36" :variant="logoVariant" decorative class="shrink-0" />
         <span class="flex flex-col leading-none">
-          <span class="font-display text-lg font-bold tracking-tight">
+          <span class="font-display text-[17px] font-medium tracking-tight">
             {{ t("common.brandShort") }}
           </span>
           <span
-            class="mt-1 hidden font-mono text-[9px] uppercase tracking-[0.16em] text-ink-muted sm:block"
+            class="mt-1 hidden text-[9px] uppercase tracking-[0.16em] text-ink-muted sm:block"
           >
             {{ t("common.brandEnglish") }}
           </span>
         </span>
       </RouterLink>
 
-      <nav class="ml-4 hidden items-center gap-0.5 lg:flex" :aria-label="t('nav.mainLabel')">
+      <nav class="ml-5 hidden items-center gap-6 lg:flex" :aria-label="t('nav.mainLabel')">
         <RouterLink
           v-for="item in navItems"
           :key="item.to"
           :to="item.to"
-          class="rounded-full border-2 border-transparent px-3 py-2 text-[13px] font-semibold text-ink-soft transition-colors hover:border-ink hover:text-ink"
-          active-class="border-ink !bg-lemon !text-ink shadow-[2px_2px_0_var(--color-ink)]"
+          class="text-[13px] text-ink-muted transition-colors hover:text-ink"
+          active-class="!font-medium !text-ink"
         >
           {{ item.label }}
         </RouterLink>
       </nav>
 
-      <div class="ml-auto flex items-center gap-2">
+      <div class="ml-auto flex items-center gap-1.5">
         <RouterLink
           to="/commission/schedules"
-          class="hidden items-center gap-1.5 rounded-full border-2 border-ink bg-jade-soft px-3 py-1.5 font-mono text-[10px] font-bold uppercase tracking-wide text-jade transition-colors hover:bg-jade hover:text-white sm:inline-flex"
+          class="hidden items-center gap-2 px-2 text-[11px] text-ink-muted transition-colors hover:text-ink sm:inline-flex"
         >
           <span
             class="size-1.5 rounded-full"
@@ -168,7 +158,7 @@ const commissionLabel = computed(() => {
           v-if="englishAvailable"
           type="button"
           lang="en-US"
-          class="hidden size-10 items-center justify-center rounded-full border-2 border-ink bg-surface font-mono text-xs font-bold text-ink transition-colors hover:bg-lemon sm:inline-flex"
+          class="hidden size-9 items-center justify-center rounded-full text-xs text-ink-muted transition-colors hover:bg-canvas-sunk hover:text-ink sm:inline-flex"
           :aria-label="`${t('common.language')}：${nextLocale === 'en-US' ? t('common.languageEn') : t('common.languageZh')}`"
           @click="switchLocale()"
         >
@@ -177,7 +167,7 @@ const commissionLabel = computed(() => {
 
         <button
           type="button"
-          class="inline-flex size-10 items-center justify-center rounded-full border-2 border-ink bg-surface text-ink transition-colors hover:bg-lemon"
+          class="inline-flex size-9 items-center justify-center rounded-full text-ink-muted transition-colors hover:bg-canvas-sunk hover:text-ink"
           :aria-label="preferences.theme === 'dark' ? t('nav.themeToLight') : t('nav.themeToDark')"
           :aria-pressed="preferences.theme === 'dark'"
           @click="preferences.toggleTheme()"
@@ -188,26 +178,26 @@ const commissionLabel = computed(() => {
         <RouterLink
           v-if="auth.isAuthenticated"
           to="/account"
-          class="hidden items-center gap-2 rounded-full border-2 border-ink bg-surface px-3 py-2 text-sm text-ink-soft transition-colors hover:bg-lemon-soft sm:inline-flex"
+          class="hidden items-center gap-2 rounded-full px-2 py-1.5 text-sm text-ink-soft transition-colors hover:bg-canvas-sunk sm:inline-flex"
         >
           <PointsIcon :size="18" :label="`${auth.displayName}${t('nav.unread', { count: auth.unread })}`" />
           <span class="max-w-[8rem] truncate">{{ auth.displayName }}</span>
           <span
             v-if="auth.unread > 0"
-            class="rounded-full bg-brand px-1.5 font-mono text-[10px] font-bold text-white"
+            class="rounded-full bg-brand px-1.5 text-[10px] font-medium text-white"
             aria-hidden="true"
           >
             {{ auth.unread > 99 ? "99+" : auth.unread }}
           </span>
         </RouterLink>
-        <AppButton v-else to="/login" variant="primary" size="sm" class="hidden sm:inline-flex">
+        <AppButton v-else to="/login" variant="primary" size="sm" class="ml-1 hidden sm:inline-flex">
           {{ t("nav.login") }}
         </AppButton>
 
         <button
           ref="menuButton"
           type="button"
-          class="inline-flex size-10 items-center justify-center rounded-full border-2 border-ink bg-surface text-ink lg:hidden"
+          class="inline-flex size-10 items-center justify-center rounded-full text-ink transition-colors hover:bg-canvas-sunk lg:hidden"
           :aria-expanded="menuOpen"
           aria-controls="site-mobile-menu"
           :aria-label="menuOpen ? t('nav.closeMenu') : t('nav.openMenu')"
@@ -221,43 +211,42 @@ const commissionLabel = computed(() => {
     <div
       v-if="menuOpen"
       id="site-mobile-menu"
-      class="border-t-2 border-ink bg-canvas-sunk lg:hidden"
+      class="border-t border-line bg-canvas lg:hidden"
     >
-      <nav class="container-page grid grid-cols-2 gap-2 py-4" :aria-label="t('nav.mobileLabel')">
+      <nav class="container-page grid gap-1 py-4" :aria-label="t('nav.mobileLabel')">
         <RouterLink
-          v-for="(item, index) in navItems"
+          v-for="item in navItems"
           :key="item.to"
           :to="item.to"
-          class="flex items-center gap-3 rounded-lg border-2 border-ink bg-surface px-4 py-3 text-base font-semibold text-ink shadow-[3px_3px_0_var(--color-ink)]"
+          class="rounded-lg px-3 py-3 text-[15px] text-ink-soft transition-colors hover:bg-canvas-sunk hover:text-ink"
         >
-          <span class="font-mono text-[10px] text-ink-faint">{{ String(index + 1).padStart(2, "0") }}</span>
           {{ item.label }}
         </RouterLink>
-        <div class="col-span-2 my-1 border-t-2 border-ink/15" />
+        <div class="my-1 border-t border-line" />
         <RouterLink
           v-if="auth.isAuthenticated"
           to="/account"
-          class="rounded-lg px-4 py-3 text-base text-ink-soft hover:bg-lemon-soft"
+          class="rounded-lg px-3 py-3 text-[15px] text-ink-soft hover:bg-canvas-sunk"
         >
           {{ t("nav.account") }}
         </RouterLink>
         <RouterLink
           v-else
           to="/login"
-          class="rounded-lg px-4 py-3 text-base text-ink-soft hover:bg-lemon-soft"
+          class="rounded-lg px-3 py-3 text-[15px] text-ink-soft hover:bg-canvas-sunk"
         >
           {{ t("nav.loginMobile") }}
         </RouterLink>
         <RouterLink
           to="/contact"
-          class="rounded-lg px-4 py-3 text-base text-ink-soft hover:bg-lemon-soft"
+          class="rounded-lg px-3 py-3 text-[15px] text-ink-soft hover:bg-canvas-sunk"
         >
           {{ t("nav.contact") }}
         </RouterLink>
         <button
           v-if="englishAvailable"
           type="button"
-          class="rounded-lg px-4 py-3 text-left text-base text-ink-soft hover:bg-lemon-soft"
+          class="rounded-lg px-3 py-3 text-left text-[15px] text-ink-soft hover:bg-canvas-sunk"
           @click="switchLocale()"
         >
           {{ nextLocale === "en-US" ? t("common.languageEn") : t("common.languageZh") }}

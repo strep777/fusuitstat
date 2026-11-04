@@ -328,22 +328,17 @@ const cover = computed(() => detail.value?.cover ?? null);
           </EmptyState>
         </div>
 
-        <SurfaceCard class="h-fit !bg-night !text-canvas">
-          <p class="eyebrow text-canvas/50">Next step</p>
-          <h2 class="mt-3 font-display text-2xl">按这个系列开始沟通</h2>
-          <p class="mt-4 text-sm leading-relaxed text-canvas/70">
+        <SurfaceCard class="h-fit !bg-[#f1e4d7] !text-ink">
+          <p class="eyebrow">Next step</p>
+          <h2 class="mt-3 font-display text-2xl font-medium">按这个系列开始沟通</h2>
+          <p class="mt-4 text-sm leading-relaxed text-ink-muted">
             询价是需求沟通记录，不是订单；工作人员会先确认可接范围与参数，再发布有期限的报价。
           </p>
           <div class="mt-6 flex flex-wrap gap-3">
             <AppButton :to="withQuery('/commission/new', { series: detail.slug })" size="sm">
               提交询价
             </AppButton>
-            <AppButton
-              to="/fursuits"
-              size="sm"
-              variant="secondary"
-              class="!border-night-line !bg-transparent !text-canvas hover:!border-amber-ink hover:!text-amber-ink"
-            >
+            <AppButton to="/fursuits" size="sm" variant="secondary">
               对比其它系列
             </AppButton>
           </div>

@@ -221,16 +221,16 @@ watch(() => route.fullPath, load);
           </section>
 
           <section
-            class="rounded-lg border border-night-line bg-night p-5 text-canvas"
+            class="rounded-2xl bg-[#f1e4d7] p-5 text-ink"
             aria-labelledby="content-help-title"
           >
-            <h2 id="content-help-title" class="font-display text-base">需要人工确认？</h2>
-            <p class="mt-3 text-sm leading-relaxed text-canvas/70">
+            <h2 id="content-help-title" class="font-display text-base font-medium">需要人工确认？</h2>
+            <p class="mt-3 text-sm leading-relaxed text-ink-muted">
               公告与页面由运营维护；涉及具体订单、报价或交期的问题请带上编号联系客服。反馈首响
               {{ site.brand.response_sla.feedback_workdays }} 个工作日。
             </p>
             <p class="mt-4 text-sm">
-              <a class="link-underline text-canvas/85 hover:text-amber-ink" :href="`mailto:${site.brand.support_email}`">
+              <a class="link-underline text-ink hover:text-brand-strong" :href="`mailto:${site.brand.support_email}`">
                 {{ site.brand.support_email }}
               </a>
             </p>

@@ -1,9 +1,9 @@
 <template>
   <div>
-    <section class="border-b-2 border-ink bg-canvas bg-dots">
+    <section class="bg-canvas">
       <div class="container-page py-8 lg:py-12">
         <Breadcrumbs :items="[{ label: t('nav.home'), to: '/' }, { label: t('shop.crumb') }]" />
-        <div class="mt-6 grid gap-8 lg:grid-cols-[1.2fr_0.8fr] lg:items-end">
+        <div class="mt-8 grid gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-end">
           <SectionHeading
             :level="1"
             :eyebrow="t('shop.eyebrow')"
@@ -19,50 +19,50 @@
           <div class="grid gap-2">
             <RouterLink
               to="/wash"
-              class="group flex items-center justify-between border-2 border-ink bg-[#DFF3EC] px-4 py-3 shadow-[3px_3px_0_var(--color-ink)] transition-transform hover:-translate-y-0.5"
+              class="group flex items-center justify-between rounded-2xl bg-[#eaf2ee] px-5 py-4 text-[#2E2923] transition-all hover:-translate-y-0.5 hover:shadow-soft"
             >
               <span class="flex items-center gap-3">
-                <span class="font-mono text-[10px] font-bold text-[#006B59]">01 / CARE</span>
-                <span class="font-display text-lg font-bold text-[#17121C]">洗毛护理</span>
+                <span class="text-[10px] uppercase tracking-[0.16em] text-[#557565]">CARE</span>
+                <span class="font-display text-[15px] font-medium">洗毛护理</span>
               </span>
-              <span class="font-mono text-[#17121C] transition-transform group-hover:translate-x-1" aria-hidden="true">↗</span>
+              <span class="text-[#57504A] transition-transform group-hover:translate-x-1" aria-hidden="true">→</span>
             </RouterLink>
             <RouterLink
               to="/props"
-              class="group flex items-center justify-between border-2 border-ink bg-[#EDE7FF] px-4 py-3 shadow-[3px_3px_0_var(--color-ink)] transition-transform hover:-translate-y-0.5"
+              class="group flex items-center justify-between rounded-2xl bg-[#f0ebf2] px-5 py-4 text-[#2E2923] transition-all hover:-translate-y-0.5 hover:shadow-soft"
             >
               <span class="flex items-center gap-3">
-                <span class="font-mono text-[10px] font-bold text-[#4A2ED0]">02 / PROPS</span>
-                <span class="font-display text-lg font-bold text-[#17121C]">道具工坊</span>
+                <span class="text-[10px] uppercase tracking-[0.16em] text-[#7c6b8a]">PROPS</span>
+                <span class="font-display text-[15px] font-medium">道具工坊</span>
               </span>
-              <span class="font-mono text-[#17121C] transition-transform group-hover:translate-x-1" aria-hidden="true">↗</span>
+              <span class="text-[#57504A] transition-transform group-hover:translate-x-1" aria-hidden="true">→</span>
             </RouterLink>
             <RouterLink
               to="/merch"
-              class="group flex items-center justify-between border-2 border-ink bg-[#FFF1C9] px-4 py-3 shadow-[3px_3px_0_var(--color-ink)] transition-transform hover:-translate-y-0.5"
+              class="group flex items-center justify-between rounded-2xl bg-[#f8eedf] px-5 py-4 text-[#2E2923] transition-all hover:-translate-y-0.5 hover:shadow-soft"
             >
               <span class="flex items-center gap-3">
-                <span class="font-mono text-[10px] font-bold text-[#8A5A00]">03 / MERCH</span>
-                <span class="font-display text-lg font-bold text-[#17121C]">周边商店</span>
+                <span class="text-[10px] uppercase tracking-[0.16em] text-[#96724d]">MERCH</span>
+                <span class="font-display text-[15px] font-medium">周边商店</span>
               </span>
-              <span class="font-mono text-[#17121C] transition-transform group-hover:translate-x-1" aria-hidden="true">↗</span>
+              <span class="text-[#57504A] transition-transform group-hover:translate-x-1" aria-hidden="true">→</span>
             </RouterLink>
           </div>
         </div>
       </div>
     </section>
 
-    <div class="container-page py-8 lg:py-10">
+    <div class="container-page pb-8 pt-2 lg:pb-12">
       <!-- 分类筛选：分类进 URL -->
-      <section class="rounded-sm border-2 border-ink bg-surface p-4 shadow-[4px_4px_0_var(--color-ink)] sm:p-5" :aria-label="t('shop.filterLabel')">
+      <section class="rounded-2xl border border-line bg-surface p-4 shadow-soft sm:p-5" :aria-label="t('shop.filterLabel')">
         <div class="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
           <button
             type="button"
-            class="min-h-[44px] shrink-0 rounded-full border-2 px-4 font-mono text-xs font-bold uppercase tracking-wide transition-colors"
+            class="min-h-[44px] shrink-0 rounded-full px-4 text-xs transition-colors"
             :class="
               filters.category === ''
-                ? 'border-ink bg-brand text-white shadow-[2px_2px_0_var(--color-ink)]'
-                : 'border-ink/15 bg-surface text-ink-soft hover:border-ink hover:text-ink'
+                ? 'bg-brand text-white'
+                : 'bg-canvas-sunk text-ink-soft hover:text-ink'
             "
             :aria-pressed="filters.category === ''"
             @click="pushQuery({ category: '' })"
@@ -73,11 +73,11 @@
             v-for="option in PRODUCT_CATEGORY_OPTIONS"
             :key="option.value"
             type="button"
-            class="min-h-[44px] shrink-0 rounded-full border-2 px-4 font-mono text-xs font-bold tracking-wide transition-colors"
+            class="min-h-[44px] shrink-0 rounded-full px-4 text-xs transition-colors"
             :class="
               filters.category === option.value
-                ? 'border-ink bg-brand text-white shadow-[2px_2px_0_var(--color-ink)]'
-                : 'border-ink/15 bg-surface text-ink-soft hover:border-ink hover:text-ink'
+                ? 'bg-brand text-white'
+                : 'bg-canvas-sunk text-ink-soft hover:text-ink'
             "
             :aria-pressed="filters.category === option.value"
             @click="pushQuery({ category: option.value })"
@@ -86,7 +86,7 @@
           </button>
         </div>
 
-        <div class="mt-4 flex flex-wrap items-center gap-3 border-t-2 border-ink/5 pt-4">
+        <div class="mt-4 flex flex-wrap items-center gap-3 border-t border-line pt-4">
           <form class="flex min-w-[260px] flex-1 gap-2" @submit.prevent="submitSearch()">
             <label class="sr-only" for="shop-q">{{ t("shop.searchLabel") }}</label>
             <input
@@ -97,7 +97,7 @@
               :placeholder="t('shop.searchPlaceholder')"
               autocomplete="off"
             />
-            <AppButton type="submit" size="sm">{{ t("shop.search") }}</AppButton>
+            <AppButton type="submit" size="sm" class="shrink-0 whitespace-nowrap">{{ t("shop.search") }}</AppButton>
           </form>
 
           <span
@@ -105,7 +105,7 @@
             class="inline-flex min-h-[44px] items-center gap-2 rounded-full bg-canvas-sunk px-3 text-sm text-ink-soft"
           >
             {{ productKindLabel(filters.kind) }}
-            <button type="button" class="text-xs font-bold text-brand-strong link-underline" @click="pushQuery({ kind: '' })">
+            <button type="button" class="text-xs text-brand-strong link-underline" @click="pushQuery({ kind: '' })">
               {{ t("shop.cancel") }}
             </button>
           </span>
@@ -115,14 +115,14 @@
           </AppButton>
         </div>
 
-        <div class="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-ink-muted">
+        <div class="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-ink-faint">
           <p>{{ t("shop.urlNote") }}</p>
           <p>{{ t("shop.zoneNote", { currency: site.browsingCurrency }) }}</p>
           <p v-if="filters.category">{{ t("shop.currentCategory") }}：{{ productCategoryLabel(filters.category) }}</p>
         </div>
       </section>
 
-      <div v-if="loading" class="mt-8 border-2 border-ink bg-surface p-6 shadow-[4px_4px_0_var(--color-ink)]">
+      <div v-if="loading" class="mt-8 rounded-2xl border border-line bg-surface p-6 shadow-soft">
         <SkeletonBlock :lines="4" :aria-label="t('shop.loading')" />
       </div>
 
@@ -157,7 +157,7 @@
           </span>
         </p>
 
-        <div class="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        <div class="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           <ProductCard v-for="product in items" :key="product.id" :product="product" />
         </div>
 

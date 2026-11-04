@@ -131,47 +131,47 @@ onMounted(load);
 
 <template>
   <div>
-    <section class="relative overflow-hidden border-b-2 border-ink bg-[#DFF3EC] text-[#17121C] bg-dots">
-      <div class="container-page grid gap-10 py-12 lg:grid-cols-[1.1fr_0.9fr] lg:items-center lg:py-16">
-        <div>
-          <p class="font-mono text-[11px] font-bold uppercase tracking-[0.18em] text-[#006B59]">{{ t("washPage.eyebrow") }}</p>
-          <h1 class="mt-4 text-balance font-display text-4xl font-bold leading-[0.98] tracking-[-0.045em] sm:text-6xl">
+    <section class="bg-[#eaf2ee] text-ink">
+      <div class="container-page grid gap-12 py-12 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:py-16">
+        <div class="text-[#2E2923]">
+          <p class="text-[11px] uppercase tracking-[0.18em] text-[#557565]">{{ t("washPage.eyebrow") }}</p>
+          <h1 class="mt-4 text-balance font-display text-4xl font-medium leading-[1.08] tracking-[-0.04em] sm:text-5xl lg:text-6xl">
             {{ t("washPage.title") }}
           </h1>
-          <p class="mt-4 max-w-xl text-lg leading-relaxed text-[#4A3D52]">{{ t("washPage.intro") }}</p>
-          <div class="mt-6 flex flex-wrap gap-3">
+          <p class="mt-5 max-w-xl text-base leading-relaxed text-[#57504A] sm:text-lg">{{ t("washPage.intro") }}</p>
+          <div class="mt-7 flex flex-wrap gap-3">
             <a
               href="#booking"
-              class="inline-flex min-h-[52px] items-center border-2 border-ink bg-brand px-5 font-bold text-white shadow-[4px_4px_0_var(--color-ink)] transition-transform hover:-translate-y-0.5"
+              class="inline-flex min-h-[52px] items-center rounded-full bg-brand px-6 text-sm text-white shadow-soft transition-all hover:bg-brand-hover hover:shadow-lift"
             >
               {{ t("washPage.cta") }}
             </a>
-            <AppButton to="/care" variant="secondary">日常养护指南</AppButton>
+            <AppButton to="/care" variant="secondary" class="!border-[#2E2923]/15 !bg-white/70 !text-[#2E2923] hover:!bg-white">日常养护指南</AppButton>
           </div>
-          <ul class="mt-6 flex flex-wrap gap-2 font-mono text-[10px] font-bold uppercase tracking-wide">
-            <li class="border-2 border-ink bg-surface px-3 py-1.5 text-[#17121C]">先预约后报价</li>
-            <li class="border-2 border-ink bg-surface px-3 py-1.5 text-[#17121C]">不收款 / 不锁库存</li>
-            <li class="border-2 border-ink bg-surface px-3 py-1.5 text-[#17121C]">到店 / 寄回</li>
+          <ul class="mt-7 flex flex-wrap gap-2 text-[11px] text-[#57504A]">
+            <li class="rounded-full bg-white/70 px-3 py-1.5">先预约后报价</li>
+            <li class="rounded-full bg-white/70 px-3 py-1.5">不收款 / 不锁库存</li>
+            <li class="rounded-full bg-white/70 px-3 py-1.5">到店 / 寄回</li>
           </ul>
         </div>
 
-        <div class="mx-auto w-full max-w-sm rotate-1 border-2 border-ink bg-surface p-6 text-[#17121C] shadow-[8px_8px_0_var(--color-ink)]">
-          <p class="font-mono text-[10px] font-bold uppercase tracking-[0.22em] text-[#006B59]">WASH / CARE</p>
-          <p class="mt-3 font-display text-3xl font-bold leading-tight tracking-[-0.03em]">洗掉灰，<br />留下毛茸茸。</p>
-          <p class="mt-2 text-sm text-[#4A3D52]">单头、半装、全装，按毛面与工作量报价。</p>
-          <ul class="mt-5 space-y-2 text-sm font-semibold">
-            <li class="flex items-center gap-2"><span class="text-[#006B59]">✦</span>毛面检查与局部预处理</li>
-            <li class="flex items-center gap-2"><span class="text-[#006B59]">✦</span>深层清洁、吹干与梳理</li>
-            <li class="flex items-center gap-2"><span class="text-[#006B59]">✦</span>消毒养护，到店取回或寄回</li>
+        <div class="mx-auto w-full max-w-sm rounded-2xl bg-surface p-7 shadow-lift">
+          <p class="text-[10px] uppercase tracking-[0.22em] text-[#557565]">WASH / CARE</p>
+          <p class="mt-4 font-display text-2xl font-medium leading-snug tracking-tight">洗掉灰，<br />留下毛茸茸。</p>
+          <p class="mt-2 text-sm leading-relaxed text-ink-muted">单头、半装、全装，按毛面与工作量报价。</p>
+          <ul class="mt-6 space-y-2.5 text-sm text-ink-soft">
+            <li class="flex items-center gap-2.5"><span class="text-[#557565]" aria-hidden="true">·</span>毛面检查与局部预处理</li>
+            <li class="flex items-center gap-2.5"><span class="text-[#557565]" aria-hidden="true">·</span>深层清洁、吹干与梳理</li>
+            <li class="flex items-center gap-2.5"><span class="text-[#557565]" aria-hidden="true">·</span>消毒养护，到店取回或寄回</li>
           </ul>
-          <p class="mt-5 border-2 border-ink bg-[#DFF3EC] px-4 py-2 text-center font-mono text-[10px] font-bold uppercase tracking-wide text-[#006B59]">
+          <p class="mt-6 rounded-xl bg-[#f2f7f3] px-4 py-2.5 text-center text-[11px] text-[#557565]">
             先预约 · 确认档期后再付款
           </p>
         </div>
       </div>
     </section>
 
-    <section class="container-page py-14 sm:py-18">
+    <section class="container-page py-14 sm:py-20">
       <SectionHeading eyebrow="PACKAGES" :title="t('washPage.packages')" :description="t('washPage.packagesNote')" />
 
       <StarLoader v-if="loading" :message="t('common.loading')" class="py-10" />
@@ -180,30 +180,33 @@ onMounted(load);
       </EmptyState>
       <EmptyState v-else-if="!packages.length" tone="empty" :title="t('washPage.empty')" />
 
-      <div v-else class="mt-8 grid gap-4 sm:grid-cols-2">
+      <div v-else class="mt-10 grid gap-4 sm:grid-cols-2">
         <article
           v-for="item in packages"
           :key="item.id"
-          class="relative flex flex-col overflow-hidden rounded-sm border-2 bg-surface p-6 shadow-[4px_4px_0_var(--color-ink)]"
-          :class="selectedId === item.id ? 'border-brand' : 'border-ink'"
+          class="relative flex flex-col rounded-2xl border bg-surface p-6 shadow-soft transition-all"
+          :class="selectedId === item.id ? 'border-brand shadow-lift ring-1 ring-brand/20' : 'border-line'"
         >
-          <span class="absolute right-4 top-4 border-2 border-ink bg-[#DFF3EC] px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-wide text-[#006B59]">
+          <span class="mb-4 inline-flex w-fit rounded-full bg-[#eaf2ee] px-2.5 py-1 text-[10px] text-[#557565]">
             预约制
           </span>
-          <h3 class="max-w-[18ch] font-display text-xl font-bold">{{ item.title.replace("（演示内容）", "") }}</h3>
+          <h3 class="font-display text-lg font-medium">{{ item.title.replace("（演示内容）", "") }}</h3>
           <p class="mt-2 text-sm text-ink-muted">{{ item.subtitle }}</p>
-          <p class="mt-6 font-display text-3xl font-bold text-brand-strong">
+          <p class="mt-7 font-display text-2xl font-medium text-brand-strong">
             {{ formatMoney(item.price_from_cents, item.currency === "USD" ? "USD" : "CNY") }}
-            <span class="text-xs font-semibold text-ink-muted">起</span>
+            <span class="text-xs font-normal text-ink-muted">起</span>
           </p>
-          <div class="mt-6 flex flex-wrap gap-2">
-            <RouterLink :to="`/shop/${item.slug}`" class="rounded-full border-2 border-ink px-3 py-1.5 text-xs font-bold hover:bg-lemon-soft">
+          <div class="mt-7 flex flex-wrap gap-2">
+            <RouterLink
+              :to="`/shop/${item.slug}`"
+              class="rounded-full border border-line-strong px-3.5 py-1.5 text-xs text-ink-soft transition-colors hover:border-brand hover:text-brand-strong"
+            >
               查看详情
             </RouterLink>
             <button
               type="button"
-              class="rounded-full border-2 border-ink px-3 py-1.5 text-xs font-bold transition-colors"
-              :class="selectedId === item.id ? 'bg-brand text-white' : 'bg-surface text-ink hover:bg-lemon'"
+              class="rounded-full px-3.5 py-1.5 text-xs transition-colors"
+              :class="selectedId === item.id ? 'bg-brand text-white' : 'bg-canvas-sunk text-ink-soft hover:text-ink'"
               @click="selectedId = item.id; success = ''"
             >
               {{ selectedId === item.id ? "已选择" : "选这个" }}
@@ -213,39 +216,34 @@ onMounted(load);
       </div>
     </section>
 
-    <section class="border-y-2 border-ink bg-[#EDE7FF] py-14 text-[#17121C]">
+    <section class="bg-[#f0ebf2] py-14 text-[#2E2923]">
       <div class="container-page">
         <SectionHeading eyebrow="PROCESS" :title="t('washPage.process')" />
-        <ol class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <li v-for="index in 4" :key="index" class="border-2 border-ink bg-surface p-5">
-            <span class="font-display text-4xl font-bold leading-none text-[#4A2ED0]">{{ String(index).padStart(2, "0") }}</span>
-            <h3 class="mt-4 font-display text-lg font-bold">{{ t(`washPage.step${index}` as MessageKey) }}</h3>
-            <p class="mt-1 text-sm text-[#4A3D52]">{{ t(`washPage.step${index}Body` as MessageKey) }}</p>
+        <ol class="mt-9 grid gap-7 sm:grid-cols-2 lg:grid-cols-4">
+          <li v-for="index in 4" :key="index">
+            <span class="font-display text-3xl font-light text-[#887a96]/70">{{ String(index).padStart(2, "0") }}</span>
+            <h3 class="mt-3 font-display text-base font-medium">{{ t(`washPage.step${index}` as MessageKey) }}</h3>
+            <p class="mt-1.5 text-sm leading-relaxed text-[#57504A]">{{ t(`washPage.step${index}Body` as MessageKey) }}</p>
           </li>
         </ol>
       </div>
     </section>
 
-    <section id="booking" class="container-page grid gap-8 py-14 lg:grid-cols-[1.05fr_0.95fr]">
+    <section id="booking" class="container-page grid gap-10 py-14 sm:py-20 lg:grid-cols-[1.05fr_0.95fr]">
       <div>
         <SectionHeading eyebrow="BOOKING" :title="t('washPage.booking')" :description="t('washPage.bookingHint')" />
 
-        <div v-if="!auth.isAuthenticated" class="mt-6 rounded-sm border-2 border-dashed border-ink bg-surface p-6">
+        <div v-if="!auth.isAuthenticated" class="mt-7 rounded-2xl border border-line bg-surface p-6 shadow-soft">
           <p class="text-sm text-ink-muted">预约需要登录，用于保存套餐、日期与进度。</p>
           <AppButton :to="'/login?next=/wash'" variant="primary" class="mt-4">
             {{ t("washPage.login") }}
           </AppButton>
         </div>
 
-        <form v-else class="mt-6 space-y-5 rounded-sm border-2 border-ink bg-surface p-5 shadow-[5px_5px_0_var(--color-ink)] sm:p-6" @submit.prevent="submit">
+        <form v-else class="mt-7 space-y-5 rounded-2xl bg-surface p-5 shadow-soft sm:p-7" @submit.prevent="submit">
           <div>
-            <label class="text-sm font-bold" for="wash-package">{{ t("washPage.packageLabel") }}</label>
-            <select
-              id="wash-package"
-              v-model="selectedId"
-              class="field-base mt-2"
-              required
-            >
+            <label class="text-sm font-medium" for="wash-package">{{ t("washPage.packageLabel") }}</label>
+            <select id="wash-package" v-model="selectedId" class="field-base mt-2" required>
               <option v-for="item in packages" :key="item.id" :value="item.id">
                 {{ item.title.replace("（演示内容）", "") }} · {{ formatMoney(item.price_from_cents, "CNY") }} 起
               </option>
@@ -254,7 +252,7 @@ onMounted(load);
 
           <div class="grid gap-4 sm:grid-cols-2">
             <div>
-              <label class="text-sm font-bold" for="wash-date">{{ t("washPage.dateLabel") }}</label>
+              <label class="text-sm font-medium" for="wash-date">{{ t("washPage.dateLabel") }}</label>
               <input
                 id="wash-date"
                 v-model="preferredDate"
@@ -264,10 +262,10 @@ onMounted(load);
                 :max="maxDate"
                 required
               />
-              <p class="mt-1 text-xs text-ink-muted">{{ t("washPage.dateHint") }}（{{ minDate }} — {{ maxDate }}）</p>
+              <p class="mt-1.5 text-[11px] text-ink-faint">{{ t("washPage.dateHint") }}（{{ minDate }} — {{ maxDate }}）</p>
             </div>
             <div>
-              <label class="text-sm font-bold" for="wash-return">{{ t("washPage.returnLabel") }}</label>
+              <label class="text-sm font-medium" for="wash-return">{{ t("washPage.returnLabel") }}</label>
               <select id="wash-return" v-model="returnMethod" class="field-base mt-2">
                 <option value="pickup">{{ t("washPage.pickup") }}</option>
                 <option value="ship">{{ t("washPage.ship") }}</option>
@@ -276,7 +274,7 @@ onMounted(load);
           </div>
 
           <div>
-            <label class="text-sm font-bold" for="wash-note">{{ t("washPage.noteLabel") }}</label>
+            <label class="text-sm font-medium" for="wash-note">{{ t("washPage.noteLabel") }}</label>
             <textarea
               id="wash-note"
               v-model="note"
@@ -286,15 +284,15 @@ onMounted(load);
             />
           </div>
 
-          <p v-if="dateError" class="border-2 border-ink bg-wine-soft px-3 py-2 text-sm text-wine" role="alert">{{ dateError }}</p>
-          <p v-if="formError" class="border-2 border-ink bg-wine-soft px-3 py-2 text-sm text-wine" role="alert">{{ formError }}</p>
-          <p v-if="success" class="border-2 border-ink bg-jade-soft px-3 py-2 text-sm text-jade" role="status">{{ success }}</p>
+          <p v-if="dateError" class="rounded-lg bg-wine-soft px-3 py-2 text-sm text-wine" role="alert">{{ dateError }}</p>
+          <p v-if="formError" class="rounded-lg bg-wine-soft px-3 py-2 text-sm text-wine" role="alert">{{ formError }}</p>
+          <p v-if="success" class="rounded-lg bg-jade-soft px-3 py-2 text-sm text-jade" role="status">{{ success }}</p>
 
           <div class="flex flex-wrap items-center gap-3">
             <AppButton type="submit" variant="primary" :disabled="submitting || !packages.length">
               {{ submitting ? t("washPage.submitting") : t("washPage.submit") }}
             </AppButton>
-            <p class="text-xs text-ink-muted">提交后可在账户中查看进度，不产生付款。</p>
+            <p class="text-[11px] text-ink-faint">提交后可在账户中查看进度，不产生付款。</p>
           </div>
           <p v-if="!packages.length" class="text-xs text-wine" role="status">暂时没有可选套餐，请稍后再试。</p>
         </form>
@@ -302,19 +300,19 @@ onMounted(load);
 
       <aside>
         <SectionHeading eyebrow="FAQ" :title="t('washPage.faq')" />
-        <div class="mt-6 space-y-3">
-          <details v-for="item in faqs" :key="item.q" class="group rounded-sm border-2 border-ink bg-surface p-4">
-            <summary class="cursor-pointer list-none font-bold marker:hidden">
+        <div class="mt-7 divide-y divide-line">
+          <details v-for="item in faqs" :key="item.q" class="group py-4">
+            <summary class="cursor-pointer list-none font-medium marker:hidden">
               <span class="flex items-center justify-between gap-3">
                 {{ item.q }}
-                <span class="font-mono text-brand-strong transition-transform group-open:rotate-45" aria-hidden="true">+</span>
+                <span class="text-brand-strong transition-transform group-open:rotate-45" aria-hidden="true">+</span>
               </span>
             </summary>
             <p class="mt-2 text-sm leading-relaxed text-ink-muted">{{ item.a }}</p>
           </details>
         </div>
-        <SurfaceCard class="mt-6 border-2 border-ink">
-          <p class="font-display text-lg font-bold">还没决定？</p>
+        <SurfaceCard class="mt-7">
+          <p class="font-display text-base font-medium">还没决定？</p>
           <p class="mt-1 text-sm text-ink-muted">把毛面照片和问题发来，先判断能不能洗。</p>
           <AppButton to="/contact" variant="secondary" size="sm" class="mt-4">联系工作室</AppButton>
         </SurfaceCard>

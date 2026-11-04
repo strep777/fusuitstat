@@ -55,31 +55,25 @@ const scheduleLabel = computed(() => {
 
 const serviceCards = computed(() => [
   {
-    index: "01",
-    eyebrow: "WASH",
+    label: "CARE",
     title: "洗毛护理",
     body: "到店或寄回，按套装深度清洁。",
     to: "/wash",
-    tone: "bg-[#DFF3EC]",
-    chip: "text-[#006B59]",
+    tone: "bg-[#eaf2ee] text-[#557565]",
   },
   {
-    index: "02",
-    eyebrow: "PROPS",
+    label: "PROPS",
     title: "道具工坊",
     body: "发光角、可动耳、尾巴支架。",
     to: "/props",
-    tone: "bg-[#EDE7FF]",
-    chip: "text-[#4A2ED0]",
+    tone: "bg-[#f0ebf2] text-[#7c6b8a]",
   },
   {
-    index: "03",
-    eyebrow: "MERCH",
+    label: "MERCH",
     title: "周边商店",
     body: "徽章、挂件、托特包，少量现货。",
     to: "/merch",
-    tone: "bg-[#FFF1C9]",
-    chip: "text-[#8A5A00]",
+    tone: "bg-[#f8eedf] text-[#96724d]",
   },
 ]);
 
@@ -110,27 +104,27 @@ onMounted(load);
 
 <template>
   <div>
-    <!-- 首屏：大字、硬边、现在能不能接 -->
-    <section class="relative overflow-hidden border-b-2 border-ink bg-canvas bg-dots">
-      <div class="container-page relative grid gap-10 py-10 lg:grid-cols-[1.12fr_0.88fr] lg:items-center lg:gap-14 lg:py-16">
+    <!-- 首屏：大留白、柔和主视觉，先回答「做什么、现在能不能接」 -->
+    <section class="relative overflow-hidden bg-canvas">
+      <div
+        class="container-page grid gap-12 py-12 sm:py-16 lg:grid-cols-[1.02fr_0.98fr] lg:items-center lg:gap-16 lg:py-20"
+      >
         <div>
-          <p class="inline-flex items-center gap-2 border-2 border-ink bg-surface px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.16em] shadow-[3px_3px_0_var(--color-ink)]">
-            <span class="size-2 bg-brand" aria-hidden="true" />
+          <p class="inline-flex items-center gap-2 rounded-full bg-brand-soft px-3.5 py-1.5 text-xs text-brand-strong">
+            <span class="size-1.5 rounded-full bg-brand" aria-hidden="true" />
             {{ heroTagline || "兽装定制 · 上海" }}
           </p>
 
-          <h1
-            class="mt-6 font-display text-[clamp(2.75rem,5.6vw,5rem)] font-bold leading-[0.94] tracking-[-0.055em]"
-          >
+          <h1 class="mt-7 font-display text-[clamp(2.5rem,5vw,4.5rem)] font-medium leading-[1.08] tracking-[-0.04em]">
             {{ t("homePage.heroLine1") }}<br />
             <span class="text-brand-strong">{{ t("homePage.heroLine2") }}</span>
           </h1>
 
-          <p class="mt-5 max-w-lg text-base leading-relaxed text-ink-soft sm:text-lg">
+          <p class="mt-6 max-w-xl text-base leading-relaxed text-ink-muted sm:text-lg">
             {{ truncate(heroStatement || "全装、半装、单头与配件，按设定逐件打版。先确认方案，再排期制作。", 92) }}
           </p>
 
-          <div class="mt-7 flex flex-wrap gap-3">
+          <div class="mt-8 flex flex-wrap gap-3">
             <AppButton :to="heroPrimary.to" variant="primary" size="lg">
               {{ heroPrimary.label }}
             </AppButton>
@@ -139,85 +133,72 @@ onMounted(load);
             </AppButton>
           </div>
 
-          <div class="mt-7 flex flex-wrap items-center gap-3">
+          <div class="mt-8 flex flex-wrap items-center gap-x-5 gap-y-3 text-xs text-ink-muted">
             <RouterLink
               to="/commission/schedules"
-              class="inline-flex items-center gap-2 border-2 border-ink bg-surface px-3.5 py-2 text-sm font-bold shadow-[3px_3px_0_var(--color-ink)]"
+              class="inline-flex items-center gap-2 transition-colors hover:text-ink"
             >
               <span
-                class="size-2.5 rounded-full border border-ink"
-                :class="scheduleOpen ? 'bg-jade' : 'bg-lemon'"
+                class="size-1.5 rounded-full"
+                :class="scheduleOpen ? 'bg-jade' : 'bg-ink-faint'"
                 aria-hidden="true"
               />
               {{ scheduleLabel || "查看档期" }}
-              <span aria-hidden="true">↗</span>
+              <span aria-hidden="true">→</span>
             </RouterLink>
-            <span class="font-mono text-[11px] uppercase tracking-[0.14em] text-ink-muted">
-              手工打版 / 可寄送 / 星绒币回馈
-            </span>
+            <span class="hidden h-3 w-px bg-line-strong sm:block" aria-hidden="true" />
+            <span>手工打版</span>
+            <span>可寄送</span>
+            <span>星绒币回馈</span>
           </div>
         </div>
 
-        <div class="relative mx-auto w-full max-w-md lg:max-w-none">
-          <div
-            class="relative rotate-[1deg] border-2 border-ink bg-lemon p-6 text-[#17121C] shadow-[10px_10px_0_var(--color-ink)] sm:p-8"
-          >
-            <div class="flex items-start justify-between font-mono text-[10px] uppercase tracking-[0.16em]">
-              <span class="border-2 border-ink bg-surface px-2 py-1">STARIUM / SH</span>
+        <div class="relative mx-auto w-full max-w-[30rem] lg:max-w-none">
+          <div class="relative overflow-hidden rounded-[2.5rem] bg-[#f1e4d7] p-6 shadow-lift sm:p-10">
+            <div class="flex items-center justify-between text-[10px] uppercase tracking-[0.2em] text-[#7D7369]">
+              <span>STARIUM / SHANGHAI</span>
               <span>NO. 001</span>
             </div>
-            <div class="mt-8 flex justify-center">
-              <BrandMark :size="210" decorative />
+
+            <div class="mt-8 flex justify-center sm:mt-10">
+              <BrandMark :size="200" decorative />
             </div>
-            <p class="mt-5 font-display text-2xl font-bold leading-tight tracking-[-0.03em] sm:text-3xl">
-              一针一线，<br />装配成纪
-            </p>
-            <p class="mt-2 text-sm text-ink-soft">从设定到可以穿的角色</p>
-            <div class="mt-5 flex items-center justify-between border-t-2 border-ink/20 pt-3 font-mono text-[10px] uppercase tracking-[0.14em]">
-              <span>上海 · 中国</span>
-              <span>FURSUIT STUDIO</span>
+
+            <div class="mt-7 border-t border-[#2E2923]/10 pt-5">
+              <p class="font-display text-2xl font-medium leading-snug tracking-tight text-[#2E2923] sm:text-[1.7rem]">
+                一针一线，装配成纪
+              </p>
+              <p class="mt-2 text-sm text-[#57504A]">从设定到可以穿的角色</p>
             </div>
           </div>
 
-          <div class="sticker-card absolute -right-2 -top-6 w-44 rotate-3 p-4 sm:-right-6">
-            <p class="font-mono text-[10px] uppercase tracking-[0.16em] text-ink-muted">档期</p>
-            <div class="mt-2 flex items-center gap-2">
+          <div class="absolute -bottom-5 right-4 w-48 rounded-2xl border border-line bg-surface/95 p-4 shadow-lift backdrop-blur sm:right-6">
+            <p class="text-[10px] uppercase tracking-[0.18em] text-ink-faint">档期</p>
+            <div class="mt-2">
               <StatusBadge
                 :tone="scheduleOpen ? 'jade' : 'amber'"
                 :label="scheduleLabel || '查看档期'"
                 icon="●"
               />
             </div>
-            <p v-if="schedule" class="mt-2 text-xs leading-relaxed text-ink-muted">
+            <p v-if="schedule" class="mt-2 text-[11px] leading-relaxed text-ink-muted">
               {{ schedule.title }} · 截止 {{ formatDate(schedule.end_at) }}
             </p>
-            <RouterLink to="/commission/schedules" class="mt-2 inline-block text-xs font-bold text-brand-strong link-underline">
-              档期详情
+            <RouterLink to="/commission/schedules" class="mt-2 inline-block text-[11px] text-brand-strong hover:underline">
+              查看详情
             </RouterLink>
-          </div>
-
-          <div class="sticker-card absolute -bottom-6 -left-2 w-52 -rotate-2 bg-canvas p-4 text-[#17121C] sm:-left-6">
-            <p class="font-mono text-[10px] uppercase tracking-[0.16em] text-[#6B5D74]">不止兽装</p>
-            <div class="mt-2 flex flex-wrap gap-1.5 text-xs font-bold">
-              <RouterLink to="/wash" class="border-2 border-ink bg-[#DFF3EC] px-2.5 py-1 text-[#17121C] hover:bg-jade hover:text-white">洗毛</RouterLink>
-              <RouterLink to="/props" class="border-2 border-ink bg-[#EDE7FF] px-2.5 py-1 text-[#17121C] hover:bg-grape hover:text-white">道具</RouterLink>
-              <RouterLink to="/merch" class="border-2 border-ink bg-[#FFF1C9] px-2.5 py-1 text-[#17121C] hover:bg-lemon">周边</RouterLink>
-            </div>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- 业务跑马灯 -->
-    <div class="overflow-hidden border-b-2 border-ink bg-ink py-2.5" aria-hidden="true">
-      <div
-        class="animate-marquee flex w-max gap-8 whitespace-nowrap font-mono text-sm font-bold uppercase tracking-[0.18em] text-lemon"
-      >
-        <span v-for="index in 2" :key="index" class="flex gap-8">
-          <span v-for="word in ['全装', '半装', '单头', '洗毛', '道具', '周边', '上海', '接单中']" :key="`${index}-${word}`">
-            {{ word }} <span class="text-brand">✦</span>
-          </span>
-        </span>
+    <!-- 一句安静的信任条，不做跑马灯 -->
+    <div class="border-y border-line bg-surface/60">
+      <div class="container-page flex flex-wrap items-center justify-between gap-x-8 gap-y-2 py-4 text-[11px] tracking-[0.04em] text-ink-muted">
+        <span>上海 · 手工兽装工作室</span>
+        <span>全装 / 半装 / 单头 / 配件</span>
+        <span>先确认方案，再排期制作</span>
+        <span>全国寄送 · 星绒币回馈</span>
       </div>
     </div>
 
@@ -231,27 +212,25 @@ onMounted(load);
 
     <template v-else-if="home">
       <!-- 三条业务线 -->
-      <section class="container-page py-14 sm:py-20">
+      <section class="container-page py-16 sm:py-24">
         <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <SectionHeading eyebrow="01 / SERVICES" title="做装，也做养护" description="三条线独立下单，共用同一套售后。" />
-          <RouterLink to="/shop" class="w-fit text-sm font-bold text-brand-strong link-underline">全部商品 →</RouterLink>
+          <SectionHeading eyebrow="Services" title="做装，也做养护" description="三条线独立下单，共用同一套售后。" />
+          <RouterLink to="/shop" class="w-fit text-sm text-brand-strong hover:underline">全部商品 →</RouterLink>
         </div>
 
-        <div class="mt-8 grid gap-4 md:grid-cols-3">
+        <div class="mt-10 grid gap-4 md:grid-cols-3">
           <RouterLink
             v-for="card in serviceCards"
             :key="card.to"
             :to="card.to"
-            class="group relative overflow-hidden border-2 border-ink p-6 text-[#17121C] shadow-[5px_5px_0_var(--color-ink)] transition-transform hover:-translate-y-1"
-            :class="card.tone"
+            class="group rounded-2xl border border-line bg-surface p-7 shadow-soft transition-all duration-300 hover:-translate-y-1 hover:shadow-lift"
           >
-            <div class="flex items-start justify-between">
-              <p class="font-mono text-[10px] font-bold uppercase tracking-[0.18em]" :class="card.chip">{{ card.eyebrow }}</p>
-              <span class="font-display text-4xl font-bold leading-none tracking-tighter text-[#17121C]/20">{{ card.index }}</span>
-            </div>
-            <h3 class="mt-3 font-display text-2xl font-bold tracking-tight">{{ card.title }}</h3>
-            <p class="mt-2 max-w-[22ch] text-sm leading-relaxed text-[#4A3D52]">{{ card.body }}</p>
-            <span class="mt-6 inline-flex items-center gap-1 text-sm font-bold">
+            <span class="inline-flex rounded-full px-3 py-1 text-[10px] tracking-[0.16em]" :class="card.tone">
+              {{ card.label }}
+            </span>
+            <h3 class="mt-6 font-display text-xl font-medium">{{ card.title }}</h3>
+            <p class="mt-2 max-w-[22ch] text-sm leading-relaxed text-ink-muted">{{ card.body }}</p>
+            <span class="mt-7 inline-flex items-center gap-1 text-sm text-brand-strong">
               去看看 <span aria-hidden="true" class="transition-transform group-hover:translate-x-1">→</span>
             </span>
           </RouterLink>
@@ -259,21 +238,21 @@ onMounted(load);
       </section>
 
       <!-- 代表作品 -->
-      <section v-if="workImages.length" class="border-y-2 border-ink bg-surface-muted py-14 sm:py-20">
+      <section v-if="workImages.length" class="border-y border-line bg-[#f6f0e8]/70 py-16 sm:py-24">
         <div class="container-page">
           <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-            <SectionHeading eyebrow="02 / WORKS" title="最近完成" description="每一套都从一张设定图开始。" />
+            <SectionHeading eyebrow="Works" title="最近完成" description="每一套都从一张设定图开始。" />
             <AppButton to="/works" variant="ghost" size="sm">全部作品 →</AppButton>
           </div>
 
-          <div class="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <div class="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             <RouterLink
               v-for="work in workImages.slice(0, 3)"
               :key="work.id"
               :to="work.route"
-              class="group overflow-hidden border-2 border-ink bg-surface shadow-[4px_4px_0_var(--color-ink)] transition-transform hover:-translate-y-1"
+              class="group overflow-hidden rounded-2xl bg-surface shadow-soft transition-all duration-300 hover:-translate-y-1 hover:shadow-lift"
             >
-              <div class="aspect-[4/3] overflow-hidden border-b-2 border-ink bg-[#FFE3DB]">
+              <div class="aspect-[4/3] overflow-hidden bg-[#f2e5d8]">
                 <img
                   v-if="work.cover"
                   :src="work.cover.src"
@@ -281,13 +260,13 @@ onMounted(load);
                   :width="work.cover.width"
                   :height="work.cover.height"
                   loading="lazy"
-                  class="size-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  class="size-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
                 />
-                <div v-else class="flex size-full items-center justify-center text-3xl text-[#6B5D74]" aria-hidden="true">✦</div>
+                <div v-else class="flex size-full items-center justify-center text-3xl text-ink-faint" aria-hidden="true">✦</div>
               </div>
               <div class="p-5">
-                <p class="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-brand-strong">{{ work.species }} · {{ work.work_type }}</p>
-                <h3 class="mt-1 font-display text-xl font-bold">{{ displayTitle(work.title) }}</h3>
+                <p class="text-[10px] uppercase tracking-[0.14em] text-ink-faint">{{ work.species }} · {{ work.work_type }}</p>
+                <h3 class="mt-1.5 font-display text-lg font-medium">{{ displayTitle(work.title) }}</h3>
                 <p class="mt-1 text-sm text-ink-muted">{{ truncate(work.summary, 42) }}</p>
               </div>
             </RouterLink>
@@ -296,32 +275,32 @@ onMounted(load);
       </section>
 
       <!-- 系列 -->
-      <section v-if="seriesCards.length" class="container-page py-14 sm:py-20">
-        <SectionHeading eyebrow="03 / SERIES" title="选一个起点" description="价格与包含项写清楚，不玩配置迷宫。" />
-        <div class="mt-8 grid gap-4 md:grid-cols-2">
-          <SurfaceCard v-for="item in seriesCards" :key="item.id" class="border-2 border-ink p-6">
+      <section v-if="seriesCards.length" class="container-page py-16 sm:py-24">
+        <SectionHeading eyebrow="Series" title="选一个起点" description="价格与包含项写清楚，不玩配置迷宫。" />
+        <div class="mt-10 grid gap-4 md:grid-cols-2">
+          <SurfaceCard v-for="item in seriesCards" :key="item.id" class="p-6 sm:p-7">
             <div class="flex items-start justify-between gap-4">
               <div>
-                <h3 class="font-display text-2xl font-bold tracking-tight">{{ item.title }}</h3>
+                <h3 class="font-display text-xl font-medium tracking-tight">{{ item.title }}</h3>
                 <p class="mt-1 text-sm text-ink-muted">{{ item.summary }}</p>
               </div>
               <p class="shrink-0 text-right">
-                <span class="block font-mono text-[10px] uppercase tracking-wide text-ink-muted">起价</span>
-                <span class="font-display text-xl font-bold">{{ formatPriceFrom(item.base_price_cents, item.currency) }}</span>
+                <span class="block text-[10px] uppercase tracking-wide text-ink-faint">起价</span>
+                <span class="font-display text-lg font-medium">{{ formatPriceFrom(item.base_price_cents, item.currency) }}</span>
               </p>
             </div>
-            <dl class="mt-5 grid gap-2 text-sm sm:grid-cols-2">
-              <div class="border-2 border-ink/15 bg-[#DFF3EC] p-3 text-[#17121C]">
-                <dt class="font-mono text-[10px] font-bold uppercase tracking-wide text-[#006B59]">包含</dt>
-                <dd class="mt-1 text-[#4A3D52]">{{ item.price_includes }}</dd>
+            <dl class="mt-6 grid gap-2 text-sm sm:grid-cols-2">
+              <div class="rounded-xl bg-[#eef4ef] p-3.5">
+                <dt class="text-[10px] uppercase tracking-wide text-[#557565]">包含</dt>
+                <dd class="mt-1 text-ink-soft">{{ item.price_includes }}</dd>
               </div>
-              <div class="border-2 border-ink/15 bg-[#FFE0E9] p-3 text-[#17121C]">
-                <dt class="font-mono text-[10px] font-bold uppercase tracking-wide text-[#A31C3F]">不含</dt>
-                <dd class="mt-1 text-[#4A3D52]">{{ item.price_excludes }}</dd>
+              <div class="rounded-xl bg-[#faf0ed] p-3.5">
+                <dt class="text-[10px] uppercase tracking-wide text-[#96615e]">不含</dt>
+                <dd class="mt-1 text-ink-soft">{{ item.price_excludes }}</dd>
               </div>
             </dl>
-            <div class="mt-5 flex flex-wrap items-center justify-between gap-3 border-t-2 border-ink/10 pt-4">
-              <p class="font-mono text-[11px] text-ink-muted">交期 / {{ item.lead_time_note }}</p>
+            <div class="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-line pt-4">
+              <p class="text-[11px] text-ink-faint">交期 / {{ item.lead_time_note }}</p>
               <AppButton :to="item.route" variant="secondary" size="sm">查看规格</AppButton>
             </div>
           </SurfaceCard>
@@ -329,44 +308,44 @@ onMounted(load);
       </section>
 
       <!-- 流程 -->
-      <section v-if="steps.length" class="border-y-2 border-ink bg-[#17121C] py-14 text-[#FFFCF2] sm:py-20">
-        <div class="container-page">
-          <p class="font-mono text-[11px] uppercase tracking-[0.18em] text-lemon">04 / PROCESS</p>
-          <h2 class="mt-2 font-display text-3xl font-bold tracking-[-0.03em] sm:text-5xl">四步开始</h2>
-          <p class="mt-2 text-sm text-white/60">先谈方案，再谈排期。</p>
-          <ol class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <li v-for="(step, index) in steps" :key="step.step" class="border-2 border-white/25 p-5">
-              <span class="font-display text-4xl font-bold leading-none text-lemon">{{ String(index + 1).padStart(2, "0") }}</span>
-              <h3 class="mt-4 font-display text-lg font-bold">{{ resolveText(step.title, locale) }}</h3>
-              <p class="mt-1 text-sm leading-relaxed text-white/60">{{ resolveText(step.description, locale) }}</p>
+      <section v-if="steps.length" class="container-page pb-4 sm:pb-8">
+        <div class="rounded-[2.5rem] bg-[#f1e4d7] px-6 py-12 sm:px-10 sm:py-14">
+          <p class="text-[11px] uppercase tracking-[0.18em] text-brand-strong">Process</p>
+          <h2 class="mt-3 font-display text-3xl font-medium tracking-[-0.03em] sm:text-4xl">四步开始</h2>
+          <p class="mt-2 text-sm text-ink-muted">先谈方案，再谈排期。</p>
+          <ol class="mt-9 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            <li v-for="(step, index) in steps" :key="step.step">
+              <span class="font-display text-3xl font-light text-brand/50">{{ String(index + 1).padStart(2, "0") }}</span>
+              <h3 class="mt-3 font-display text-lg font-medium">{{ resolveText(step.title, locale) }}</h3>
+              <p class="mt-1.5 text-sm leading-relaxed text-ink-muted">{{ resolveText(step.description, locale) }}</p>
             </li>
           </ol>
-          <div class="mt-6 flex flex-wrap items-center gap-3 border-2 border-white/25 bg-white/5 px-5 py-4 text-sm">
-            <span class="font-mono text-[11px] font-bold uppercase tracking-wide text-lemon">报价有效期 {{ site.commissionPolicy.quote_valid_days }} 天</span>
-            <span class="text-white/30" aria-hidden="true">/</span>
-            <span class="text-white/70">定金 {{ site.commissionPolicy.prepayment_percent }}%</span>
-            <span class="text-white/30" aria-hidden="true">/</span>
-            <span class="text-white/70">尾款 {{ site.commissionPolicy.balance_due_days }} 天内</span>
-            <span class="text-white/30" aria-hidden="true">/</span>
-            <span class="text-white/70">免费修改 {{ site.commissionPolicy.free_revision_count }} 次</span>
+          <div class="mt-9 flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-ink/10 pt-5 text-xs text-ink-muted">
+            <span>报价有效期 {{ site.commissionPolicy.quote_valid_days }} 天</span>
+            <span class="h-3 w-px bg-ink/15" aria-hidden="true" />
+            <span>定金 {{ site.commissionPolicy.prepayment_percent }}%</span>
+            <span class="h-3 w-px bg-ink/15" aria-hidden="true" />
+            <span>尾款 {{ site.commissionPolicy.balance_due_days }} 天内</span>
+            <span class="h-3 w-px bg-ink/15" aria-hidden="true" />
+            <span>免费修改 {{ site.commissionPolicy.free_revision_count }} 次</span>
           </div>
         </div>
       </section>
 
       <!-- 商城 -->
-      <section v-if="products.length" class="container-page py-14 sm:py-20">
+      <section v-if="products.length" class="container-page py-16 sm:py-24">
         <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <SectionHeading eyebrow="05 / SHOP" title="顺手带走" description="现货、道具、周边与洗毛套餐。" />
+          <SectionHeading eyebrow="Shop" title="顺手带走" description="现货、道具、周边与洗毛套餐。" />
           <AppButton to="/shop" variant="ghost" size="sm">逛商城 →</AppButton>
         </div>
-        <div class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div class="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <RouterLink
             v-for="product in products.slice(0, 4)"
             :key="product.id"
             :to="`/shop/${product.slug}`"
-            class="group overflow-hidden border-2 border-ink bg-surface shadow-[4px_4px_0_var(--color-ink)] transition-transform hover:-translate-y-1"
+            class="group overflow-hidden rounded-2xl bg-surface shadow-soft transition-all duration-300 hover:-translate-y-1 hover:shadow-lift"
           >
-            <div class="aspect-square overflow-hidden border-b-2 border-ink bg-[#FFE3DB]">
+            <div class="aspect-square overflow-hidden bg-[#f2e5d8]">
               <img
                 v-if="product.images[0]"
                 :src="product.images[0].src"
@@ -374,14 +353,14 @@ onMounted(load);
                 :width="product.images[0].width"
                 :height="product.images[0].height"
                 loading="lazy"
-                class="size-full object-cover transition-transform duration-500 group-hover:scale-105"
+                class="size-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
               />
-              <div v-else class="flex size-full items-center justify-center text-3xl text-[#6B5D74]" aria-hidden="true">✦</div>
+              <div v-else class="flex size-full items-center justify-center text-3xl text-ink-faint" aria-hidden="true">✦</div>
             </div>
             <div class="p-4">
-              <p class="font-mono text-[10px] uppercase tracking-wide text-ink-muted">{{ product.subtitle }}</p>
-              <h3 class="mt-1 line-clamp-1 font-display text-base font-bold">{{ product.title }}</h3>
-              <p class="mt-2 font-display text-lg font-bold text-brand-strong">
+              <p class="text-[10px] uppercase tracking-wide text-ink-faint">{{ product.subtitle }}</p>
+              <h3 class="mt-1 line-clamp-1 font-display text-[15px] font-medium">{{ product.title }}</h3>
+              <p class="mt-2 font-display text-base font-medium text-brand-strong">
                 {{ formatMoney(product.price_from_cents, product.currency === "USD" ? "USD" : "CNY") }}
               </p>
             </div>
@@ -390,18 +369,18 @@ onMounted(load);
       </section>
 
       <!-- 公告 + FAQ -->
-      <section class="border-t-2 border-ink bg-surface-muted py-14 sm:py-20">
-        <div class="container-page grid gap-8 lg:grid-cols-2">
+      <section class="border-y border-line bg-[#f8f3ec] py-16 sm:py-24">
+        <div class="container-page grid gap-12 lg:grid-cols-2">
           <div v-if="news.length">
             <div class="flex items-end justify-between">
-              <SectionHeading eyebrow="06 / NEWS" title="工作室公告" />
-              <RouterLink to="/news" class="text-sm font-bold text-brand-strong link-underline">全部 →</RouterLink>
+              <SectionHeading eyebrow="News" title="工作室公告" />
+              <RouterLink to="/news" class="text-sm text-brand-strong hover:underline">全部 →</RouterLink>
             </div>
-            <ul class="mt-6 space-y-3">
+            <ul class="mt-7 divide-y divide-line">
               <li v-for="item in news.slice(0, 3)" :key="item.id">
-                <RouterLink :to="item.route" class="block border-2 border-ink bg-surface p-4 transition-transform hover:-translate-y-0.5">
-                  <p class="font-mono text-[10px] uppercase tracking-wide text-ink-faint">{{ formatDate(item.published_at) }}</p>
-                  <p class="mt-1 font-bold">{{ item.title }}</p>
+                <RouterLink :to="item.route" class="block py-4 transition-colors hover:text-brand-strong">
+                  <p class="text-[11px] text-ink-faint">{{ formatDate(item.published_at) }}</p>
+                  <p class="mt-1 font-medium">{{ item.title }}</p>
                   <p class="mt-1 text-sm text-ink-muted">{{ truncate(item.summary, 56) }}</p>
                 </RouterLink>
               </li>
@@ -410,15 +389,15 @@ onMounted(load);
 
           <div v-if="faq.length">
             <div class="flex items-end justify-between">
-              <SectionHeading eyebrow="07 / FAQ" title="先看这几条" />
-              <RouterLink to="/faq" class="text-sm font-bold text-brand-strong link-underline">全部 →</RouterLink>
+              <SectionHeading eyebrow="FAQ" title="先看这几条" />
+              <RouterLink to="/faq" class="text-sm text-brand-strong hover:underline">全部 →</RouterLink>
             </div>
-            <div class="mt-6 space-y-2">
-              <details v-for="item in faq.slice(0, 4)" :key="item.id" class="group border-2 border-ink bg-surface p-4">
-                <summary class="cursor-pointer list-none font-bold marker:hidden">
+            <div class="mt-7 divide-y divide-line">
+              <details v-for="item in faq.slice(0, 4)" :key="item.id" class="group py-3">
+                <summary class="cursor-pointer list-none font-medium marker:hidden">
                   <span class="flex items-center justify-between gap-3">
                     {{ item.title }}
-                    <span class="font-mono text-brand-strong transition-transform group-open:rotate-45" aria-hidden="true">+</span>
+                    <span class="text-brand-strong transition-transform group-open:rotate-45" aria-hidden="true">+</span>
                   </span>
                 </summary>
                 <div class="prose-quiet mt-2 text-sm" v-html="item.body_html" />
@@ -429,34 +408,36 @@ onMounted(load);
       </section>
 
       <!-- 联系 -->
-      <section class="container-page py-14 sm:py-20">
-        <div class="relative overflow-hidden border-2 border-ink bg-lemon px-6 py-10 text-[#17121C] shadow-[8px_8px_0_var(--color-ink)] sm:px-10 sm:py-12">
-          <div class="relative grid gap-8 lg:grid-cols-[1.3fr_1fr]">
+      <section class="container-page py-16 sm:py-24">
+        <div class="rounded-[2.5rem] bg-[#f1e4d7] px-6 py-10 sm:px-10 sm:py-14">
+          <div class="grid gap-10 lg:grid-cols-[1.3fr_1fr]">
             <div>
-              <p class="font-mono text-[11px] font-bold uppercase tracking-[0.2em] text-[#17121C]/60">08 / CONTACT</p>
-              <h2 class="mt-3 font-display text-4xl font-bold tracking-[-0.04em] sm:text-6xl">有想法，<br />直接说。</h2>
-              <p class="mt-4 max-w-xl text-sm leading-relaxed text-[#4A3D52]">
+              <p class="text-[11px] uppercase tracking-[0.2em] text-brand-strong">Contact</p>
+              <h2 class="mt-3 font-display text-4xl font-medium tracking-[-0.04em] sm:text-5xl">
+                有想法，<br />直接说。
+              </h2>
+              <p class="mt-5 max-w-xl text-sm leading-relaxed text-ink-muted">
                 询价 3 个工作日内回复，反馈 7 个工作日内回复。工作时段 {{ site.brand.service_hours }}。
               </p>
-              <div class="mt-6 flex flex-wrap gap-3">
+              <div class="mt-7 flex flex-wrap gap-3">
                 <AppButton to="/commission/new" variant="primary">提交询价</AppButton>
                 <AppButton to="/contact" variant="secondary">联系方式</AppButton>
               </div>
             </div>
             <dl class="grid content-start gap-3 text-sm">
-              <div class="border-2 border-ink bg-surface px-4 py-3 text-[#17121C]">
-                <dt class="font-mono text-[10px] uppercase tracking-wide text-[#6B5D74]">邮箱</dt>
+              <div class="rounded-xl bg-surface/80 px-4 py-3.5">
+                <dt class="text-[10px] uppercase tracking-wide text-ink-faint">邮箱</dt>
                 <dd class="mt-1">
-                  <a class="font-bold underline decoration-ink/30 underline-offset-4" :href="`mailto:${site.brand.support_email}`">{{ site.brand.support_email }}</a>
+                  <a class="underline decoration-line-strong underline-offset-4 hover:text-brand-strong" :href="`mailto:${site.brand.support_email}`">{{ site.brand.support_email }}</a>
                 </dd>
               </div>
-              <div class="border-2 border-ink bg-surface px-4 py-3 text-[#17121C]">
-                <dt class="font-mono text-[10px] uppercase tracking-wide text-[#6B5D74]">经营主体</dt>
-                <dd class="mt-1">{{ site.brand.legal_entity }}</dd>
+              <div class="rounded-xl bg-surface/80 px-4 py-3.5">
+                <dt class="text-[10px] uppercase tracking-wide text-ink-faint">经营主体</dt>
+                <dd class="mt-1 text-ink-soft">{{ site.brand.legal_entity }}</dd>
               </div>
-              <div class="border-2 border-ink bg-surface px-4 py-3 text-[#17121C]">
-                <dt class="font-mono text-[10px] uppercase tracking-wide text-[#6B5D74]">积分</dt>
-                <dd class="mt-1">每 {{ site.loyaltyRules.denominator_yuan }} 元得 1 星绒币</dd>
+              <div class="rounded-xl bg-surface/80 px-4 py-3.5">
+                <dt class="text-[10px] uppercase tracking-wide text-ink-faint">积分</dt>
+                <dd class="mt-1 text-ink-soft">每 {{ site.loyaltyRules.denominator_yuan }} 元得 1 星绒币</dd>
               </div>
             </dl>
           </div>
@@ -470,6 +451,6 @@ onMounted(load);
 .prose-quiet :deep(p) {
   margin: 0.35rem 0;
   color: var(--color-ink-muted);
-  line-height: 1.65;
+  line-height: 1.7;
 }
 </style>

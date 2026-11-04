@@ -170,7 +170,7 @@ function focusFirstRowAction(): void {
 
 <template>
   <div class="space-y-4" :data-state="stateName">
-    <div v-if="loading" class="space-y-3 border-2 border-ink bg-surface p-5 shadow-[4px_4px_0_var(--color-ink)]" role="status" aria-live="polite">
+    <div v-if="loading" class="space-y-3 rounded-2xl border border-line bg-surface p-5 shadow-soft" role="status" aria-live="polite">
       <SkeletonBlock :lines="2" aria-label="正在加载列表" />
       <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <div v-for="cell in skeletonRows" :key="cell" class="h-8 animate-pulse rounded-xs bg-canvas-sunk" />
@@ -212,33 +212,33 @@ function focusFirstRowAction(): void {
     </EmptyState>
 
     <template v-else>
-      <div class="overflow-x-auto border-2 border-ink bg-surface shadow-[4px_4px_0_var(--color-ink)]">
+      <div class="overflow-x-auto rounded-2xl border border-line bg-surface shadow-soft">
         <table ref="tableRef" class="w-full border-collapse text-sm">
           <caption class="sr-only">{{ caption || "运营后台数据列表" }}</caption>
           <thead>
-            <tr class="border-b-2 border-ink bg-[#FFF1C9] font-mono text-[10px] uppercase tracking-wide text-ink">
+            <tr class="border-b border-line bg-[#f8f3ec] text-[11px] text-ink-muted">
               <th
                 v-for="column in columns"
                 :key="column.key"
                 scope="col"
                 :class="[
-                  'px-4 py-3 font-bold',
+                  'px-4 py-3 font-medium',
                   alignClass(column),
                   column.hideOnMobile ? 'hidden lg:table-cell' : '',
                 ]"
                 :style="column.width ? { width: column.width } : undefined"
               >
                 {{ column.label }}
-                <span v-if="column.hint" class="block font-normal normal-case tracking-normal text-ink-muted">{{ column.hint }}</span>
+                <span v-if="column.hint" class="block font-normal text-ink-faint">{{ column.hint }}</span>
               </th>
-              <th scope="col" class="min-w-[140px] whitespace-nowrap px-4 py-3 text-right font-bold">操作</th>
+              <th scope="col" class="min-w-[140px] whitespace-nowrap px-4 py-3 text-right font-medium">操作</th>
             </tr>
           </thead>
           <tbody>
             <tr
               v-for="(row, index) in rows"
               :key="keyOf(row, index)"
-              class="border-b border-ink/10 last:border-b-0 hover:bg-lemon-soft/60 focus-within:bg-lemon-soft/60"
+              class="border-b border-line/60 last:border-b-0 hover:bg-brand-soft/25 focus-within:bg-brand-soft/25"
             >
               <td
                 v-for="column in columns"

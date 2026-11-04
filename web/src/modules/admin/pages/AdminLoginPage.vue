@@ -87,22 +87,22 @@ function restart(): void {
 <template>
   <div class="grid min-h-screen bg-canvas lg:grid-cols-[0.85fr_1.15fr]">
     <!-- 品牌侧板：安全事实，不放营销空话 -->
-    <aside class="relative hidden flex-col justify-between overflow-hidden border-r-2 border-ink bg-[#17121C] p-10 text-[#FFFCF2] lg:flex">
-      <div class="pointer-events-none absolute inset-0 bg-dots opacity-20" aria-hidden="true" />
+    <aside class="relative hidden flex-col justify-between overflow-hidden border-r border-line bg-[#f1e7db] p-10 text-ink lg:flex">
+      <div class="pointer-events-none absolute inset-0 bg-dots opacity-40" aria-hidden="true" />
       <div class="relative flex items-center gap-3">
-        <BrandMark :size="40" variant="light" decorative />
+        <BrandMark :size="40" decorative />
         <div>
-          <p class="font-display text-base font-bold">弈星纪元</p>
-          <p class="font-mono text-[9px] uppercase tracking-[0.2em] text-white/45">Studio Console</p>
+          <p class="font-display text-base font-medium">弈星纪元</p>
+          <p class="font-mono text-[9px] uppercase tracking-[0.2em] text-ink-faint">Studio Console</p>
         </div>
       </div>
 
       <div class="relative">
-        <p class="font-mono text-[10px] uppercase tracking-[0.22em] text-lemon">Staff only / 员工专用</p>
-        <p class="mt-5 font-display text-[clamp(3rem,6vw,5.5rem)] font-bold leading-[0.88] tracking-[-0.06em]">
+        <p class="text-[10px] uppercase tracking-[0.22em] text-brand-strong">Staff only / 员工专用</p>
+        <p class="mt-5 font-display text-[clamp(3rem,5.2vw,4.8rem)] font-medium leading-[0.96] tracking-[-0.05em]">
           STUDIO<br />CONSOLE
         </p>
-        <p class="mt-5 max-w-sm text-sm leading-relaxed text-white/55">
+        <p class="mt-5 max-w-sm text-sm leading-relaxed text-ink-muted">
           独立员工账号、强制 MFA、逐动作权限校验。后台页面 noindex，不进入搜索索引，也不预渲染个人资料。
         </p>
       </div>
@@ -111,9 +111,9 @@ function restart(): void {
         <div
           v-for="(item, index) in ['口令 + MFA 两步验证', '写操作全量审计', '会话到期自动失效']"
           :key="item"
-          class="flex items-center gap-3 border-2 border-white/15 px-3 py-2 text-xs text-white/60"
+          class="flex items-center gap-3 rounded-full border border-line bg-surface/65 px-4 py-2.5 text-xs text-ink-muted"
         >
-          <span class="font-mono text-[9px] text-lemon">{{ String(index + 1).padStart(2, "0") }}</span>
+          <span class="text-[9px] text-brand">{{ String(index + 1).padStart(2, "0") }}</span>
           {{ item }}
         </div>
       </div>
@@ -129,17 +129,17 @@ function restart(): void {
           </div>
         </div>
 
-        <p class="mt-8 font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-brand-strong lg:mt-0">
+        <p class="mt-8 text-[10px] font-medium uppercase tracking-[0.2em] text-brand-strong lg:mt-0">
           01 / Sign in
         </p>
-        <h1 class="mt-2 font-display text-4xl font-bold tracking-[-0.04em] sm:text-5xl">员工登录</h1>
+        <h1 class="mt-2 font-display text-4xl font-medium tracking-[-0.03em] sm:text-5xl">员工登录</h1>
         <p class="mt-3 max-w-lg text-sm leading-relaxed text-ink-muted">
           后台不继承前台客户登录状态，也没有公开注册入口。登录后所有写操作按权限码逐次校验并记录审计。
         </p>
 
         <p
           v-if="errorText"
-          class="mt-6 border-2 border-wine bg-wine-soft px-4 py-3 text-sm text-wine"
+          class="mt-6 rounded-xl border border-wine/30 bg-wine-soft px-4 py-3 text-sm text-wine"
           role="alert"
         >
           {{ errorText }}

@@ -1,9 +1,10 @@
 @import "tailwindcss";
 
 /* ------------------------------------------------------------------
-   弈星纪元设计系统 v3「Studio Pop」（2026-11）
-   纸张底 + 信号橙红 / 柠檬 / 钴蓝 / 薄荷；粗描边、硬投影、编号版式。
-   字体：Hack（MIT，仅拉丁/数字/符号）；中文使用系统黑体栈，不随站分发。
+   弈星纪元设计系统 v4「Soft Atelier」（2026-11）
+   暖白、陶土粉、雾绿；细线、柔影、大留白、圆润版式。
+   字体：随站只分发 MIT 的 Hack（仅用于编号/技术标签）；正文与标题使用
+   操作系统无衬线，中文由系统中文字体渲染，不随站分发字体文件。
    规则来源：文档/11_界面交互与素材规范、文档/18_字体与视觉资产许可。
    ------------------------------------------------------------------ */
 
@@ -24,65 +25,68 @@
 }
 
 @theme {
-  --color-canvas: #fffcf2;
-  --color-canvas-sunk: #f7efdf;
+  --color-canvas: #faf7f1;
+  --color-canvas-sunk: #f3ece2;
   --color-surface: #ffffff;
-  --color-surface-muted: #fbf4e8;
-  --color-line: #e6d9c6;
-  --color-line-strong: #c9b69a;
+  --color-surface-muted: #f8f3ec;
+  --color-line: #e9dfd2;
+  --color-line-strong: #d7c9b8;
 
-  --color-ink: #17121c;
-  --color-ink-soft: #3b3346;
-  --color-ink-muted: #665c72;
-  --color-ink-faint: #92879d;
+  --color-ink: #2e2923;
+  --color-ink-soft: #57504a;
+  --color-ink-muted: #7d7369;
+  --color-ink-faint: #a39a8f;
 
-  --color-night: #17121c;
-  --color-night-soft: #241d2b;
-  --color-night-line: #3a3342;
+  --color-night: #2e2923;
+  --color-night-soft: #3b342c;
+  --color-night-line: #4d453b;
 
-  /* 主色固定，保证白字对比 ≥ 4.5:1；亮橙仅作装饰。 */
-  --color-brand: #d93217;
-  --color-brand-strong: #b7240c;
-  --color-brand-hover: #b7240c;
-  --color-brand-soft: #ffe0d7;
+  /* 陶土粉主色。白字对比 ≥ 4.5:1；浅粉只作背景。 */
+  --color-brand: #a65c36;
+  --color-brand-strong: #8e4b2a;
+  --color-brand-hover: #8e4b2a;
+  --color-brand-soft: #f4e0d1;
 
-  --color-pop: #ff4b2b;
-  --color-cream: #fff3d6;
+  --color-pop: #c98257;
+  --color-cream: #fbf0e3;
 
-  --color-amber: #d93217;
-  --color-amber-strong: #b7240c;
-  --color-amber-soft: #ffe0d7;
-  --color-amber-ink: #7c1a08;
+  --color-amber: #a65c36;
+  --color-amber-strong: #8e4b2a;
+  --color-amber-soft: #f4e0d1;
+  --color-amber-ink: #7b3f21;
 
-  --color-star: #f5b800;
-  --color-lemon: #ffd43b;
-  --color-lemon-soft: #fff3c2;
-  --color-jade: #008a72;
-  --color-jade-soft: #d9f6ec;
-  --color-grape: #5b3df5;
-  --color-grape-soft: #eee8ff;
-  --color-sky: #2456e6;
-  --color-sky-soft: #e3e9ff;
-  --color-wine: #c42b57;
-  --color-wine-soft: #ffe0e9;
+  --color-star: #c9935c;
+  --color-lemon: #efd8bc;
+  --color-lemon-soft: #f9f0e4;
+  --color-jade: #63796b;
+  --color-jade-soft: #e9efe9;
+  --color-grape: #887a96;
+  --color-grape-soft: #f0ebf2;
+  --color-sky: #7890a3;
+  --color-sky-soft: #eaf0f4;
+  --color-wine: #a55f68;
+  --color-wine-soft: #f7e7e9;
 
-  /* 随站分发的唯一字体是 MIT 的 Hack（拉丁/数字）。中文没有 MIT 字体，交给系统无衬线回退，不打包。 */
-  --font-sans: "Hack", sans-serif;
-  --font-display: "Hack", sans-serif;
-  --font-mono: "Hack", monospace;
+  /* 随站分发的字体只有 MIT Hack；Hack 覆盖拉丁与数字，中文回退系统黑体。 */
+  --font-sans: "Hack", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei",
+    "Noto Sans SC", sans-serif;
+  --font-display: "Hack", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei",
+    "Noto Sans SC", sans-serif;
+  --font-mono: "Hack", ui-monospace, SFMono-Regular, Menlo, monospace;
 
-  --radius-xs: 2px;
-  --radius-sm: 2px;
-  --radius-md: 2px;
-  --radius-lg: 2px;
-  --radius-xl: 2px;
-  --radius-2xl: 2px;
+  --radius-xs: 6px;
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+  --radius-2xl: 36px;
 
-  --shadow-quiet: 0 1px 0 rgb(23 18 28 / 0.04);
-  --shadow-lift: 0 18px 40px -26px rgb(23 18 28 / 0.35);
-  --shadow-hard: 4px 4px 0 var(--color-ink);
-  --shadow-hard-lg: 8px 8px 0 var(--color-ink);
-  --shadow-sticker: 8px 8px 0 var(--color-ink);
+  --shadow-quiet: 0 1px 2px rgb(64 50 38 / 0.04);
+  --shadow-soft: 0 14px 36px -24px rgb(64 50 38 / 0.35);
+  --shadow-lift: 0 26px 60px -34px rgb(64 50 38 / 0.35);
+  --shadow-hard: 0 14px 36px -24px rgb(64 50 38 / 0.32);
+  --shadow-hard-lg: 0 26px 60px -34px rgb(64 50 38 / 0.35);
+  --shadow-sticker: 0 18px 48px -30px rgb(64 50 38 / 0.4);
 
   --ease-out-soft: cubic-bezier(0.22, 0.61, 0.36, 1);
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -101,45 +105,42 @@
 
   html[data-theme="dark"] {
     color-scheme: dark;
-    --color-canvas: #141018;
-    --color-canvas-sunk: #1c1622;
-    --color-surface: #1d1724;
-    --color-surface-muted: #241c2c;
-    --color-line: #3a3342;
-    --color-line-strong: #544a60;
+    --color-canvas: #1b1815;
+    --color-canvas-sunk: #221e1a;
+    --color-surface: #25211c;
+    --color-surface-muted: #2c2722;
+    --color-line: #3b342c;
+    --color-line-strong: #4c443a;
 
-    --color-ink: #fff9ee;
-    --color-ink-soft: #ded4e4;
-    --color-ink-muted: #b3a6bc;
-    --color-ink-faint: #8d8196;
+    --color-ink: #f6f0e8;
+    --color-ink-soft: #ded4c8;
+    --color-ink-muted: #b3a79a;
+    --color-ink-faint: #8f8478;
 
-    --color-night: #fff9ee;
-    --color-night-soft: #2b2233;
-    --color-night-line: #cbbbd6;
+    --color-night: #f6f0e8;
+    --color-night-soft: #2b2621;
+    --color-night-line: #cbbfb0;
 
-    --color-amber: #ff8a73;
-    --color-amber-strong: #ffb3a3;
-    --color-amber-soft: #3a1b15;
-    --color-amber-ink: #ffd9cf;
+    --color-brand: #a65c36;
+    --color-brand-strong: #e6b294;
+    --color-brand-hover: #8e4b2a;
+    --color-brand-soft: #3a2a21;
 
-    --color-brand-strong: #ffb3a3;
-    --color-brand-hover: #c0392b;
-    --color-brand-soft: #3a1b15;
+    --color-amber: #c98257;
+    --color-amber-strong: #e6b294;
+    --color-amber-soft: #3a2a21;
+    --color-amber-ink: #f2d2bd;
 
-    --color-lemon: #ffd86b;
-    --color-lemon-soft: #3a2f10;
-    --color-jade: #5fd8c4;
-    --color-jade-soft: #12332d;
-    --color-grape: #b7a4ff;
-    --color-grape-soft: #241c3d;
-    --color-sky: #8fb4ff;
-    --color-sky-soft: #16203a;
-    --color-wine: #ff8fa8;
-    --color-wine-soft: #3a1b26;
-
-    --shadow-hard: 4px 4px 0 rgb(255 249 238 / 0.55);
-    --shadow-hard-lg: 8px 8px 0 rgb(255 249 238 / 0.35);
-    --shadow-sticker: 8px 8px 0 rgb(255 249 238 / 0.45);
+    --color-lemon: #3d3225;
+    --color-lemon-soft: #2f281f;
+    --color-jade: #a9c2ae;
+    --color-jade-soft: #22302a;
+    --color-grape: #c5b6d2;
+    --color-grape-soft: #2c2733;
+    --color-sky: #b2c6d5;
+    --color-sky-soft: #232c33;
+    --color-wine: #dda0a8;
+    --color-wine-soft: #332326;
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -153,19 +154,19 @@
     color: var(--color-ink);
     font-family: var(--font-sans);
     font-size: 16px;
-    line-height: 1.65;
+    line-height: 1.7;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
   }
 
   :focus-visible {
-    outline: 3px solid var(--color-brand);
+    outline: 2px solid var(--color-brand);
     outline-offset: 3px;
     border-radius: var(--radius-xs);
   }
 
   ::selection {
-    background: var(--color-lemon);
+    background: var(--color-brand-soft);
     color: var(--color-ink);
   }
 
@@ -173,16 +174,17 @@
   h2,
   h3 {
     font-family: var(--font-display);
-    line-height: 1.08;
-    font-weight: 700;
-    letter-spacing: -0.035em;
+    line-height: 1.14;
+    font-weight: 500;
+    letter-spacing: -0.025em;
+    text-wrap: balance;
   }
 
   [lang^="zh"] h1,
   [lang^="zh"] h2,
   [lang^="zh"] h3 {
     letter-spacing: -0.01em;
-    line-height: 1.14;
+    line-height: 1.2;
   }
 
   img,
@@ -211,9 +213,9 @@
 }
 
 @utility eyebrow {
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--color-brand-strong);
@@ -221,82 +223,79 @@
 
 @utility section-index {
   font-family: var(--font-mono);
-  font-size: 12px;
-  font-weight: 700;
+  font-size: 11px;
+  font-weight: 400;
   letter-spacing: 0.12em;
   color: var(--color-ink-faint);
 }
 
 @utility card-quiet {
   background-color: var(--color-surface);
-  border: 2px solid var(--color-ink);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-quiet);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-soft);
 }
 
 @utility field-base {
   width: 100%;
   background-color: var(--color-surface);
-  border: 2px solid var(--color-line-strong);
+  border: 1px solid var(--color-line-strong);
   border-radius: var(--radius-sm);
   padding: 10px 14px;
   font-size: 16px;
   color: var(--color-ink);
   min-height: 44px;
-  transition: border-color 160ms var(--ease-out-soft);
+  transition: border-color 160ms var(--ease-out-soft), box-shadow 160ms var(--ease-out-soft);
 }
 
 .field-base:focus-visible {
-  border-color: var(--color-ink);
-  outline: 3px solid var(--color-lemon);
-  outline-offset: 1px;
+  border-color: var(--color-brand);
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-brand) 18%, transparent);
 }
 
 @utility link-underline {
   text-decoration: underline;
-  text-decoration-thickness: 2px;
+  text-decoration-thickness: 1px;
   text-decoration-color: var(--color-line-strong);
   text-underline-offset: 4px;
   transition: text-decoration-color 160ms var(--ease-out-soft);
 }
 
-/* 点阵、网格与斜纹：只做背景装饰，不承载信息。 */
+/* 装饰纹理：v4 只保留极轻的点阵，避免抢正文。 */
 @utility bg-dots {
-  background-image: radial-gradient(
-    color-mix(in srgb, var(--color-ink) 18%, transparent) 1.2px,
-    transparent 1.2px
-  );
-  background-size: 16px 16px;
+  background-image: radial-gradient(color-mix(in srgb, var(--color-ink) 7%, transparent) 1px, transparent 1px);
+  background-size: 22px 22px;
 }
 
 @utility bg-grid {
   background-image:
-    linear-gradient(to right, color-mix(in srgb, var(--color-ink) 8%, transparent) 1px, transparent 1px),
-    linear-gradient(to bottom, color-mix(in srgb, var(--color-ink) 8%, transparent) 1px, transparent 1px);
-  background-size: 36px 36px;
+    linear-gradient(to right, color-mix(in srgb, var(--color-ink) 5%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in srgb, var(--color-ink) 5%, transparent) 1px, transparent 1px);
+  background-size: 48px 48px;
 }
 
 @utility bg-stripes {
   background-image: repeating-linear-gradient(
     -45deg,
-    color-mix(in srgb, var(--color-ink) 9%, transparent) 0 2px,
-    transparent 2px 10px
+    color-mix(in srgb, var(--color-ink) 5%, transparent) 0 1px,
+    transparent 1px 12px
   );
 }
 
-/* 贴纸牌：粗描边 + 硬投影，用于入口卡与价格锚点。 */
+/* 保留旧类名，语义改为柔光卡片，避免旧页面出现硬边。 */
 @utility sticker-card {
   background-color: var(--color-surface);
-  border: 2px solid var(--color-ink);
+  border: 1px solid var(--color-line);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-hard);
+  box-shadow: var(--shadow-lift);
 }
 
-/* 粗描边卡片：列表与表单容器。 */
 @utility bold-card {
   background-color: var(--color-surface);
-  border: 2px solid var(--color-ink);
+  border: 1px solid var(--color-line);
   border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-soft);
 }
 
 /* 骨架屏与加载态统一节流：等待 < 150ms 不闪动（11 文档）。 */
@@ -384,7 +383,7 @@ html[data-motion="reduced"] * {
   top: 0;
   z-index: 100;
   background: var(--color-surface);
-  border: 2px solid var(--color-ink);
+  border: 1px solid var(--color-line);
   padding: 10px 16px;
   border-radius: var(--radius-sm);
 }
@@ -392,4 +391,27 @@ html[data-motion="reduced"] * {
 .skip-link:focus {
   left: 12px;
   top: 12px;
+}
+
+/*
+ * v4 柔光收口：历史页面仍保留少量硬边工具类。
+ * 在全局把 2px 墨边和硬投影降为 1px 细线与柔影，避免逐页漏改。
+ */
+.border-2 {
+  border-width: 1px !important;
+}
+
+.border-ink {
+  border-color: var(--color-line) !important;
+}
+
+[class*="shadow-[2px_2px_0"],
+[class*="shadow-[3px_3px_0"],
+[class*="shadow-[4px_4px_0"],
+[class*="shadow-[5px_5px_0"],
+[class*="shadow-[6px_6px_0"],
+[class*="shadow-[7px_7px_0"],
+[class*="shadow-[8px_8px_0"],
+[class*="shadow-[10px_10px_0"] {
+  box-shadow: var(--shadow-soft) !important;
 }

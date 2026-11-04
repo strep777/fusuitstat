@@ -3,7 +3,7 @@
  *
  * 约束（11 文档）：按钮触控范围至少 44×44px；不能靠颜色单独表达售罄/已付款/错误；
  * 禁用按钮旁说明原因；每个数据区域都有 loading/empty/error/forbidden/not-found/success 状态。
- * 视觉 v2：胶囊按钮、圆润无衬线标题、珊瑚红主色，深色主题共用品牌按钮色。
+ * 视觉 v4「Soft Atelier」：暖白、陶土粉、细线、柔影、大留白；中文使用系统无衬线。
  */
 
 import { computed, defineComponent, h, type PropType, type VNodeChild } from "vue";
@@ -16,13 +16,13 @@ export type ButtonSize = "sm" | "md" | "lg";
 
 const VARIANT_CLASS: Record<ButtonVariant, string> = {
   primary:
-    "bg-brand text-white border-2 border-ink shadow-[4px_4px_0_var(--color-ink)] hover:bg-brand-hover hover:-translate-y-0.5 active:translate-x-[2px] active:translate-y-[2px] active:shadow-none",
+    "bg-brand text-white border border-transparent shadow-soft hover:bg-brand-hover hover:shadow-lift active:translate-y-px",
   secondary:
-    "bg-surface text-ink border-2 border-ink shadow-[4px_4px_0_var(--color-ink)] hover:bg-lemon-soft hover:-translate-y-0.5 active:translate-x-[2px] active:translate-y-[2px] active:shadow-none",
-  ghost: "bg-transparent text-ink-soft border-2 border-transparent hover:border-ink hover:bg-lemon-soft",
+    "bg-surface text-ink border border-line-strong hover:border-brand hover:text-brand-strong hover:bg-brand-soft/40",
+  ghost: "bg-transparent text-ink-soft border border-transparent hover:bg-canvas-sunk hover:text-ink",
   danger:
-    "bg-wine text-white border-2 border-ink shadow-[4px_4px_0_var(--color-ink)] hover:opacity-90 active:translate-x-[2px] active:translate-y-[2px] active:shadow-none",
-  quiet: "bg-canvas-sunk text-ink-soft border-2 border-transparent hover:border-ink hover:bg-lemon-soft",
+    "bg-wine text-white border border-transparent shadow-soft hover:opacity-90 active:translate-y-px",
+  quiet: "bg-surface-muted text-ink-soft border border-transparent hover:bg-canvas-sunk",
 };
 
 const SIZE_CLASS: Record<ButtonSize, string> = {
@@ -49,7 +49,7 @@ export const AppButton = defineComponent({
   emits: ["click"],
   setup(props, { slots, emit }) {
     const classes = computed(() => [
-      "inline-flex items-center justify-center gap-2 rounded-full font-semibold transition-all duration-150",
+      "inline-flex items-center justify-center gap-2 rounded-full font-medium transition-all duration-200",
       "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2",
       VARIANT_CLASS[props.variant],
       SIZE_CLASS[props.size],
@@ -113,14 +113,14 @@ export const AppButton = defineComponent({
 export type BadgeTone = "neutral" | "amber" | "jade" | "wine" | "night" | "grape" | "sky" | "lemon";
 
 const BADGE_TONE: Record<BadgeTone, string> = {
-  neutral: "bg-surface-muted text-ink-muted border-line-strong",
-  amber: "bg-amber-soft text-amber-ink border-amber/30",
-  jade: "bg-jade-soft text-jade border-jade/30",
-  wine: "bg-wine-soft text-wine border-wine/30",
-  night: "bg-night text-canvas border-night-line",
-  grape: "bg-grape-soft text-grape border-grape/30",
-  sky: "bg-sky-soft text-sky border-sky/30",
-  lemon: "bg-lemon-soft text-amber-ink border-lemon/40",
+  neutral: "bg-surface-muted text-ink-muted",
+  amber: "bg-amber-soft text-amber-ink",
+  jade: "bg-jade-soft text-jade",
+  wine: "bg-wine-soft text-wine",
+  night: "bg-night text-canvas",
+  grape: "bg-grape-soft text-grape",
+  sky: "bg-sky-soft text-sky",
+  lemon: "bg-lemon-soft text-amber-ink",
 };
 
 export const StatusBadge = defineComponent({
@@ -137,7 +137,7 @@ export const StatusBadge = defineComponent({
         "span",
         {
           class: [
-            "inline-flex items-center gap-1 rounded-full border-2 px-2.5 py-1 font-mono text-[11px] font-bold uppercase tracking-wide",
+            "inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-medium",
             BADGE_TONE[props.tone],
           ],
         },
@@ -160,12 +160,12 @@ export const SurfaceCard = defineComponent({
         props.as,
         {
           class: [
-            "rounded-lg bg-surface",
-            props.bordered ? "border-2 border-ink" : "",
+            "rounded-xl bg-surface",
+            props.bordered ? "border border-line" : "",
             props.padded ? "p-5 sm:p-6" : "",
             props.interactive
-              ? "transition-all duration-200 hover:-translate-y-1 hover:border-ink hover:shadow-[6px_6px_0_var(--color-ink)] focus-within:shadow-[6px_6px_0_var(--color-ink)]"
-              : "shadow-quiet",
+              ? "transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lift focus-within:shadow-lift"
+              : "shadow-soft",
           ],
         },
         slots.default?.(),
@@ -196,10 +196,10 @@ export const SectionHeading = defineComponent({
           {
             class:
               resolvedLevel.value === 1
-                ? "font-display text-4xl leading-[1.04] tracking-[-0.04em] sm:text-5xl lg:text-7xl"
+                ? "font-display text-4xl leading-[1.06] tracking-[-0.035em] sm:text-5xl lg:text-6xl"
                 : resolvedLevel.value === 3
-                  ? "font-display text-xl leading-snug sm:text-2xl"
-                  : "font-display text-3xl leading-[1.08] tracking-[-0.03em] sm:text-4xl lg:text-5xl",
+                  ? "font-display text-xl leading-snug font-medium sm:text-2xl"
+                  : "font-display text-3xl leading-[1.12] tracking-[-0.03em] sm:text-4xl lg:text-[2.75rem]",
           },
           props.title,
         ),
@@ -238,12 +238,12 @@ export const EmptyState = defineComponent({
       h(
         "div",
         {
-          class: "flex flex-col items-center gap-3 rounded-2xl border border-dashed border-line-strong bg-surface-muted px-6 py-12 text-center",
+          class: "flex flex-col items-center gap-3 rounded-xl border border-line bg-surface-muted px-6 py-12 text-center",
           role: props.tone === "error" ? "alert" : "status",
         },
         [
           h("p", { class: "eyebrow" }, marker[props.tone] ?? ""),
-          h("p", { class: "font-display text-xl font-bold" }, props.title),
+          h("p", { class: "font-display text-xl font-medium" }, props.title),
           props.description ? h("p", { class: "max-w-md text-sm text-ink-muted" }, props.description) : null,
           slots.default ? h("div", { class: "mt-2 flex flex-wrap justify-center gap-3" }, slots.default()) : null,
         ],

@@ -95,18 +95,17 @@
 
       <template v-else>
         <div class="space-y-6">
-          <details
+          <section
             v-for="group in groups"
             :key="group.label"
             class="rounded-lg border border-line bg-surface"
-            :open="searching"
           >
-            <summary
-              class="flex min-h-[44px] cursor-pointer list-none items-center justify-between gap-4 px-5 py-3 marker:hidden"
+            <div
+              class="flex min-h-[44px] items-center justify-between gap-4 px-5 py-3"
             >
               <span class="font-display text-lg">{{ group.label }}</span>
               <span class="shrink-0 text-xs text-ink-faint tabular-nums">{{ t('faq.groupCount', { count: group.items.length }) }}</span>
-            </summary>
+            </div>
 
             <div class="divide-y divide-line border-t border-line px-5">
               <details v-for="item in group.items" :key="item.id" class="group py-4">
@@ -133,7 +132,7 @@
                 </div>
               </details>
             </div>
-          </details>
+          </section>
         </div>
 
         <div

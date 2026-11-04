@@ -52,9 +52,9 @@ const srcset = computed(() =>
 <template>
   <RouterLink
     :to="work.route"
-    class="group flex flex-col overflow-hidden rounded-sm border-2 border-ink bg-surface shadow-[4px_4px_0_var(--color-ink)] transition-transform hover:-translate-y-1 hover:shadow-[7px_7px_0_var(--color-ink)]"
+    class="group flex flex-col overflow-hidden rounded-2xl bg-surface shadow-soft transition-all duration-300 hover:-translate-y-1 hover:shadow-lift"
   >
-    <div class="aspect-[4/5] overflow-hidden border-b-2 border-ink bg-canvas-sunk">
+    <div class="aspect-[4/5] overflow-hidden bg-[#f2e5d8]">
       <img
         v-if="cover"
         :src="cover.thumb ?? cover.src"
@@ -65,7 +65,7 @@ const srcset = computed(() =>
         :alt="coverAlt"
         :loading="eager ? 'eager' : 'lazy'"
         decoding="async"
-        class="size-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+        class="size-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
       />
       <div v-else class="flex size-full items-center justify-center px-4 text-center text-xs text-ink-faint">
         图片准备中
@@ -73,13 +73,13 @@ const srcset = computed(() =>
     </div>
 
     <div class="flex flex-1 flex-col p-5">
-      <div class="flex flex-wrap items-center gap-2">
+      <div class="flex flex-wrap items-center gap-1.5">
         <StatusBadge v-if="work.work_type" tone="amber" :label="work.work_type" />
         <StatusBadge v-if="work.species" tone="neutral" :label="work.species" />
         <StatusBadge v-if="work.is_featured" tone="jade" label="代表作品" />
         <StatusBadge v-if="isDemo" tone="neutral" label="演示" />
       </div>
-      <h3 class="mt-3 font-display text-lg leading-snug group-hover:text-brand-strong">{{ displayName }}</h3>
+      <h3 class="mt-3 font-display text-lg font-medium leading-snug transition-colors group-hover:text-brand-strong">{{ displayName }}</h3>
       <p v-if="work.summary" class="mt-2 text-sm leading-relaxed text-ink-muted">
         {{ truncate(work.summary, 76) }}
       </p>

@@ -38,6 +38,7 @@ const CommissionGuidePage = () => import("@/modules/commissions/pages/Commission
 const CommissionSchedulesPage = () => import("@/modules/commissions/pages/CommissionSchedulesPage.vue");
 const CommissionContractPage = () => import("@/modules/commissions/pages/CommissionContractPage.vue");
 const InquiryNewPage = () => import("@/modules/commissions/pages/InquiryNewPage.vue");
+const EstimatePage = () => import("@/modules/commissions/pages/EstimatePage.vue");
 
 const LoginPage = () => import("@/modules/identity/pages/LoginPage.vue");
 const AccountOverviewPage = () => import("@/modules/identity/pages/AccountOverviewPage.vue");
@@ -92,6 +93,7 @@ const LOCALIZED_ROUTE_NAMES: readonly string[] = [
   "commission-guide",
   "commission-schedules",
   "commission-contract",
+  "estimate",
   "inquiry-new",
   "characters",
   "character-detail",
@@ -139,6 +141,12 @@ const publicChildren: RouteRecordRaw[] = [
     name: "commission-guide",
     component: CommissionGuidePage,
     meta: { title: "委托指南" },
+  },
+  {
+    path: "estimate",
+    name: "estimate",
+    component: EstimatePage,
+    meta: { title: "委托估价" },
   },
   {
     path: "commission/schedules",

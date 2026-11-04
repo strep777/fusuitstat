@@ -394,7 +394,7 @@ const seriesFacets = computed<SeriesFacet[]>(() => facets.value?.series ?? []);
         "
       >
         <AppButton v-if="hasFilters" size="sm" @click="clearFilters()">清除筛选</AppButton>
-        <AppButton size="sm" variant="secondary" to="/commission/new">提交询价</AppButton>
+        <AppButton size="sm" variant="secondary" to="/estimate">开始估价</AppButton>
       </EmptyState>
 
       <template v-else>

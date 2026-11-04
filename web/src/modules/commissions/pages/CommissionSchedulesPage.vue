@@ -181,9 +181,9 @@ function windowText(round: ScheduleRound): string {
     <div v-else-if="rounds.length === 0" class="mt-12">
       <EmptyState
         title="当前没有公布的档期"
-        description="档期由运营在后台配置并发布。没有公布排期时，可以先提交询价进入沟通，开放后工作人员会按顺序处理。"
+        description="档期由运营在后台配置并发布。没有公布排期时，可以先做公开估价，开放后工作人员会按顺序处理。"
       >
-        <AppButton size="sm" to="/commission/new">先提交询价</AppButton>
+        <AppButton size="sm" to="/estimate">先做估价</AppButton>
         <AppButton size="sm" variant="secondary" to="/news">查看公告</AppButton>
       </EmptyState>
     </div>

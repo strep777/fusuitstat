@@ -137,7 +137,7 @@ watch(() => route.fullPath, () => void load());
       >
         <template #actions>
           <AppButton to="/fursuits" size="sm" variant="secondary">查看系列规格</AppButton>
-          <AppButton to="/commission/new" size="sm">按自己的设定询价</AppButton>
+          <AppButton to="/estimate" size="sm">按自己的设定估价</AppButton>
         </template>
       </SectionHeading>
     </div>
@@ -284,7 +284,7 @@ watch(() => route.fullPath, () => void load());
       title="当前没有已发布的角色"
       description="角色由运营整理设定图与授权说明后发布；没有取得展示授权的设定不会出现在这里。"
     >
-      <AppButton to="/commission/new" size="sm">按自己的设定询价</AppButton>
+      <AppButton to="/estimate" size="sm">按自己的设定估价</AppButton>
       <AppButton to="/works" size="sm" variant="secondary">浏览作品集</AppButton>
     </EmptyState>
   </div>

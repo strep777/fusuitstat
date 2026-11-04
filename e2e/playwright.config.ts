@@ -8,7 +8,9 @@
 import { defineConfig, devices } from "@playwright/test";
 import path from "node:path";
 
-const SITE_ORIGIN = process.env.E2E_SITE_ORIGIN ?? "http://127.0.0.1:5173";
+const API_PORT = process.env.E2E_API_PORT ?? "8000";
+const SITE_PORT = process.env.E2E_SITE_PORT ?? "5173";
+const SITE_ORIGIN = process.env.E2E_SITE_ORIGIN ?? `http://127.0.0.1:${SITE_PORT}`;
 
 // 配置文件由 Playwright 以 CJS 方式加载（见 e2e/tsconfig.json），因此用 __dirname 而不是 import.meta。
 const E2E_ROOT = __dirname;
@@ -74,14 +76,17 @@ export default defineConfig({
             "uv run python -c \"import os,shutil;shutil.rmtree(os.environ['DATA_DIR'], ignore_errors=True)\""
             + " && uv run python -m app.cli init-db"
             + " && uv run python -m app.cli seed-demo"
-            + " && uv run uvicorn app.main:app --port 8000",
+            + ` && uv run uvicorn app.main:app --port ${API_PORT}`,
           cwd: "../server",
-          url: "http://127.0.0.1:8000/readyz",
-          reuseExistingServer: true,
+          url: `http://127.0.0.1:${API_PORT}/readyz`,
+          // 每次自行启动并写入独立数据目录。若复用外部 dev server，可能连到
+          // 已被点单/发码消耗过的旧库，导致限流类假失败。
+          reuseExistingServer: false,
           timeout: 180_000,
           env: {
             APP_ENV: "development",
             DATA_DIR: E2E_DATA_DIR,
+            PUBLIC_ORIGIN: SITE_ORIGIN,
             // 浏览器 journey 从同一个 127.0.0.1 发起数百次请求，全站令牌桶会把
             // 正常用例误判为刷接口。守卫本身由 server/tests/integration/
             // test_request_guard.py 单独覆盖；这里关闭的是 e2e 进程内的重复计数。
@@ -91,14 +96,21 @@ export default defineConfig({
             // server/tests/integration/test_sms_rate_limit.py 在服务端固定验证，
             // 生产默认值不变（OTP_IP_HOURLY_LIMIT 默认 20）。
             OTP_IP_HOURLY_LIMIT: "1000",
+            OTP_PHONE_HOURLY_LIMIT: "1000",
+            OTP_PHONE_DAILY_LIMIT: "10000",
             OTP_DAILY_BUDGET: "100000",
           },
         },
         {
-          command: "pnpm dev",
+          command: `pnpm dev --port ${SITE_PORT}`,
           cwd: "../web",
-          url: "http://127.0.0.1:5173",
-          reuseExistingServer: true,
+          url: SITE_ORIGIN,
+          env: {
+            VITE_DEV_API_TARGET: `http://127.0.0.1:${API_PORT}`,
+          },
+          // 每次自行启动并写入独立数据目录。若复用外部 dev server，可能连到
+          // 已被点单/发码消耗过的旧库，导致限流类假失败。
+          reuseExistingServer: false,
           timeout: 120_000,
         },
       ],

@@ -23,6 +23,7 @@ from app.modules.commissions import service as svc
 from app.modules.commissions.models import STAGE_STATUSES, CommissionProject
 from app.modules.commissions.schemas import (
     ContractVoidInput,
+    EstimateStatusInput,
     InquirySupplementInput,
     QuotePublishInput,
     ScheduleRoundInput,
@@ -911,6 +912,52 @@ def _parse_moment(value: str | None) -> int | None:
     from app.platform.ids import to_ms
 
     return to_ms(parsed)
+
+
+@admin_router.get(
+    "/estimates",
+    response_model=dict,
+    dependencies=[Depends(require_permission("quote.read"))],
+)
+def admin_list_estimates(
+    ctx: ContextDep,
+    status_filter: Annotated[str | None, Query(alias="status", max_length=16)] = None,
+    page: Annotated[int, Query(ge=1)] = 1,
+    limit: Annotated[int, Query(ge=1, le=100)] = 20,
+) -> dict[str, Any]:
+    """公开参考估价请求列表（FR-026）；联系方式仅对有报价读取权限的员工可见。"""
+    items, total = svc.list_estimate_requests(
+        ctx.session, status=status_filter, limit=limit, offset=(page - 1) * limit
+    )
+    return {
+        "items": [item.model_dump() for item in items],
+        "total": total,
+        "page": page,
+        "limit": limit,
+    }
+
+
+@admin_router.patch(
+    "/estimates/{estimate_id}",
+    response_model=dict,
+    dependencies=[Depends(require_permission("quote.review"))],
+)
+def admin_update_estimate(
+    estimate_id: str,
+    payload: EstimateStatusInput,
+    ctx: ContextDep,
+    _csrf: CsrfDep,
+    principal: PrincipalDep,
+) -> dict[str, Any]:
+    """标记估价请求已联系或已关闭；只改状态，不生成报价或订单。"""
+    row = svc.update_estimate_status(
+        ctx.session,
+        estimate_id=estimate_id,
+        status=payload.status,
+        note=payload.note,
+        actor_id=principal.id,
+    )
+    return row.model_dump()
 
 
 __all__ = ["admin_router", "Page"]

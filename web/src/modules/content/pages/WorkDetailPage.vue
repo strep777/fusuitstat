@@ -358,7 +358,7 @@ watch(() => route.fullPath, load);
                 {{ site.commissionPolicy.free_revision_count }} 次；这些数值来自后台配置。
               </p>
               <div class="mt-5 flex flex-wrap gap-3">
-                <AppButton to="/commission/new" size="md">提交询价</AppButton>
+                <AppButton to="/estimate" size="md">先估个价</AppButton>
                 <AppButton to="/commission/guide" size="md" variant="secondary">先读委托指南</AppButton>
               </div>
               <p class="mt-3 text-xs text-ink-faint">

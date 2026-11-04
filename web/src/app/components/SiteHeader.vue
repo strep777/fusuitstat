@@ -56,6 +56,7 @@ const navItems = computed<NavItem[]>(() => {
   const items: NavItem[] = [
     { label: t("nav.works"), to: "/works" },
     { label: t("nav.commission"), to: "/commission/guide" },
+    { label: t("nav.estimate"), to: "/estimate" },
     { label: t("nav.shop"), to: "/shop" },
     { label: t("nav.wash"), to: "/wash" },
     { label: t("nav.props"), to: "/props" },

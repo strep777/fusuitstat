@@ -409,6 +409,65 @@ class InquirySubmitResponse(Dto):
     submitted_at: str | None = None
 
 
+# ------------------------------------------------------------------ 公开参考估价（FR-026）
+EstimateStyle = Literal["standard", "fitted", "special"]
+EstimateContactType = Literal["email", "phone", "wechat"]
+EstimateOption = Literal["tail", "paws", "ears", "glow"]
+
+
+class EstimateRequestInput(StrictDto):
+    """无需登录的参考估价请求。
+
+    ``website`` 是蜜罐字段：真人表单留空；填写后服务端返回同样形状的成功响应，
+    但不落库。联系方式在服务端加密保存，只用于工作室回访。
+    """
+
+    name: str = Field(min_length=2, max_length=40)
+    contact: str = Field(min_length=5, max_length=120)
+    contact_type: EstimateContactType
+    series_code: str = Field(min_length=1, max_length=40)
+    style: EstimateStyle = "standard"
+    options: list[EstimateOption] = Field(default_factory=list, max_length=4)
+    character_name: str = Field(min_length=2, max_length=60)
+    species: str = Field(default="", max_length=60)
+    note: str = Field(default="", max_length=1000)
+    consent: bool = False
+    website: str = Field(default="", max_length=200)
+
+
+class EstimateRequestCreated(Dto):
+    id: str
+    estimate_low_cents: int
+    estimate_high_cents: int
+    currency: str
+    response_workdays: int
+
+
+class EstimateRequestAdmin(Dto):
+    id: str
+    name: str
+    contact: str
+    contact_type: str
+    series_code: str
+    series_title: str
+    style: str
+    options: list[str] = Field(default_factory=list)
+    character_name: str
+    species: str = ""
+    note: str = ""
+    estimate_low_cents: int
+    estimate_high_cents: int
+    currency: str
+    status: str
+    created_at: str | None = None
+    updated_at: str | None = None
+
+
+class EstimateStatusInput(StrictDto):
+    status: Literal["CONTACTED", "CLOSED"]
+    note: str = Field(default="", max_length=500)
+
+
 QuotePublishInput.model_rebuild()
 
 __all__ = [

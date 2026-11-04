@@ -36,8 +36,8 @@ const channels = computed(() => [
   },
   {
     title: "委托与报价",
-    description: "询价、补充设定图与查看报价都需要登录，避免把个人资料留在公开渠道。",
-    action: { label: "提交询价", to: "/commission/new" },
+    description: "先公开估价，无需登录；确认方向后再登录提交询价与设定图。",
+    action: { label: "开始估价", to: "/estimate" },
   },
 ]);
 

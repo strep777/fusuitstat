@@ -17,6 +17,7 @@
 from __future__ import annotations
 
 import json
+import re
 from datetime import datetime
 from typing import Any
 
@@ -36,6 +37,7 @@ from app.modules.commissions.models import (
     TERMINAL_INQUIRY_STATUSES,
     ChangeRequest,
     CommissionProject,
+    EstimateRequest,
     Inquiry,
     InquiryRevision,
     Measurement,
@@ -49,6 +51,9 @@ from app.modules.commissions.models import (
 from app.modules.commissions.schemas import (
     ChangeRequestOut,
     CommissionProjectOut,
+    EstimateRequestAdmin,
+    EstimateRequestCreated,
+    EstimateRequestInput,
     InquiryCreate,
     InquiryDetail,
     InquiryPatch,
@@ -72,7 +77,7 @@ from app.modules.commissions.schemas import (
 )
 from app.modules.content import ports as content_ports
 from app.modules.contracts import CreatedOrder, OrderTotals
-from app.platform import audit
+from app.platform import audit, rate_limit
 from app.platform.db import affected_rows
 from app.platform.errors import AppError
 from app.platform.ids import add_days_ms, add_minutes_ms, iso, new_id, now_ms, to_ms
@@ -2989,3 +2994,233 @@ def _parse_moment(value: str | None) -> int | None:
     except ValueError as exc:
         raise AppError("VALIDATION_ERROR", "时间格式不正确。", fields={"time": "需要 ISO 8601"}) from exc
     return to_ms(parsed)
+
+# ------------------------------------------------------------------ 公开参考估价（FR-026）
+_ESTIMATE_EMAIL = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+_ESTIMATE_PHONE = re.compile(r"^\+?[0-9][0-9\s-]{5,18}$")
+
+
+def _estimate_rules(session: Session) -> dict[str, Any]:
+    rules = content_ports.setting_value(session, "commission.estimate", {}) or {}
+    if not isinstance(rules, dict):
+        rules = {}
+    return rules
+
+
+def estimate_options(session: Session) -> dict[str, Any]:
+    """公开估价页可读取的风格、加项、系列与响应时长（无需登录）。"""
+    rules = _estimate_rules(session)
+    return {
+        "response_workdays": int(rules.get("response_workdays", 3) or 3),
+        "currency": str(rules.get("currency", "CNY") or "CNY"),
+        "styles": rules.get("styles") or {},
+        "options": rules.get("options") or {},
+        "series": content_ports.estimate_series(session),
+        "disclaimer": "参考区间由公开配置计算，不构成报价；最终价格以人工确认的角色复杂度、材料与工期为准。",
+    }
+
+
+def _validate_estimate_contact(contact_type: str, contact: str) -> str:
+    value = contact.strip()
+    if contact_type == "email":
+        if not _ESTIMATE_EMAIL.fullmatch(value):
+            raise AppError("VALIDATION_ERROR", "邮箱格式不正确。", fields={"contact": "请输入有效邮箱"})
+        return value.lower()
+    if contact_type == "phone":
+        if not _ESTIMATE_PHONE.fullmatch(value):
+            raise AppError("VALIDATION_ERROR", "手机号格式不正确。", fields={"contact": "请输入有效手机号"})
+        return value
+    if contact_type == "wechat":
+        if len(value) < 2 or len(value) > 40:
+            raise AppError("VALIDATION_ERROR", "微信号长度不正确。", fields={"contact": "请输入微信号"})
+        return value
+    raise AppError("VALIDATION_ERROR", "联系方式类型不正确。", fields={"contact_type": "不支持的类型"})
+
+
+def _mask_contact(contact_type: str, contact: str) -> str:
+    if contact_type == "email":
+        local, _, domain = contact.partition("@")
+        return f"{local[:1]}***@{domain}" if domain else "***"
+    if contact_type == "phone":
+        digits = re.sub(r"\D", "", contact)
+        return f"{digits[:3]}****{digits[-4:]}" if len(digits) >= 7 else "***"
+    return f"{contact[:2]}***{contact[-2:]}" if len(contact) > 4 else "***"
+
+
+def _estimate_range(rules: dict[str, Any], series: dict[str, Any], style: str, options: list[str]) -> tuple[int, int, str]:
+    style_rules = rules.get("styles") or {}
+    style_entry: dict[str, Any] = {}
+    if isinstance(style_rules, list):
+        style_entry = next((item for item in style_rules if item.get("value") == style), {})
+    elif isinstance(style_rules, dict):
+        style_entry = style_rules.get(style) or {}
+    factor = int(style_entry.get("factor", style_entry.get("factor_percent", 100)) or 100)
+
+    option_rules = rules.get("options") or {}
+    if isinstance(option_rules, list):
+        option_prices = {
+            str(item.get("value")): int(item.get("price_cents", 0) or 0) for item in option_rules
+        }
+    else:
+        option_prices = {
+            str(key): int((value or {}).get("price_cents", 0) or 0)
+            for key, value in option_rules.items()
+        }
+    base = int(series.get("base_price_cents") or 0) * factor // 100
+    for code in options:
+        base += option_prices.get(code, 0)
+    high = base * int(rules.get("range_high_percent", 125) or 125) // 100
+    currency = str(series.get("currency") or rules.get("currency") or "CNY")
+    return base, max(base, high), currency
+
+
+def create_estimate_request(
+    session: Session,
+    payload: EstimateRequestInput,
+    *,
+    source_ip: str | None = None,
+) -> EstimateRequestCreated:
+    """无需登录地提交参考估价请求；只保存回访所需的最小信息。"""
+    rules = _estimate_rules(session)
+    series = next((item for item in content_ports.estimate_series(session) if item["code"] == payload.series_code), None)
+    if series is None:
+        raise AppError("VALIDATION_ERROR", "请选择有效的制作系列。", fields={"series_code": "系列不存在"})
+    if not payload.consent:
+        raise AppError("VALIDATION_ERROR", "请先确认隐私说明与参考价说明。", fields={"consent": "必须确认"})
+    contact_type = payload.contact_type
+    contact = _validate_estimate_contact(contact_type, payload.contact)
+    options = list(dict.fromkeys(payload.options))
+    low, high, currency = _estimate_range(rules, series, payload.style, options)
+
+    if payload.website.strip():
+        return EstimateRequestCreated(
+            id=new_id("estimate"),
+            estimate_low_cents=low,
+            estimate_high_cents=high,
+            currency=currency,
+            response_workdays=int(rules.get("response_workdays", 3) or 3),
+        )
+
+    rate_limit.check(
+        session,
+        scope="estimate_request_hour",
+        subject=audit.ip_fingerprint(source_ip) or "unknown",
+        limit=5,
+        window_seconds=3600,
+        code="RATE_LIMITED",
+    )
+    now = now_ms()
+    row = EstimateRequest(
+        name=payload.name.strip(),
+        contact_type=contact_type,
+        contact_ciphertext=encrypt_pii(contact),
+        contact_hint=_mask_contact(contact_type, contact),
+        series_code=series["code"],
+        series_title=series["title"],
+        style=payload.style,
+        options=options,
+        character_name=payload.character_name.strip(),
+        species=payload.species.strip(),
+        note=payload.note.strip(),
+        estimate_low_cents=low,
+        estimate_high_cents=high,
+        currency=currency,
+        status="NEW",
+        consent_at=now,
+        source_ip_hash=audit.ip_fingerprint(source_ip),
+    )
+    session.add(row)
+    session.flush()
+    audit.record(
+        session,
+        actor_type="visitor",
+        action="estimate.create",
+        resource_type="estimate_request",
+        resource_id=row.id,
+        after={"series": row.series_code, "style": row.style, "options": options},
+        ip=source_ip,
+    )
+    return EstimateRequestCreated(
+        id=row.id,
+        estimate_low_cents=row.estimate_low_cents,
+        estimate_high_cents=row.estimate_high_cents,
+        currency=row.currency,
+        response_workdays=int(rules.get("response_workdays", 3) or 3),
+    )
+
+
+def _estimate_admin(session: Session, row: EstimateRequest) -> EstimateRequestAdmin:
+    try:
+        contact = decrypt_pii(row.contact_ciphertext)
+    except AppError:
+        contact = row.contact_hint
+    return EstimateRequestAdmin(
+        id=row.id,
+        name=row.name,
+        contact=contact,
+        contact_type=row.contact_type,
+        series_code=row.series_code,
+        series_title=row.series_title,
+        style=row.style,
+        options=list(row.options or []),
+        character_name=row.character_name,
+        species=row.species,
+        note=row.note,
+        estimate_low_cents=row.estimate_low_cents,
+        estimate_high_cents=row.estimate_high_cents,
+        currency=row.currency,
+        status=row.status,
+        created_at=iso(row.created_at),
+        updated_at=iso(row.updated_at),
+    )
+
+
+def list_estimate_requests(
+    session: Session,
+    *,
+    status: str | None = None,
+    limit: int = 50,
+    offset: int = 0,
+) -> tuple[list[EstimateRequestAdmin], int]:
+    stmt = sa.select(EstimateRequest)
+    if status:
+        if status not in ("NEW", "CONTACTED", "CLOSED"):
+            raise AppError("VALIDATION_ERROR", "状态筛选不正确。", fields={"status": "未知状态"})
+        stmt = stmt.where(EstimateRequest.status == status)
+    total = int(session.scalar(sa.select(sa.func.count()).select_from(stmt.subquery())) or 0)
+    rows = session.scalars(
+        stmt.order_by(EstimateRequest.created_at.desc()).limit(min(limit, 100)).offset(max(offset, 0))
+    ).all()
+    return [_estimate_admin(session, row) for row in rows], total
+
+
+def update_estimate_status(
+    session: Session,
+    *,
+    estimate_id: str,
+    status: str,
+    note: str,
+    actor_id: str,
+) -> EstimateRequestAdmin:
+    row = session.get(EstimateRequest, estimate_id)
+    if row is None:
+        raise AppError("RESOURCE_NOT_FOUND", "估价请求不存在。")
+    if status not in ("CONTACTED", "CLOSED"):
+        raise AppError("VALIDATION_ERROR", "状态不正确。", fields={"status": "只允许 CONTACTED 或 CLOSED"})
+    before = row.status
+    row.status = status
+    row.updated_at = now_ms()
+    row.version += 1
+    session.flush()
+    audit.record(
+        session,
+        actor_type="staff",
+        actor_id=actor_id,
+        action="estimate.status",
+        resource_type="estimate_request",
+        resource_id=row.id,
+        before={"status": before},
+        after={"status": status},
+        reason=note.strip() or None,
+    )
+    return _estimate_admin(session, row)

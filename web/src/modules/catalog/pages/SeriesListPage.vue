@@ -81,7 +81,7 @@ const comparisonRows = computed(() =>
         description="不同系列在材质、结构与交付内容上差别明确。每张卡片分开列出起价的包含项与不含项；起价不等于最终报价，报价与交期以工作人员发布的报价记录为准。"
       >
         <template #actions>
-          <AppButton to="/commission/new" size="sm">按需求询价</AppButton>
+          <AppButton to="/estimate" size="sm">按需求估价</AppButton>
           <AppButton to="/characters" size="sm" variant="secondary">角色领养</AppButton>
         </template>
       </SectionHeading>
@@ -180,7 +180,7 @@ const comparisonRows = computed(() =>
 
           <div class="mt-auto flex flex-wrap gap-3 pt-6">
             <AppButton :to="`/fursuits/${item.slug}`" size="sm" variant="secondary">查看规格</AppButton>
-            <AppButton :to="withQuery('/commission/new', { series: item.slug })" size="sm">
+            <AppButton :to="withQuery('/estimate', { series: item.slug })" size="sm">
               按此系列询价
             </AppButton>
           </div>
@@ -237,7 +237,7 @@ const comparisonRows = computed(() =>
       title="系列资料尚未发布"
       description="系列参数由运营在后台维护并预览后发布；没有核准的参数不会显示。"
     >
-      <AppButton to="/commission/new" size="sm">先提交询价</AppButton>
+      <AppButton to="/estimate" size="sm">先做估价</AppButton>
       <AppButton to="/works" size="sm" variant="secondary">浏览作品集</AppButton>
     </EmptyState>
   </div>

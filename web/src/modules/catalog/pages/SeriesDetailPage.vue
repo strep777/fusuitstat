@@ -225,8 +225,8 @@ const cover = computed(() => detail.value?.cover ?? null);
           </dl>
 
           <div class="mt-6 flex flex-wrap gap-3">
-            <AppButton :to="withQuery('/commission/new', { series: detail.slug })" size="sm">
-              按此系列询价
+            <AppButton :to="withQuery('/estimate', { series: detail.slug })" size="sm">
+              按此系列估价
             </AppButton>
             <AppButton to="/commission/guide" size="sm" variant="secondary">阅读委托指南</AppButton>
           </div>

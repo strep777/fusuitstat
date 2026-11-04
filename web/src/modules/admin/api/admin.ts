@@ -244,6 +244,27 @@ export interface QuoteRecord extends Dict {
   updated_at?: string | null;
 }
 
+export interface EstimateRequestRecord extends Dict {
+  id: string;
+  name?: string | null;
+  contact?: string | null;
+  contact_type?: string | null;
+  contact_hint?: string | null;
+  series_code?: string | null;
+  series_title?: string | null;
+  style?: string | null;
+  options?: string[] | null;
+  character_name?: string | null;
+  species?: string | null;
+  note?: string | null;
+  estimate_low_cents?: number | null;
+  estimate_high_cents?: number | null;
+  currency?: string | null;
+  status?: string | null;
+  created_at?: number | null;
+  updated_at?: number | null;
+}
+
 export interface StockApplicationRecord extends Dict {
   id: string;
   round_id?: string | null;
@@ -602,6 +623,10 @@ export const adminApi = {
   // 分派、补件、版本报价、拒绝都作用在询价上，与 06 文档的后台契约一致。
   quotes: (query?: ListQuery) => api.get<AdminList<QuoteRecord>>("/admin/quotes", { query }),
   quoteDetail: (id: string) => api.get<QuoteRecord>(`/admin/quotes/${encodeURIComponent(id)}`),
+  estimates: (query?: ListQuery) =>
+    api.get<AdminList<EstimateRequestRecord>>("/admin/estimates", { query }),
+  updateEstimateStatus: (id: string, input: { status: "CONTACTED" | "CLOSED"; note?: string }) =>
+    api.patch<EstimateRequestRecord>(`/admin/estimates/${encodeURIComponent(id)}`, input),
   assignQuote: (id: string, input: { assignee: string; note?: string }) =>
     api.post<Dict>(`/admin/inquiries/${encodeURIComponent(id)}/assign`, input),
   requestSupplement: (id: string, input: { reason: string; version: number }) =>

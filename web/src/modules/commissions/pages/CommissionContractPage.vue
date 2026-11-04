@@ -256,7 +256,7 @@ const evidenceItems = computed(() => [
       >
         <template #actions>
           <AppButton to="/commission/schedules" variant="secondary" size="sm">查看档期与名额</AppButton>
-          <AppButton to="/commission/new" size="sm">提交询价</AppButton>
+          <AppButton to="/estimate" size="sm">开始估价</AppButton>
         </template>
       </SectionHeading>
     </section>

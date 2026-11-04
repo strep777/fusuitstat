@@ -83,7 +83,7 @@ const scopeExcludes = computed(() => [
         每一步你都能看到当前状态和下一步动作。
       </p>
       <div class="mt-6 flex flex-wrap gap-3">
-        <AppButton to="/commission/new">提交询价</AppButton>
+        <AppButton to="/estimate">开始估价</AppButton>
         <AppButton to="/commission/schedules" variant="secondary">查看档期与名额</AppButton>
       </div>
     </header>
@@ -255,7 +255,7 @@ const scopeExcludes = computed(() => [
       <div class="mt-8 flex flex-wrap gap-3">
         <AppButton to="/commission/contract" variant="secondary">阅读合同说明与示例</AppButton>
         <AppButton to="/faq" variant="secondary">查看常见问题</AppButton>
-        <AppButton to="/commission/new">提交询价</AppButton>
+        <AppButton to="/estimate">开始估价</AppButton>
       </div>
     </section>
 

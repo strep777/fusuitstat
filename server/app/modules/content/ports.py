@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 
 __all__ = [
     "add_workdays",
+    "estimate_series",
     "feature_flags",
     "loyalty_policy",
     "require_feature",
@@ -39,6 +40,24 @@ def setting_value(session: Session, key: str, default: Any = None) -> Any:
     from app.modules.content.service import setting_value as read
 
     return read(session, key, default)
+
+
+def estimate_series(session: Session) -> list[dict[str, Any]]:
+    """公开估价可用的系列与起价（只读，不暴露内容正文）。"""
+    from app.modules.content.repository import list_series
+
+    rows = list_series(session, active_only=True, locale="zh-CN")
+    return [
+        {
+            "slug": entry.slug,
+            "code": spec.code,
+            "title": entry.title,
+            "base_price_cents": spec.base_price_cents,
+            "currency": spec.currency,
+            "lead_time_note": spec.lead_time_note,
+        }
+        for spec, entry in rows
+    ]
 
 
 def loyalty_policy(session: Session) -> dict[str, Any]:

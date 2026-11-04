@@ -410,6 +410,29 @@ DEFAULT_SETTINGS: tuple[dict[str, Any], ...] = (
         },
     },
     {
+        "key": "commission.estimate",
+        "group": "commission",
+        "label": "公开估价参考规则",
+        "description": "FR-026：无需登录的参考估价。系数与加项金额均为演示配置，最终以人工报价为准。",
+        "is_public": 1,
+        "value": {
+            "response_workdays": 3,
+            "currency": "CNY",
+            "range_high_percent": 125,
+            "styles": [
+                {"value": "standard", "label": "标准比例", "factor": 100},
+                {"value": "fitted", "label": "贴身剪裁", "factor": 112},
+                {"value": "special", "label": "特殊结构", "factor": 130},
+            ],
+            "options": [
+                {"value": "tail", "label": "大尾巴结构", "price_cents": 120000},
+                {"value": "paws", "label": "爪套", "price_cents": 80000},
+                {"value": "ears", "label": "可动耳", "price_cents": 50000},
+                {"value": "glow", "label": "发光件", "price_cents": 40000},
+            ],
+        },
+    },
+    {
         "key": "loyalty.rules",
         "group": "loyalty",
         "label": "星绒币规则",

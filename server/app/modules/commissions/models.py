@@ -41,6 +41,9 @@ INQUIRY_STATUSES = (
 )
 TERMINAL_INQUIRY_STATUSES = ("ACCEPTED", "REJECTED", "WITHDRAWN")
 SUIT_TYPES = ("full", "partial", "head", "other")
+ESTIMATE_STATUSES = ("NEW", "CONTACTED", "CLOSED")
+ESTIMATE_CONTACT_TYPES = ("email", "phone", "wechat")
+ESTIMATE_STYLES = ("standard", "fitted", "special")
 QUOTE_STATUSES = ("PUBLISHED", "SUPERSEDED", "ACCEPTED", "EXPIRED", "WITHDRAWN")
 ROUND_MODES = ("application", "rush")
 ROUND_STATUSES = ("DRAFT", "OPEN", "CLOSED")
@@ -593,10 +596,61 @@ class ContractEnvelope(PkMixin, TimestampMixin, VersionMixin, Base):
     )
 
 
+class EstimateRequest(PkMixin, TimestampMixin, VersionMixin, Base):
+    """公开参考估价请求（FR-026）。
+
+    无需登录即可提交，因此不关联 ``users``，也不进入询价状态机。联系方式加密保存，
+    只用于工作室回访；提交时必须确认隐私说明与「参考价不是最终报价」。
+    """
+
+    __tablename__ = "estimate_requests"
+    id_kind = "estimate"
+
+    name: Mapped[str] = mapped_column(sa.String(40), nullable=False)
+    contact_type: Mapped[str] = mapped_column(sa.String(16), nullable=False)
+    contact_ciphertext: Mapped[str] = mapped_column(sa.Text, nullable=False)
+    contact_hint: Mapped[str] = mapped_column(sa.String(80), nullable=False, default="")
+    series_code: Mapped[str] = mapped_column(sa.String(40), nullable=False)
+    series_title: Mapped[str] = mapped_column(sa.String(80), nullable=False, default="")
+    style: Mapped[str] = mapped_column(sa.String(16), nullable=False, default="standard")
+    options: Mapped[list[Any] | None] = mapped_column(sa.JSON)
+    character_name: Mapped[str] = mapped_column(sa.String(60), nullable=False, default="")
+    species: Mapped[str] = mapped_column(sa.String(60), nullable=False, default="")
+    note: Mapped[str] = mapped_column(sa.Text, nullable=False, default="")
+    estimate_low_cents: Mapped[int] = mapped_column(sa.Integer, nullable=False, default=0)
+    estimate_high_cents: Mapped[int] = mapped_column(sa.Integer, nullable=False, default=0)
+    currency: Mapped[str] = mapped_column(sa.String(3), nullable=False, default="CNY")
+    status: Mapped[str] = mapped_column(sa.String(16), nullable=False, default="NEW")
+    consent_at: Mapped[int] = mapped_column(sa.BigInteger, nullable=False, default=0)
+    source_ip_hash: Mapped[str | None] = mapped_column(sa.String(64))
+
+    __table_args__ = (
+        sa.CheckConstraint(
+            _enum_check("status", ESTIMATE_STATUSES), name="ck_estimate_requests_status"
+        ),
+        sa.CheckConstraint(
+            _enum_check("contact_type", ESTIMATE_CONTACT_TYPES),
+            name="ck_estimate_requests_contact_type",
+        ),
+        sa.CheckConstraint(
+            _enum_check("style", ESTIMATE_STYLES), name="ck_estimate_requests_style"
+        ),
+        sa.CheckConstraint(
+            "estimate_low_cents >= 0 AND estimate_high_cents >= estimate_low_cents",
+            name="ck_estimate_requests_range",
+        ),
+        sa.Index("ix_estimate_requests_status_created", "status", "created_at"),
+    )
+
+
 __all__ = [
     "APPLICATION_STATUSES",
     "CHANGE_SCOPES",
     "CHANGE_STATUSES",
+    "ESTIMATE_CONTACT_TYPES",
+    "ESTIMATE_STATUSES",
+    "ESTIMATE_STYLES",
+    "EstimateRequest",
     "ChangeRequest",
     "CommissionProject",
     "ContractEnvelope",

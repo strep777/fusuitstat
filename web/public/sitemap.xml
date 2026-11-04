@@ -4,6 +4,7 @@
   <url><loc>https://starium.cn/about</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
   <url><loc>https://starium.cn/works</loc><changefreq>weekly</changefreq><priority>0.9</priority></url>
   <url><loc>https://starium.cn/fursuits</loc><changefreq>monthly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://starium.cn/estimate</loc><changefreq>monthly</changefreq><priority>0.9</priority></url>
   <url><loc>https://starium.cn/commission/guide</loc><changefreq>monthly</changefreq><priority>0.9</priority></url>
   <url><loc>https://starium.cn/commission/schedules</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://starium.cn/commission/contract</loc><changefreq>yearly</changefreq><priority>0.4</priority></url>

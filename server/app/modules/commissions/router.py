@@ -30,6 +30,8 @@ from app.modules.commissions.schemas import (
     ChangeDecisionInput,
     ChangeRequestOut,
     CommissionProjectOut,
+    EstimateRequestCreated,
+    EstimateRequestInput,
     InquiryCreate,
     InquiryDetail,
     InquiryPatch,
@@ -429,6 +431,24 @@ def decide_change_request(
             ctx.session, user_id=user_id, change_request_id=change_id, expected_version=payload.version
         )
     return svc.change_dto(change)
+
+
+@public_router.get("/estimates/options")
+def estimate_options(ctx: ContextDep) -> dict[str, Any]:
+    """公开估价配置：无需登录，返回系列、风格、加项与参考区间说明。"""
+    return svc.estimate_options(ctx.session)
+
+
+@public_router.post("/estimates", response_model=EstimateRequestCreated, status_code=201)
+def create_estimate(
+    payload: EstimateRequestInput,
+    ctx: ContextDep,
+) -> EstimateRequestCreated:
+    """提交公开参考估价请求（FR-026）。
+
+    无需登录，不锁库存、不生成订单或应付项；联系方式加密保存，只用于人工回访。
+    """
+    return svc.create_estimate_request(ctx.session, payload, source_ip=ctx.client_ip)
 
 
 __all__ = ["public_router", "admin_router"]

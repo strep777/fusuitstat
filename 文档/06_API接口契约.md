@@ -88,6 +88,12 @@ HTTP：400 格式错误，401 未认证，403 无权限/CSRF，404 无可访问�
 
 商品与申请（C28）：`GET /admin/stock-applications` 支持 `status`、`product_id`、`kind` 过滤与 `order_by_priority=true`——后者按**购买优先级**排序（已审批在前、`priority_rank` 小者优先、同排名按审批时间先到先得），这就是「审批通过列表作为购买优先级」的运营视图；`POST /admin/stock-applications/:id/decide` 通过审批时可给出 `priority_rank` 与购买窗口天数。
 
+### 公开参考估价（FR-026）
+
+`GET /estimates/options` 无需登录，返回 `response_workdays`、`currency`、`styles`、`options`、`series`、`disclaimer`。`POST /estimates` 无需登录与 CSRF，但校验 Origin；请求体含 `name`、`contact`、`contact_type`（email/phone/wechat）、`series_code`、`style`（standard/fitted/special）、`options`（最多 4 项）、`character_name`、`species`、`note`、`consent` 与蜜罐 `website`。成功 201 返回 `id`、`estimate_low_cents`、`estimate_high_cents`、`currency`、`response_workdays`；联系方式非法 422，超过 5 次/小时返回 429。估价请求不收款、不锁库存、不生成订单。
+
+后台 `GET /admin/estimates?status=&page=&limit=` 需 `quote.read`；`PATCH /admin/estimates/:id` 需 `quote.review` 与 CSRF，只允许 `CONTACTED` / `CLOSED` 并记录原因。后台明文联系方式不进入日志、导出默认脱敏。
+
 ### 洗毛预约（FR-025）
 
 `POST /stock-applications` 的洗毛分支要求商品 `status=published` 且 `service_kind=cleaning`，请求：

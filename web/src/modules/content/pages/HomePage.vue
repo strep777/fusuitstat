@@ -1,19 +1,19 @@
 <script setup lang="ts">
 /**
- * 首页：先给结论（做什么、现在能不能接），再给入口（委托/商城/洗毛/道具/周边）。
- * 文案规则见 11 文档：短句、先结论后条件、不堆形容词。
+ * 首页：一张大轮播，一段工作室说明，一排最近作品。
+ * 价格与档期都来自服务端；估价入口无需登录。
  */
 
-import { computed, onMounted, ref } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import { RouterLink } from "vue-router";
 
 import { fetchHome, type HomeAggregate } from "@/modules/content/api/content";
 import { useSiteStore } from "@/modules/content/stores/site";
 import { displayTitle } from "@/shared/lib/demo-title";
 import { useI18n, resolveText } from "@/shared/lib/i18n";
-import { BrandMark, StarLoader } from "@/shared/ui/BrandMark";
-import { AppButton, EmptyState, SectionHeading, StatusBadge } from "@/shared/ui/base";
-import { formatDate, formatMoney, truncate } from "@/shared/lib/format";
+import { BrandMark } from "@/shared/ui/BrandMark";
+import { AppButton } from "@/shared/ui/base";
+import { formatDate, truncate } from "@/shared/lib/format";
 import { ApiError } from "@/shared/lib/http";
 
 const { locale, t } = useI18n();
@@ -28,59 +28,91 @@ const heroStatement = computed(() =>
   home.value ? resolveText(home.value.hero.statement, locale.value) : "",
 );
 
-const heroPrimary = computed(() => {
-  const action = home.value?.hero.primary_action;
-  return {
-    label: (action && resolveText(action.label, locale.value)) || "提交询价",
-    to: action?.to || "/commission/new",
-  };
-});
-const heroSecondary = computed(() => {
-  const action = home.value?.hero.secondary_action;
-  return {
-    label: (action && resolveText(action.label, locale.value)) || "看看作品",
-    to: action?.to || "/works",
-  };
-});
-
 const schedule = computed(() => home.value?.schedule ?? null);
 const scheduleOpen = computed(() => schedule.value?.status === "open");
 const scheduleLabel = computed(() => {
   const value = schedule.value;
-  if (!value) return "";
+  if (!value) return "查看档期";
   if (value.status === "open") return `本期余 ${value.remaining} 席`;
   if (value.status === "upcoming") return "下期未开放";
   return "档期已满";
 });
 
-const serviceCards = computed(() => [
+const works = computed(() => home.value?.featured_works.items ?? []);
+const coverWork = computed(() => works.value.find((item) => item.cover) ?? null);
+
+const slides = computed(() => [
   {
-    label: "CARE",
-    title: "洗毛护理",
-    body: "到店或寄回，按套装深度清洁。",
-    to: "/wash",
-    tone: "bg-[#eaf2ee] text-[#557565]",
+    key: "studio",
+    label: "01 / STUDIO",
+    caption: "上海 · 手工兽装工作室",
+    tone: "bg-[#f1ede6]",
+    image: "",
   },
   {
-    label: "PROPS",
-    title: "道具工坊",
-    body: "发光角、可动耳、尾巴支架。",
-    to: "/props",
-    tone: "bg-[#f0ebf2] text-[#7c6b8a]",
+    key: "works",
+    label: "02 / WORKS",
+    caption: coverWork.value ? displayTitle(coverWork.value.title) : "每一套都从设定图开始",
+    tone: "bg-[#eaf0ec]",
+    image: coverWork.value?.cover?.src ?? "",
   },
   {
-    label: "MERCH",
-    title: "周边展示",
-    body: "徽章、挂件、托特包，先看看。",
-    to: "/merch",
-    tone: "bg-[#f8eedf] text-[#96724d]",
+    key: "care",
+    label: "03 / CARE & PROPS",
+    caption: "洗毛、道具与周边",
+    tone: "bg-[#f5eee4]",
+    image: "",
   },
 ]);
 
-const workImages = computed(() => home.value?.featured_works.items ?? []);
-const products = computed(() => (home.value?.products.items ?? []).filter((item) => item.category !== "merch"));
+const active = ref(0);
+let timer: number | undefined;
+let paused = false;
+const reducedMotion = ref(false);
 
-async function load() {
+function go(index: number): void {
+  const total = slides.value.length;
+  active.value = (index + total) % total;
+  restart();
+}
+
+function next(): void {
+  go(active.value + 1);
+}
+
+function previous(): void {
+  go(active.value - 1);
+}
+
+function stop(): void {
+  if (timer) window.clearInterval(timer);
+  timer = undefined;
+}
+
+function restart(): void {
+  stop();
+  if (paused || reducedMotion.value || slides.value.length < 2) return;
+  timer = window.setInterval(() => {
+    active.value = (active.value + 1) % slides.value.length;
+  }, 6000);
+}
+
+function pause(): void {
+  paused = true;
+  stop();
+}
+
+function resume(): void {
+  paused = false;
+  restart();
+}
+
+function onVisibility(): void {
+  if (document.hidden) stop();
+  else restart();
+}
+
+async function load(): Promise<void> {
   loading.value = true;
   error.value = null;
   try {
@@ -94,246 +126,240 @@ async function load() {
   }
 }
 
-onMounted(load);
+onMounted(() => {
+  reducedMotion.value = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  document.addEventListener("visibilitychange", onVisibility);
+  restart();
+  void load();
+});
+
+onBeforeUnmount(() => {
+  stop();
+  document.removeEventListener("visibilitychange", onVisibility);
+});
 </script>
 
 <template>
   <div>
-    <!-- 首屏：大留白、柔和主视觉，先回答「做什么、现在能不能接」 -->
-    <section class="relative overflow-hidden bg-canvas">
-      <div
-        class="container-page grid gap-12 py-12 sm:py-16 lg:grid-cols-[1.02fr_0.98fr] lg:items-center lg:gap-16 lg:py-20"
-      >
-        <div>
-          <p class="inline-flex items-center gap-2 rounded-full bg-brand-soft px-3.5 py-1.5 text-xs text-brand-strong">
-            <span class="size-1.5 rounded-full bg-brand" aria-hidden="true" />
-            {{ heroTagline || "兽装定制 · 上海" }}
-          </p>
-
-          <h1 class="mt-7 font-display text-[clamp(2.5rem,5vw,4.5rem)] font-medium leading-[1.08] tracking-[-0.04em]">
-            {{ t("homePage.heroLine1") }}<br />
-            <span class="text-brand-strong">{{ t("homePage.heroLine2") }}</span>
-          </h1>
-
-          <p class="mt-6 max-w-xl text-base leading-relaxed text-ink-muted sm:text-lg">
-            {{ truncate(heroStatement || "全装、半装、单头与配件，按设定逐件打版。先确认方案，再排期制作。", 92) }}
-          </p>
-
-          <div class="mt-8 flex flex-wrap gap-3">
-            <AppButton :to="heroPrimary.to" variant="primary" size="lg">
-              {{ heroPrimary.label }}
-            </AppButton>
-            <AppButton :to="heroSecondary.to" variant="secondary" size="lg">
-              {{ heroSecondary.label }}
-            </AppButton>
-          </div>
-
-          <div class="mt-8 flex flex-wrap items-center gap-x-5 gap-y-3 text-xs text-ink-muted">
-            <RouterLink
-              to="/commission/schedules"
-              class="inline-flex items-center gap-2 transition-colors hover:text-ink"
-            >
-              <span
-                class="size-1.5 rounded-full"
-                :class="scheduleOpen ? 'bg-jade' : 'bg-ink-faint'"
+    <section class="pb-6 pt-6 sm:pb-10 sm:pt-10" aria-label="工作室主视觉">
+      <div class="container-page">
+        <div
+          class="group relative min-h-[500px] overflow-hidden rounded-[2rem] bg-canvas-sunk sm:min-h-[620px]"
+          aria-roledescription="carousel"
+          aria-label="工作室视觉轮播"
+          @mouseenter="pause"
+          @mouseleave="resume"
+          @focusin="pause"
+          @focusout="resume"
+        >
+          <div
+            v-for="(slide, index) in slides"
+            :key="slide.key"
+            class="absolute inset-0 transition-opacity duration-700"
+            :class="[slide.tone, index === active ? 'opacity-100' : 'opacity-0']"
+            :aria-hidden="index === active ? 'false' : 'true'"
+          >
+            <img
+              v-if="slide.image"
+              :src="slide.image"
+              alt=""
+              class="size-full object-cover"
+              loading="eager"
+            />
+            <div v-if="index === 0" class="absolute inset-y-0 right-[6%] hidden items-center lg:flex">
+              <BrandMark :size="260" decorative class="opacity-95" />
+            </div>
+            <div v-if="index === 0" class="pointer-events-none absolute -right-8 top-16 lg:hidden">
+              <BrandMark :size="188" decorative class="opacity-[0.07]" />
+            </div>
+            <div v-else class="absolute inset-y-0 right-[3%] hidden items-center lg:flex">
+              <p
+                class="select-none text-right font-display text-[clamp(4rem,10vw,8rem)] font-medium leading-none tracking-[-0.06em] text-ink/10"
                 aria-hidden="true"
-              />
-              {{ scheduleLabel || "查看档期" }}
-              <span aria-hidden="true">→</span>
-            </RouterLink>
-          </div>
-        </div>
-
-        <div class="relative mx-auto w-full max-w-[30rem] lg:max-w-none">
-          <div class="relative overflow-hidden rounded-[2.5rem] bg-[#f5f4f1] p-6 shadow-soft sm:p-10">
-            <div class="flex items-center justify-between text-[10px] uppercase tracking-[0.2em] text-[#7D7369]">
-              <span>STARIUM / SHANGHAI</span>
-              <span>NO. 001</span>
-            </div>
-
-            <div class="mt-8 flex justify-center sm:mt-10">
-              <BrandMark :size="200" decorative />
-            </div>
-
-            <div class="mt-7 border-t border-[#2E2923]/10 pt-5">
-              <p class="font-display text-2xl font-medium leading-snug tracking-tight text-[#2E2923] sm:text-[1.7rem]">
-                一针一线，装配成纪
+              >
+                CARE<br />PROPS
               </p>
-              <p class="mt-2 text-sm text-[#57504A]">从设定到可以穿的角色</p>
+            </div>
+            <div
+              v-if="slide.image"
+              class="absolute inset-0 bg-gradient-to-r from-white/90 via-white/55 to-white/10"
+              aria-hidden="true"
+            />
+            <p
+              class="absolute bottom-6 left-6 text-[10px] uppercase tracking-[0.2em] text-ink-faint"
+            >
+              {{ slide.label }}
+            </p>
+          </div>
+
+          <div class="relative z-10 flex min-h-[500px] flex-col justify-between p-6 sm:min-h-[620px] sm:p-10 lg:p-14">
+            <div class="flex items-center justify-between gap-4">
+              <p class="inline-flex items-center gap-2 rounded-full bg-white/70 px-3.5 py-1.5 text-xs text-ink-soft backdrop-blur">
+                <span class="size-1.5 rounded-full bg-brand" aria-hidden="true" />
+                {{ heroTagline || "兽装定制 · 上海" }}
+              </p>
+              <RouterLink
+                to="/commission/schedules"
+                class="hidden items-center gap-2 text-xs text-ink-soft hover:text-ink sm:inline-flex"
+              >
+                <span class="size-1.5 rounded-full" :class="scheduleOpen ? 'bg-jade' : 'bg-ink-faint'" aria-hidden="true" />
+                {{ scheduleLabel }}
+                <span aria-hidden="true">→</span>
+              </RouterLink>
+            </div>
+
+            <div class="max-w-2xl pb-8 sm:pb-14">
+              <h1
+                class="font-display text-[clamp(2.8rem,6vw,5.4rem)] font-medium leading-[0.98] tracking-[-0.055em] text-ink"
+              >
+                {{ t("homePage.heroLine1") }}<br />
+                <span class="text-brand-strong">{{ t("homePage.heroLine2") }}</span>
+              </h1>
+              <p class="mt-5 max-w-lg text-sm leading-7 text-ink-soft sm:text-base">
+                {{ truncate(heroStatement || "从设定到实装，一步一步做成可以穿在身上的角色。先估价，再决定。", 70) }}
+              </p>
+              <div class="mt-7 flex flex-wrap gap-3">
+                <AppButton to="/estimate" variant="primary" size="lg">开始估价</AppButton>
+                <AppButton to="/works" variant="secondary" size="lg">看看作品</AppButton>
+              </div>
+              <p v-if="schedule" class="mt-5 text-xs text-ink-muted">
+                {{ schedule.title }} · 截止 {{ formatDate(schedule.end_at) }}
+              </p>
             </div>
           </div>
 
-          <div class="absolute -bottom-5 right-4 w-48 rounded-2xl border border-line bg-surface/95 p-4 shadow-lift backdrop-blur sm:right-6">
-            <p class="text-[10px] uppercase tracking-[0.18em] text-ink-faint">档期</p>
-            <div class="mt-2">
-              <StatusBadge
-                :tone="scheduleOpen ? 'jade' : 'amber'"
-                :label="scheduleLabel || '查看档期'"
-                icon="●"
-              />
-            </div>
-            <p v-if="schedule" class="mt-2 text-[11px] leading-relaxed text-ink-muted">
-              {{ schedule.title }} · 截止 {{ formatDate(schedule.end_at) }}
-            </p>
-            <RouterLink to="/commission/schedules" class="mt-2 inline-block text-[11px] text-brand-strong hover:underline">
-              查看详情
-            </RouterLink>
+          <div class="absolute bottom-6 right-6 z-20 flex items-center gap-2">
+            <button
+              type="button"
+              class="flex size-9 items-center justify-center rounded-full bg-white/80 text-ink-muted backdrop-blur transition-colors hover:text-ink"
+              aria-label="上一张"
+              @click="previous"
+            >
+              ←
+            </button>
+            <button
+              type="button"
+              class="flex size-9 items-center justify-center rounded-full bg-white/80 text-ink-muted backdrop-blur transition-colors hover:text-ink"
+              aria-label="下一张"
+              @click="next"
+            >
+              →
+            </button>
+          </div>
+
+          <div class="absolute bottom-7 left-1/2 z-20 flex -translate-x-1/2 items-center gap-2">
+            <button
+              v-for="(slide, index) in slides"
+              :key="slide.key"
+              type="button"
+              class="size-1.5 rounded-full transition-all"
+              :class="index === active ? 'w-5 bg-ink' : 'bg-ink/20'"
+              :aria-label="`第 ${index + 1} 张`"
+              :aria-current="index === active ? 'true' : undefined"
+              @click="go(index)"
+            />
           </div>
         </div>
       </div>
     </section>
 
-    <StarLoader v-if="loading" message="正在加载首页" class="container-page py-24" />
+    <p v-if="loading" class="sr-only">正在读取作品与系列</p>
 
-    <div v-else-if="error" class="container-page py-20">
-      <EmptyState tone="error" title="首页暂时加载失败" :description="error.message">
-        <AppButton variant="secondary" @click="load">重新加载</AppButton>
-      </EmptyState>
+    <section class="container-page py-12 sm:py-20">
+      <div class="grid gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-end">
+        <div>
+          <p class="text-[11px] uppercase tracking-[0.2em] text-brand-strong">STARIUM / SHANGHAI</p>
+          <h2 class="mt-3 max-w-xl font-display text-3xl font-medium leading-tight tracking-[-0.03em] sm:text-4xl">
+            做装，也做养护。
+          </h2>
+          <p class="mt-4 max-w-xl text-sm leading-7 text-ink-muted">
+            全装、半装、单头与配件按设定逐件打版；洗毛、道具与周边由同一间工作室打理。
+          </p>
+        </div>
+        <nav class="grid gap-1 text-sm" aria-label="快速入口">
+          <RouterLink to="/estimate" class="flex items-center justify-between border-b border-line py-3 text-ink-soft hover:text-brand-strong">
+            <span>查询价格与委托估价</span><span aria-hidden="true">→</span>
+          </RouterLink>
+          <RouterLink to="/wash" class="flex items-center justify-between border-b border-line py-3 text-ink-soft hover:text-brand-strong">
+            <span>洗毛与护理</span><span aria-hidden="true">→</span>
+          </RouterLink>
+          <RouterLink to="/props" class="flex items-center justify-between border-b border-line py-3 text-ink-soft hover:text-brand-strong">
+            <span>道具工坊</span><span aria-hidden="true">→</span>
+          </RouterLink>
+          <RouterLink to="/merch" class="flex items-center justify-between border-b border-line py-3 text-ink-soft hover:text-brand-strong">
+            <span>周边展示</span><span aria-hidden="true">→</span>
+          </RouterLink>
+        </nav>
+      </div>
+    </section>
+
+    <section v-if="works.length" class="container-page pb-16 sm:pb-24">
+      <div class="flex items-end justify-between gap-4">
+        <div>
+          <p class="text-[11px] uppercase tracking-[0.2em] text-ink-faint">WORKS</p>
+          <h2 class="mt-2 font-display text-2xl font-medium">最近完成</h2>
+        </div>
+        <AppButton to="/works" variant="ghost" size="sm">全部作品 →</AppButton>
+      </div>
+      <RouterLink
+        v-if="works.length === 1 && works[0]"
+        :to="works[0].route"
+        class="group mt-6 grid overflow-hidden rounded-2xl bg-surface shadow-soft transition-shadow hover:shadow-lift sm:grid-cols-2"
+      >
+        <div class="aspect-[16/10] overflow-hidden bg-canvas-sunk">
+          <img
+            v-if="works[0].cover"
+            :src="works[0].cover.src"
+            :alt="works[0].cover.alt"
+            :width="works[0].cover.width"
+            :height="works[0].cover.height"
+            loading="lazy"
+            class="size-full object-cover"
+          />
+          <div v-else class="flex size-full items-center justify-center text-4xl text-ink-faint" aria-hidden="true">✦</div>
+        </div>
+        <div class="flex flex-col justify-center p-7 sm:p-10">
+          <p class="text-[10px] uppercase tracking-[0.14em] text-ink-faint">
+            {{ works[0].species }} · {{ works[0].work_type }}
+          </p>
+          <h3 class="mt-2 font-display text-2xl font-medium">{{ displayTitle(works[0].title) }}</h3>
+          <p class="mt-3 text-sm leading-7 text-ink-muted">{{ truncate(works[0].summary, 80) }}</p>
+          <span class="mt-6 text-sm text-brand-strong">查看作品 →</span>
+        </div>
+      </RouterLink>
+
+      <div v-else class="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <RouterLink
+          v-for="work in works.slice(0, 3)"
+          :key="work.id"
+          :to="work.route"
+          class="group overflow-hidden rounded-2xl bg-surface shadow-soft transition-shadow hover:shadow-lift"
+        >
+          <div class="aspect-[4/3] overflow-hidden bg-canvas-sunk">
+            <img
+              v-if="work.cover"
+              :src="work.cover.src"
+              :alt="work.cover.alt"
+              :width="work.cover.width"
+              :height="work.cover.height"
+              loading="lazy"
+              class="size-full object-cover"
+            />
+            <div v-else class="flex size-full items-center justify-center text-3xl text-ink-faint" aria-hidden="true">✦</div>
+          </div>
+          <div class="p-4">
+            <p class="text-[10px] uppercase tracking-[0.14em] text-ink-faint">{{ work.species }} · {{ work.work_type }}</p>
+            <h3 class="mt-1 line-clamp-1 font-display text-base font-medium">{{ displayTitle(work.title) }}</h3>
+          </div>
+        </RouterLink>
+      </div>
+    </section>
+
+    <div v-if="error" role="status" class="container-page pb-16">
+      <div class="rounded-2xl bg-canvas-sunk px-6 py-5 text-sm text-ink-muted">
+        首页动态内容暂时没有加载出来，不影响浏览其他页面。
+        <button type="button" class="ml-2 text-brand-strong" @click="load">重试</button>
+      </div>
     </div>
-
-    <template v-else-if="home">
-      <!-- 三条业务线 -->
-      <section class="container-page py-16 sm:py-24">
-        <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <SectionHeading eyebrow="Services" title="做装，也做养护" description="洗毛、道具与周边，看清再决定。" />
-          <RouterLink to="/shop" class="w-fit text-sm text-brand-strong hover:underline">全部商品 →</RouterLink>
-        </div>
-
-        <div class="mt-10 grid gap-4 md:grid-cols-3">
-          <RouterLink
-            v-for="card in serviceCards"
-            :key="card.to"
-            :to="card.to"
-            class="group rounded-2xl bg-surface p-7 shadow-soft transition-shadow duration-200 hover:shadow-lift"
-          >
-            <span class="inline-flex rounded-full px-3 py-1 text-[10px] tracking-[0.16em]" :class="card.tone">
-              {{ card.label }}
-            </span>
-            <h3 class="mt-6 font-display text-xl font-medium">{{ card.title }}</h3>
-            <p class="mt-2 max-w-[22ch] text-sm leading-relaxed text-ink-muted">{{ card.body }}</p>
-            <span class="mt-7 inline-flex items-center gap-1 text-sm text-brand-strong">
-              去看看 <span aria-hidden="true">→</span>
-            </span>
-          </RouterLink>
-        </div>
-      </section>
-
-      <!-- 代表作品 -->
-      <section v-if="workImages.length" class="border-y border-line bg-[#fafaf8] py-16 sm:py-24">
-        <div class="container-page">
-          <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-            <SectionHeading eyebrow="Works" title="最近完成" description="每一套都从一张设定图开始。" />
-            <AppButton to="/works" variant="ghost" size="sm">全部作品 →</AppButton>
-          </div>
-
-          <div class="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            <RouterLink
-              v-for="work in workImages.slice(0, 3)"
-              :key="work.id"
-              :to="work.route"
-              class="group overflow-hidden rounded-2xl bg-surface shadow-soft transition-shadow duration-200 hover:shadow-lift"
-            >
-              <div class="aspect-[4/3] overflow-hidden bg-[#f4f2ef]">
-                <img
-                  v-if="work.cover"
-                  :src="work.cover.src"
-                  :alt="work.cover.alt"
-                  :width="work.cover.width"
-                  :height="work.cover.height"
-                  loading="lazy"
-                  class="size-full object-cover"
-                />
-                <div v-else class="flex size-full items-center justify-center text-3xl text-ink-faint" aria-hidden="true">✦</div>
-              </div>
-              <div class="p-5">
-                <p class="text-[10px] uppercase tracking-[0.14em] text-ink-faint">{{ work.species }} · {{ work.work_type }}</p>
-                <h3 class="mt-1.5 font-display text-lg font-medium">{{ displayTitle(work.title) }}</h3>
-                <p class="mt-1 text-sm text-ink-muted">{{ truncate(work.summary, 42) }}</p>
-              </div>
-            </RouterLink>
-          </div>
-        </div>
-      </section>
-
-      <!-- 商城 -->
-      <section v-if="products.length" class="container-page py-16 sm:py-24">
-        <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <SectionHeading eyebrow="Shop" title="顺手带走" description="现货、道具与洗毛套餐。" />          <AppButton to="/shop" variant="ghost" size="sm">逛商城 →</AppButton>
-        </div>
-        <div class="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <RouterLink
-            v-for="product in products.slice(0, 4)"
-            :key="product.id"
-            :to="`/shop/${product.slug}`"
-            class="group overflow-hidden rounded-2xl bg-surface shadow-soft transition-shadow duration-200 hover:shadow-lift"
-          >
-            <div class="aspect-square overflow-hidden bg-[#f4f2ef]">
-              <img
-                v-if="product.images[0]"
-                :src="product.images[0].src"
-                :alt="product.images[0].alt"
-                :width="product.images[0].width"
-                :height="product.images[0].height"
-                loading="lazy"
-                class="size-full object-cover"
-              />
-              <div v-else class="flex size-full items-center justify-center text-3xl text-ink-faint" aria-hidden="true">✦</div>
-            </div>
-            <div class="p-4">
-              <p class="text-[10px] uppercase tracking-wide text-ink-faint">{{ product.subtitle }}</p>
-              <h3 class="mt-1 line-clamp-1 font-display text-[15px] font-medium">{{ displayTitle(product.title) }}</h3>
-              <p class="mt-2 font-display text-base font-medium text-brand-strong">
-                {{ formatMoney(product.price_from_cents, product.currency === "USD" ? "USD" : "CNY") }}
-              </p>
-            </div>
-          </RouterLink>
-        </div>
-      </section>
-
-      <!-- 联系 -->
-      <section class="container-page py-16 sm:py-24">
-        <div class="rounded-[2.5rem] bg-[#f5f4f1] px-6 py-10 sm:px-10 sm:py-14">
-          <div class="grid gap-10 lg:grid-cols-[1.3fr_1fr]">
-            <div>
-              <p class="text-[11px] uppercase tracking-[0.2em] text-brand-strong">Contact</p>
-              <h2 class="mt-3 font-display text-4xl font-medium tracking-[-0.04em] sm:text-5xl">
-                有想法，<br />直接说。
-              </h2>
-              <p class="mt-5 max-w-xl text-sm leading-relaxed text-ink-muted">
-                询价 3 个工作日内回复，反馈 7 个工作日内回复。工作时段 {{ site.brand.service_hours }}。
-              </p>
-              <div class="mt-7 flex flex-wrap gap-3">
-                <AppButton to="/commission/new" variant="primary">提交询价</AppButton>
-                <AppButton to="/contact" variant="secondary">联系方式</AppButton>
-              </div>
-            </div>
-            <dl class="grid content-start gap-3 text-sm">
-              <div class="rounded-xl bg-surface/80 px-4 py-3.5">
-                <dt class="text-[10px] uppercase tracking-wide text-ink-faint">邮箱</dt>
-                <dd class="mt-1">
-                  <a class="underline decoration-line-strong underline-offset-4 hover:text-brand-strong" :href="`mailto:${site.brand.support_email}`">{{ site.brand.support_email }}</a>
-                </dd>
-              </div>
-              <div class="rounded-xl bg-surface/80 px-4 py-3.5">
-                <dt class="text-[10px] uppercase tracking-wide text-ink-faint">经营主体</dt>
-                <dd class="mt-1 text-ink-soft">{{ site.brand.legal_entity }}</dd>
-              </div>
-              <div class="rounded-xl bg-surface/80 px-4 py-3.5">
-                <dt class="text-[10px] uppercase tracking-wide text-ink-faint">积分</dt>
-                <dd class="mt-1 text-ink-soft">每 {{ site.loyaltyRules.denominator_yuan }} 元得 1 星绒币</dd>
-              </div>
-            </dl>
-          </div>
-        </div>
-      </section>
-    </template>
   </div>
 </template>
-
-<style scoped>
-.prose-quiet :deep(p) {
-  margin: 0.35rem 0;
-  color: var(--color-ink-muted);
-  line-height: 1.7;
-}
-</style>
